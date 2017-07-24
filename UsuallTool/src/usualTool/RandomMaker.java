@@ -1,11 +1,13 @@
 package usualTool;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.Random;
 
 public class RandomMaker {
 	private Random ran = new Random();
 	private static long timeSeed = System.currentTimeMillis();
+	
 	
 	public RandomMaker(){
 		ran.setSeed(timeSeed);
@@ -16,11 +18,10 @@ public class RandomMaker {
 		return temptI;
 	}
 
-	public String RandomDoubleFormate(double start, int end, String format) {
+	public String RandomDoubleFormate(double start, int end, int pre) {
 		// (##.##)
-		DecimalFormat df = new DecimalFormat(format);
 		double temptI = start + (end - start) * ran.nextDouble();
-		return df.format(temptI);
+		return new BigDecimal(temptI+"").setScale(pre).toString();
 	}
 
 	public double RandomDouble(double start, int end) {	
