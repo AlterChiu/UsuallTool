@@ -255,4 +255,11 @@ public class FileFunction {
 	public void moveFolderWithOutDel(String oldPath, String newPath) {
 		copyFolder(oldPath, newPath);
 	}
+	
+	public void reNameFile(String oldPath , String newPath){
+		File oldFile = new File(oldPath);
+		oldFile.renameTo(new File(newPath));
+	}
 }
+
+
