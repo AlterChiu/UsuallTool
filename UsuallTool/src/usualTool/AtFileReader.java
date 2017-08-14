@@ -77,6 +77,21 @@ public class AtFileReader {
 		}
 		return content;
 	}
+	
+	public String[][] getContent(String split) {
+		String[][] content = new String[tr.size()][];
+		for (int i = 0; i < tr.size(); i++) {
+			content[i] = tr.get(i).split(split);
+		}
+		return content;
+	}
+	public String[][] getContent(String split , int start , int end) {
+		String[][] content = new String[tr.size()-start-end][];
+		for (int i = start; i < tr.size()-end; i++) {
+			content[i-start] = tr.get(i).split(split);
+		}
+		return content;
+	}
 
 	public String[][] getStr() {
 		String[][] content = new String[tr.size()][];

@@ -2,6 +2,7 @@ package usualTool;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class TimeTranslate {
 	public static final String DMY = "dd-MM-yy";
@@ -13,17 +14,32 @@ public class TimeTranslate {
 	public static final String YMDHMS3 = "yyyyMMddHHmmss";
 	public static final String YMDAHMS_SLASH = "yyyy/MM/dd a HH:mm:ss";
 	public static final String YMDAHMS_DASH = "yyyy-MM-dd a HH:mm:ss";
+	public static final String YMDslash_HM = "yyyy/MM/dd  HH:mm";
+	public static final String YMDdash_HM = "yyyy-MM-dd  HH:mm";
+	
+	
 
 	public String milliToDate(long time, String format) {
 		SimpleDateFormat sdf = new SimpleDateFormat(format);
 		return sdf.format(time);
 	}
+	public String StringGetSelected(String time, String format,String selected) throws ParseException {
+		Long tempLong = this.StringToLong(time, format);
+		return this.milliToDate(tempLong, selected);
+	}
+	
+	
 
 	public long StringToLong(String time, String format) throws ParseException {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
 		return dateFormat.parse(time).getTime();
 	}
 
+	public String getDate(String time , String format){
+		SimpleDateFormat sdf = new SimpleDateFormat(format);
+		return sdf.format(time);
+	}
+	
 	public String[] getFormate() {
 		String[] content = { "dd-MM-yy", "MM-dd-yy", "yy-MM-dd", "yyyy-MM-dd_HH", "yyyy-MM-dd_HH:mm:ss",
 				"yyyy-MM-dd HH:mm:ss", "yyyyMMddHHmmss", "yyyy/MM/dd a HH:mm:ss", "yyyy-MM-dd a HH:mm:ss" };

@@ -3,7 +3,7 @@ package usualTool;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class AtFileWriter<T> {
+public class AtFileWriter {
 	private String[][] temptDoubleArray = null;
 	private String[] temptArray = null;
 	private  FileWriter fw;
@@ -24,7 +24,7 @@ public class AtFileWriter<T> {
 	}
 	
 	
-	public void testWriter(String split) throws IOException {
+	public void textWriter(String split) throws IOException {
 		wirteFIle(split);
 	}
 	
