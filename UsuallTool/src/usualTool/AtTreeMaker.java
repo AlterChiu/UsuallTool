@@ -20,7 +20,7 @@ public class AtTreeMaker {
 		columns.add(index);
 	}
 	
-	public TreeMap<String,TreeMap<String,String>> getTree (){
+	public TreeMap<String,TreeMap<String,String>> getMixTree (){
 		TreeMap<String,TreeMap<String,String>> tree = new TreeMap<String,TreeMap<String,String>>();
 		
 		for(String line[] : content){
@@ -32,5 +32,26 @@ public class AtTreeMaker {
 		}
 		return tree;
 	}
+	
+	public TreeMap<String,String> getSingleTree(int target){
+		TreeMap<String,String> tree = new TreeMap<String,String>();
+		for(String[] line : content){
+			tree.put(line[this.index], line[target]);
+		}
+		return tree;
+	}
+	
+	public TreeMap<String,String[]> getMutiplieTree(int[] target){
+		TreeMap<String,String[]> tree = new TreeMap<String,String[]>();
+		for(String[] line : content){
+			String tempt[] = new String[target.length];
+			for(int i=0;i<target.length;i++){
+				tempt[i] = line[target[i]];
+			}
+			tree.put(line[this.index], tempt);
+		}
+		return tree;
+	}
+	
 
 }

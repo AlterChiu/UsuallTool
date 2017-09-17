@@ -6,11 +6,18 @@ import java.util.Random;
 
 public class RandomMaker {
 	private Random ran = new Random();
-	private static long timeSeed = System.currentTimeMillis();
+	private  long timeSeed;
 	
 	
 	public RandomMaker(){
+		timeSeed =  System.currentTimeMillis();
 		ran.setSeed(timeSeed);
+	}
+	
+	public RandomMaker newSeed(){
+		timeSeed =  System.currentTimeMillis();
+		ran.setSeed(timeSeed);
+		return this;
 	}
 
 	public int RandomInt(int start, int end) {

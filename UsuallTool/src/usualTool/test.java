@@ -12,16 +12,13 @@ public class test {
 		*
 		 * new FileFunction().reNameFile(oldFileAdd, newFileAdd);
 		 */
-
-		String time = "2016-07-12  10:15";
-		TimeTranslate timetranse = new TimeTranslate();	
-		 String YMDdash_HM = "yyyy-MM-dd  HH:mm";
+		TimeTranslate tt = new TimeTranslate();
+		String start = "201706010100";
+	
 		
-		long text =  timetranse.StringToLong(time, TimeTranslate.YMDdash_HM);
-		System.out.println(text+"");
+		start = tt.milliToDate(tt.StringToLong(start, "yyyyMMddHHmm") + 600000, "yyyyMMddHHmm");
 		
-		
-
+		System.out.println(start);
 	}
 
 }

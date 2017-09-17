@@ -43,9 +43,8 @@ public class AtFileWriter {
 				fw.write("\r\n");
 			}
 		} else if (temptArray != null) {
-			fw.write(temptArray[0]);
-			for (int i = 1; i < this.temptArray.length; i++) {
-				fw.write(split+ temptArray[i]);
+			for (int i = 0; i < this.temptArray.length; i++) {
+				fw.write(temptArray[i]+"\r\n");
 			}
 		}
 		this.fw.close();

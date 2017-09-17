@@ -38,6 +38,7 @@ public class AtArraySort<E> {
 		return this;
 	}
 	
+	
 	public String[][] getSorted(){
 		String keys[] = (String[]) tree.keySet().parallelStream().toArray(String[]::new);
 		ArrayList<String[]>out = new ArrayList<String[]>();
