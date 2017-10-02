@@ -5,9 +5,12 @@ import java.util.TreeMap;
 
 public class AtTreeFunction<E,V> {
 	TreeMap<E,ArrayList<V>> tree;
+	
 	public AtTreeFunction(TreeMap<E,ArrayList<V>> tree ){
 		this.tree = tree;
 	}
+	
+	
 	public TreeMap<E,ArrayList<V>> checkTree(E key ,V value){
 		ArrayList<V> temp;
 		if(this.tree.containsKey(key)){

@@ -3,16 +3,34 @@ package usualTool;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-public class AtTreeMaker {
+public class AtTreeMaker <E>{
 	String[][] content;
 	int index;
 	
 	ArrayList<String> keys = new ArrayList<String>();
 	ArrayList<Integer>columns = new ArrayList<Integer>();
+	TreeMap<String,ArrayList<E>> temptTree = new TreeMap<String,ArrayList<E>>();
 	
 	public AtTreeMaker(String content[][] ,int index){
 		this.content = content;
 		this.index = index;
+	}
+	
+	public   AtTreeMaker(ArrayList<String> tempt){
+		
+		for(String tt: tempt){
+			temptTree.put(tt, new ArrayList<E>());
+		}
+	}
+	
+	public   AtTreeMaker(String[] tempt){
+		for(String tt: tempt){
+			temptTree.put(tt, new ArrayList<E>());
+		}
+	}
+	
+	public TreeMap<String,ArrayList<E>> getTreeMaker(){
+		return this.temptTree;
 	}
 	
 	public void add(String key , int index){

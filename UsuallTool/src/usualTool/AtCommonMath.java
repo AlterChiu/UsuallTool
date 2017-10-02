@@ -17,10 +17,9 @@ public class AtCommonMath {
 	}
 
 	public AtCommonMath(ArrayList<Double> valueList) {
-		this.list = valueList.stream().mapToDouble(Double::doubleValue).toArray();
-		this.ds = new DescriptiveStatistics(this.list);
+		this.ds = new DescriptiveStatistics(valueList.stream().mapToDouble(Double::doubleValue).toArray());
 	}
-
+	
 	public double getMax() {
 		double tempt = this.ds.getMax();
 		return new BigDecimal(tempt).setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();

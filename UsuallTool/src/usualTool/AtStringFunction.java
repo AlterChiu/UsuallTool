@@ -18,7 +18,7 @@ public class AtStringFunction {
 	public String FillBack(String fill , int length){
 		while( this.text.length()<length){
 			this.text = this.text + fill;
-		}
+		} 
 		return this.text;
 	}
 	
