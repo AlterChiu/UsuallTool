@@ -19,6 +19,13 @@ public class AtCommonMath {
 	public AtCommonMath(ArrayList<Double> valueList) {
 		this.ds = new DescriptiveStatistics(valueList.stream().mapToDouble(Double::doubleValue).toArray());
 	}
+	public AtCommonMath(String[] valueList){
+		ArrayList<Double>tempt = new ArrayList<Double>();
+		for(String value : valueList){
+			tempt.add(Double.parseDouble(value));
+		}
+		this.ds = new DescriptiveStatistics(tempt.parallelStream().mapToDouble(Double::doubleValue).toArray());
+	}
 	
 	public double getMax() {
 		double tempt = this.ds.getMax();
