@@ -29,6 +29,18 @@ public class AtFileReader {
 		Br.close();
 	}
 	
+	public AtFileReader(InputStreamReader input) throws IOException{
+		BufferedReader Br = new BufferedReader(input);
+		int i = 0;
+		String tempt;
+
+		while ((tempt = Br.readLine()) != null) {
+			tr.put(i, tempt);
+			i++;
+		}
+		Br.close();
+	}
+	
 	
 	 public  AtFileReader(String  fileAdd ,String encode) throws IOException{          
 	            FileInputStream fis = new FileInputStream(new File(fileAdd));  
