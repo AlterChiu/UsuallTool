@@ -3,6 +3,7 @@ package asciiFunction;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.TreeMap;
 
 import usualTool.AtCommonMath;
@@ -59,11 +60,33 @@ public class AsciiBasicControl {
 		
 		return temptTree;
 	}
+	
+	public String getLocation(double x , double y){
+		double cornerX = Double.parseDouble(this.asciiContent[2][1]);
+		double cornerY = Double.parseDouble(this.asciiContent[3][1]);
+		double cellSize = Double.parseDouble(this.asciiContent[4][1]);
+		
+		int row = new BigDecimal((y-cornerY)/cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+		int column = new BigDecimal((x-cornerX)/cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+		try{
+			return this.asciiContent[row][column];
+		}catch(Exception e){
+			return "error location";
+		}
+	}
 
 	public String[][] getAsciiFile() {
 		return this.asciiContent;
 	}
-
+	
+	public String[][] getAsciiGrid(){
+		ArrayList<String[]> temptArray = new ArrayList<String[]>(Arrays.asList(this.asciiContent));
+		for(int i=0;i<6;i++){
+			temptArray.remove(0);
+		}
+		return temptArray.parallelStream().toArray(String[][]::new);
+	}
+	
 	public AsciiBasicControl changeNoDataValue(String nan) {
 		String noData = this.asciiContent[5][1];
 		for (int line = 0; line < this.asciiContent.length; line++) {

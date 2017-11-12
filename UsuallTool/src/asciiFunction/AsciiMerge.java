@@ -126,8 +126,10 @@ public class AsciiMerge {
 					// point, insert the first ascii content
 					for (int insertRow = 0; insertRow < this.secondAsciiContent.length; insertRow++) {
 						for (int insertColumn = 0; insertColumn < this.secondAsciiContent[row].length; insertColumn++) {
+							if(!this.secondAsciiContent[insertRow][insertColumn].equals(this.noData)){
 							this.outAsciiContent[row + insertRow][column
 									+ insertColumn] = this.secondAsciiContent[insertRow][insertColumn];
+							}
 						}
 					}
 				}
@@ -200,9 +202,6 @@ public class AsciiMerge {
 		} else {
 			this.outBottomY = this.secondBottomY;
 		}
-		System.out.println("out ");
-		System.out.println("Top: " + this.outTopX  + "    " + this.outTopY);
-		System.out.println("Bot:  " + this.outBottomX + "  " + this.outBottomY);
 	}
 
 }
