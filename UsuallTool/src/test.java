@@ -1,22 +1,27 @@
 import java.io.IOException;
 
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-
-import tw.ntut.ce.util.gzip.GZipUtils;
-import usualTool.AtExcelReader;
+import asciiFunction.AsciiBasicControl;
+import asciiFunction.AsciiMerge;
+import usualTool.AtFileReader;
+import usualTool.AtFileWriter;
 
 public class test {
 
-	public static void main(String[] args) throws EncryptedDocumentException, InvalidFormatException, IOException {
+	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		String zipFilePath = "C:\\Users\\alter\\Downloads\\commons-collections4-4.1-bin.tar.gz";
-        
-        String destDir = "C:\\Users\\alter\\Downloads\\zipTest";
-        
-       
-		GZipUtils.ungzipFile(zipFilePath,destDir);
-        
+		String[][] U1content = new AsciiBasicControl("C:\\Users\\alter\\Desktop\\山峰可可\\97Zone1(20mDEM_200YmaxNodata)(mhby10)-Unit1.asc").cutFirstColumn().getAsciiFile();
+		String[][] U2content = new AsciiBasicControl("C:\\Users\\alter\\Desktop\\山峰可可\\97Zone1(20mDEM_200YmaxNodata)(mhby10)-Unit2.asc").cutFirstColumn().getAsciiFile();
+		
+		
+		
+		String tempt[][] = new AtFileReader("C:\\Users\\alter\\Desktop\\山峰可可\\97Zone1(20mDEM_200YmaxNodata)(mhby10)-Unit2.asc").getStr();
+		System.out.println(tempt[6].length);
+		
+		String[][] temptout = new AsciiMerge(U1content,U2content).getMergedAscii();
+		new AtFileWriter(temptout , "C:\\Users\\alter\\Desktop\\山峰可可\\97Zone1").textWriter("    ");
+		
+		
+		
 	}
 
 }
