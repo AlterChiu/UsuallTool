@@ -32,6 +32,10 @@ public class AsciiMerge {
 	private double outBottomX;
 	private double outBottomY;
 
+	
+//	<===================>
+//	<        this is the construct       >
+//	<===================>
 	public AsciiMerge(String[][] ascii1, String[][] ascii2) {
 		this.firstAsciiContent = ascii1;
 		this.secondAsciiContent = ascii2;
@@ -42,41 +46,66 @@ public class AsciiMerge {
 		setOutPutAsciiContent();
 		mergeAscii();
 	}
+//	<=====================>
+//	<  setting the out ascii property  >
+//	<=====================>
+	private void setOutPutAsciiProperty() {
+		this.cellSize = Double.parseDouble(this.firstProperty.get("cellSize"));
+		this.noData = this.firstProperty.get("noData");
+		System.out.println(this.noData);
+		this.secondAsciiContent = new AsciiBasicControl(this.secondAsciiContent)
+				.changeNoDataValue(this.firstProperty.get("noData")).getAsciiFile();
 
-	public ArrayList<String[]> getMergedAsciiArray() {
-		TreeMap<String, String> temptTree = getMergedProperty();
-		ArrayList<String[]> temptContent = new ArrayList<String[]>(Arrays.asList(this.outAsciiContent));
+		// initial the corner point of the ascii file
+		this.firstBottomX = Double.parseDouble(this.firstProperty.get("bottomX"));
+		this.firstBottomY = Double.parseDouble(this.firstProperty.get("bottomY"));
+		this.firstTopX = Double.parseDouble(this.firstProperty.get("topX"));
+		this.firstTopY = Double.parseDouble(this.firstProperty.get("topY"));
 
-		temptContent.add(0, new String[] { "NODATA_value ", temptTree.get("noData") });
-		temptContent.add(0, new String[] { "cellsize", temptTree.get("cellSize") });
-		temptContent.add(0, new String[] { "yllcorner", temptTree.get("bottomY") });
-		temptContent.add(0, new String[] { "xllcorner", temptTree.get("bottomX") });
-		temptContent.add(0, new String[] { "nrows", temptTree.get("row") });
-		temptContent.add(0, new String[] { "ncols", temptTree.get("column") });
-
-		return temptContent;
+		this.secondBottomX = Double.parseDouble(this.secondProperty.get("bottomX"));
+		this.secondBottomY = Double.parseDouble(this.secondProperty.get("bottomY"));
+		this.secondTopX = Double.parseDouble(this.secondProperty.get("topX"));
+		this.secondTopY = Double.parseDouble(this.secondProperty.get("topY"));
+		
+		// TopX
+		if (this.firstTopX >= this.secondTopX) {
+			this.outTopX = this.firstTopX;
+		} else {
+			this.outTopX = this.secondTopX;
+		}
+		// TopY
+		if (this.firstTopY >= this.secondTopY) {
+			this.outTopY = this.firstTopY;
+		} else {
+			this.outTopY = this.secondTopY;
+		}
+		// BottomX
+		if (this.firstBottomX <= this.secondBottomX) {
+			this.outBottomX = this.firstBottomX;
+		} else {
+			this.outBottomX = this.secondBottomX;
+		}
+		// BottomY
+		if (this.firstBottomY <= this.secondBottomY) {
+			this.outBottomY = this.firstBottomY;
+		} else {
+			this.outBottomY = this.secondBottomY;
+		}
 	}
 
-	public String[][] getMergedAscii() {
-		return getMergedAsciiArray().parallelStream().toArray(String[][]::new);
-	}
-
-	public TreeMap<String, String> getMergedProperty() {
-		TreeMap<String, String> temptTree = new TreeMap<String, String>();
-
-		temptTree.put("column", this.outAsciiContent[0].length + "");
-		temptTree.put("row", this.outAsciiContent.length + "");
-		temptTree.put("bottomX",
-				new BigDecimal(this.outBottomX).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
-		temptTree.put("bottomY",
-				new BigDecimal(this.outBottomY).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
-		temptTree.put("cellSize",
-				new BigDecimal(this.cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
-		temptTree.put("noData", this.noData);
-
-		return temptTree;
-	}
-
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//	<====================>
+//	< merge ascii for the first time >
+//	<====================>
 	private void mergeAscii() {
 		// start from the left top point
 		double temptRow = this.outTopY;
@@ -136,7 +165,10 @@ public class AsciiMerge {
 			}
 		}
 	}
-
+	
+//	<=====================>
+//	< make the out ascii start at null >
+//	<=====================>
 	private void setOutPutAsciiContent() {
 		ArrayList<String[]> temptFirst = new ArrayList<String[]>(Arrays.asList(this.firstAsciiContent));
 		ArrayList<String[]> temptSecond = new ArrayList<String[]>(Arrays.asList(this.secondAsciiContent));
@@ -158,50 +190,58 @@ public class AsciiMerge {
 
 	}
 
-	private void setOutPutAsciiProperty() {
-		this.cellSize = Double.parseDouble(this.firstProperty.get("cellSize"));
-		System.out.println(this.cellSize);
-		this.noData = this.firstProperty.get("noData");
-		this.secondAsciiContent = new AsciiBasicControl(this.secondAsciiContent)
-				.changeNoDataValue(this.firstProperty.get("noData")).getAsciiFile();
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//	<====================>
+//	< get the merged ascii in array >
+//	<====================>
+	public ArrayList<String[]> getMergedAsciiArray() {
+		TreeMap<String, String> temptTree = getMergedProperty();
+		ArrayList<String[]> temptContent = new ArrayList<String[]>(Arrays.asList(this.outAsciiContent));
 
-		// initial the corner point of the ascii file
-		this.firstBottomX = Double.parseDouble(this.firstProperty.get("bottomX"));
-		this.firstBottomY = Double.parseDouble(this.firstProperty.get("bottomY"));
-		this.firstTopX = Double.parseDouble(this.firstProperty.get("topX"));
-		this.firstTopY = Double.parseDouble(this.firstProperty.get("topY"));
+		temptContent.add(0, new String[] { "NODATA_value ", temptTree.get("noData") });
+		temptContent.add(0, new String[] { "cellsize", temptTree.get("cellSize") });
+		temptContent.add(0, new String[] { "yllcorner", temptTree.get("bottomY") });
+		temptContent.add(0, new String[] { "xllcorner", temptTree.get("bottomX") });
+		temptContent.add(0, new String[] { "nrows", temptTree.get("row") });
+		temptContent.add(0, new String[] { "ncols", temptTree.get("column") });
 
-		this.secondBottomX = Double.parseDouble(this.secondProperty.get("bottomX"));
-		this.secondBottomY = Double.parseDouble(this.secondProperty.get("bottomY"));
-		this.secondTopX = Double.parseDouble(this.secondProperty.get("topX"));
-		this.secondTopY = Double.parseDouble(this.secondProperty.get("topY"));
-		
-		
-
-		// TopX
-		if (this.firstTopX >= this.secondTopX) {
-			this.outTopX = this.firstTopX;
-		} else {
-			this.outTopX = this.secondTopX;
-		}
-		// TopY
-		if (this.firstTopY >= this.secondTopY) {
-			this.outTopY = this.firstTopY;
-		} else {
-			this.outTopY = this.secondTopY;
-		}
-		// BottomX
-		if (this.firstBottomX <= this.secondBottomX) {
-			this.outBottomX = this.firstBottomX;
-		} else {
-			this.outBottomX = this.secondBottomX;
-		}
-		// BottomY
-		if (this.firstBottomY <= this.secondBottomY) {
-			this.outBottomY = this.firstBottomY;
-		} else {
-			this.outBottomY = this.secondBottomY;
-		}
+		return temptContent;
 	}
+	public String[][] getMergedAscii() {
+		return getMergedAsciiArray().parallelStream().toArray(String[][]::new);
+	}
+
+	
+	
+	
+	
+	public TreeMap<String, String> getMergedProperty() {
+		TreeMap<String, String> temptTree = new TreeMap<String, String>();
+
+		temptTree.put("column", this.outAsciiContent[0].length + "");
+		temptTree.put("row", this.outAsciiContent.length + "");
+		temptTree.put("bottomX",
+				new BigDecimal(this.outBottomX).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
+		temptTree.put("bottomY",
+				new BigDecimal(this.outBottomY).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
+		temptTree.put("cellSize",
+				new BigDecimal(this.cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
+		temptTree.put("noData", this.noData);
+
+		return temptTree;
+	}
+
+	
+
+	
+	
 
 }

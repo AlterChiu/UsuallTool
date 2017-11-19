@@ -9,16 +9,18 @@ public class test {
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		String[][] U1content = new AsciiBasicControl("C:\\Users\\alter\\Desktop\\山峰可可\\97Zone1(20mDEM_200YmaxNodata)(mhby10)-Unit1.asc").cutFirstColumn().getAsciiFile();
-		String[][] U2content = new AsciiBasicControl("C:\\Users\\alter\\Desktop\\山峰可可\\97Zone1(20mDEM_200YmaxNodata)(mhby10)-Unit2.asc").cutFirstColumn().getAsciiFile();
+//		String[][] U1Zcontent = new AtFileReader("C:\\Users\\alter\\Desktop\\山峰可可\\97Zone1(20mDEM_200YmaxNodata)(mhby10)-Unit1(kn).asc").getStr(1,0);
+//		String[][] U2Zcontent = new AtFileReader("C:\\Users\\alter\\Desktop\\山峰可可\\97Zone1(20mDEM_200YmaxNodata)(mhby10)-Unit2(kn).asc").getStr(1,0);
+		
+		String U1Zcontent = "C:\\Users\\alter\\Desktop\\sobekDEM\\original\\97Zone1(20mDEM_200YmaxNodata)(mhby10)-Unit1(kn).asc";
+		String U2Zcontent = "C:\\Users\\alter\\Desktop\\sobekDEM\\original\\97Zone1(20mDEM_200YmaxNodata)(mhby10)-Unit2(kn).asc";
+		
+		String[][] ascii1  = new AsciiBasicControl(U1Zcontent).cutFirstColumn().getAsciiFile();
+		String[][] ascii2 = new AsciiBasicControl(U2Zcontent).cutFirstColumn().getAsciiFile();
 		
 		
-		
-		String tempt[][] = new AtFileReader("C:\\Users\\alter\\Desktop\\山峰可可\\97Zone1(20mDEM_200YmaxNodata)(mhby10)-Unit2.asc").getStr();
-		System.out.println(tempt[6].length);
-		
-		String[][] temptout = new AsciiMerge(U1content,U2content).getMergedAscii();
-		new AtFileWriter(temptout , "C:\\Users\\alter\\Desktop\\山峰可可\\97Zone1").textWriter("    ");
+		String[][] temptout = new AsciiMerge(ascii1,ascii2).getMergedAscii();
+		new AtFileWriter(temptout , "C:\\Users\\alter\\Desktop\\sobekDEM\\export\\97Zone1(20mDEM_total)(kn).asc").textWriter("    ");
 		
 		
 		

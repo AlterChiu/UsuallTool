@@ -10,9 +10,13 @@ import usualTool.AtCommonMath;
 import usualTool.AtFileReader;
 
 public class AsciiBasicControl {
-	private String[][] asciiContent;
-	private String fileAdd;
+	private String[][] asciiContent = null;
+	private String fileAdd = null;
 
+	
+//	<==============>
+//	< constructor function>
+//	<==============>
 	public AsciiBasicControl(String[][] asciiContent) {
 		this.asciiContent = asciiContent;
 	}
@@ -22,19 +26,54 @@ public class AsciiBasicControl {
 		this.asciiContent = new AtFileReader(fileAdd).getStr();
 	}
 
+	
+	
+	
+//	<=========================>
+//	< using while ascii file start by a space >
+//	<=========================>
 	public AsciiBasicControl cutFirstColumn() throws IOException {
-		ArrayList<String[]> temptArray = new ArrayList<String[]>();
-		String[] temptContent = new AtFileReader(this.fileAdd).getContain();
-		for (int line = 0; line < 6; line++) {
-			temptArray.add(temptContent[line].split(" +"));
+		// function for the open file
+		
+		if(this.fileAdd!=null){
+			ArrayList<String[]> temptArray = new ArrayList<String[]>();
+			String[] temptContent = new AtFileReader(this.fileAdd).getContain();
+			for (int line = 0; line < 6; line++) {
+				temptArray.add(temptContent[line].split(" +"));
+			}
+			for (int line = 6; line < temptContent.length; line++) {
+				temptArray.add(temptContent[line].trim().split(" +"));
+			}
+			this.asciiContent = temptArray.parallelStream().toArray(String[][]::new);
+			
+			
+			// function for the reading array
+		}else{
+			ArrayList<String[]> asciiArray = new  ArrayList<String[]>(Arrays.asList(this.asciiContent));
+			ArrayList<String[]> temptArray = new ArrayList<String[]>();
+			
+			for(int line = 0 ; line<asciiArray.size();line++){
+				if(line<6){
+					temptArray.add(asciiArray.get(line));
+				}else{
+					ArrayList<String> temptLine = new ArrayList<String>(Arrays.asList(asciiArray.get(line)));
+					temptLine.remove(0);
+					temptArray.add(temptLine.parallelStream().toArray(String[]::new));
+				}
+			}
+			this.asciiContent = temptArray.parallelStream().toArray(String[][]::new);
 		}
-		for (int line = 6; line < temptContent.length; line++) {
-			temptArray.add(temptContent[line].trim().split(" +"));
-		}
-		this.asciiContent = temptArray.parallelStream().toArray(String[][]::new);
 		return this;
 	}
 
+	
+	
+	
+	
+	
+//	<==================>
+//	< get the read ascii property>
+//	<==================>
 	public TreeMap<String, String> getProperty() {
 		TreeMap<String, String> temptTree = new TreeMap<String, String>();
 
@@ -57,10 +96,18 @@ public class AsciiBasicControl {
 						.parseDouble(this.asciiContent[3][1]) + cellSize * (this.asciiContent.length-6-1))
 								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
 		
-		
 		return temptTree;
 	}
 	
+	
+	
+	
+	
+	
+	
+//	<===========================>
+//	< get the value by giving location of ascii >
+//	<===========================>
 	public String getLocation(double x , double y){
 		double cornerX = Double.parseDouble(this.asciiContent[2][1]);
 		double cornerY = Double.parseDouble(this.asciiContent[3][1]);
@@ -75,6 +122,21 @@ public class AsciiBasicControl {
 		}
 	}
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//	<---------------------------------------------geting the ascii content------------------------------------------------->
+//	<==========================================================================>
 	public String[][] getAsciiFile() {
 		return this.asciiContent;
 	}
@@ -86,7 +148,32 @@ public class AsciiBasicControl {
 		}
 		return temptArray.parallelStream().toArray(String[][]::new);
 	}
+//	<============================================================================>
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//	<=================>
+//	< replace the noData value>
+//	<=================>
 	public AsciiBasicControl changeNoDataValue(String nan) {
 		String noData = this.asciiContent[5][1];
 		for (int line = 0; line < this.asciiContent.length; line++) {
@@ -99,6 +186,8 @@ public class AsciiBasicControl {
 		return this;
 	}
 
+	
+	
 //	public AsciiBasicControl changeCellSize(int size) {
 //		// make the column ,row and size to multiply the size
 //		this.asciiContent[0][1] = (int) (Integer.parseInt(this.asciiContent[0][1]) * size) + "";
