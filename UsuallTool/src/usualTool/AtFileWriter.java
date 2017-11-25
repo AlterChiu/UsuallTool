@@ -18,6 +18,11 @@ public class AtFileWriter {
 		fw = new FileWriter(fileAdd);
 		this.temptArray = content;
 	}
+	
+	public AtFileWriter(String content , String fileAdd) throws IOException{
+		this.fw = new FileWriter(fileAdd);
+		this.temptArray = new String[]{content,""};
+		}
 
 	public void csvWriter() throws IOException {
 		wirteFIle(",");
