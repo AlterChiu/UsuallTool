@@ -1,5 +1,7 @@
 import java.io.IOException;
 
+import com.google.gson.Gson;
+
 import asciiFunction.AsciiBasicControl;
 import asciiFunction.AsciiMerge;
 import asciiFunction.AsciiToJson;
@@ -16,9 +18,8 @@ public class test {
 
 		String fileAdd = "C:\\Users\\alter\\Desktop\\海棠易致災分析\\07310700_Output\\UNITALL0002.asc";
 		AsciiToJson geoJson = new AsciiToJson(fileAdd);
-		new AtFileWriter(geoJson.getGeoJsonInString() ,  "C:\\Users\\alter\\Desktop\\海棠易致災分析\\07310700_Output\\out.geoJson")
-		
-		
+		String tempt = new Gson().toJson(geoJson.getGeoJson(0.05,99));
+		new AtFileWriter(tempt ,  "C:\\Users\\alter\\Desktop\\海棠易致災分析\\07310700_Output\\out_5cm.geoJson").textWriter("");
 		
 	}
 

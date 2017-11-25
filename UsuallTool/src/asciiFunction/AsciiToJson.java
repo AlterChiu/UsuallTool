@@ -29,7 +29,54 @@ public class AsciiToJson {
 	}
 
 	
-	
+//	<=============================>
+//	< getting the GeoJson by the setting asciiFile>
+//	<==============================>
+	public JsonObject getGeoJson(double base , double top) {
+//		return the geoJson 
+//		_____________________________________________________________________________
+		JsonObject outJson = new JsonObject();
+		outJson.addProperty("type", "FeatureCollection");
+
+//		Basic setting
+//		____________________________________________________________________________
+		double startX = Double.parseDouble(this.asciiProperty.get("bottomX"));
+		double startY = Double.parseDouble(this.asciiProperty.get("topY"));
+		double cellSize = Double.parseDouble(this.asciiProperty.get("cellSize"));
+		String noData = this.asciiProperty.get("noData");
+
+		JsonArray shpArray = new JsonArray();
+//		<reading the asciiContent if the value isn't equals to the noData value>
+//		________________________________________________________________________________
+		for (int line = 0; line < this.asciiContent.length; line++) {
+			double temptY = new BigDecimal(startY - line * cellSize)
+					.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+			for (int column = 0; column < this.asciiContent[0].length; column++) {
+				
+				
+				if (!this.asciiContent[line][column].equals(noData) ) {
+					double value = Double.parseDouble(this.asciiContent[line][column]) ;
+					if(value>=base && value < top){
+						double temptX = new BigDecimal(startX + column * cellSize)
+								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+
+						double xP = new BigDecimal(temptX + 0.5 * cellSize)
+								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+						double xN = new BigDecimal(temptX - 0.5 * cellSize)
+								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+						double yP = new BigDecimal(temptY + 0.5 * cellSize)
+								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+						double yN = new BigDecimal(temptY - 0.5 * cellSize)
+								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+						
+						shpArray.add(getSingleGrid(xP,xN,yP,yN,value));
+					}
+				}
+			}
+		}
+		outJson.add("features", shpArray);
+		return outJson;
+	}
 	
 	
 	
@@ -105,7 +152,7 @@ public class AsciiToJson {
 		temptArray.add("[" + xP + "," + yP + "]");
 		temptArray.add("[" + xP + "," + yN + "]");
 
-		JsonArray cordinateArray = (JsonArray) new JsonParser().parse("[[[" + String.join(",", temptArray));
+		JsonArray cordinateArray = (JsonArray) new JsonParser().parse("[[[" + String.join(",", temptArray) + "]]]");
 
 		JsonObject geoObject = new JsonObject();
 		geoObject.addProperty("type", "MultiPolygon");
