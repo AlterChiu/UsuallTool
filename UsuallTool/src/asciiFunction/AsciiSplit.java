@@ -1,5 +1,6 @@
 package asciiFunction;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,11 +22,17 @@ public class AsciiSplit {
 	// <===============>            <=============================== >
 	// < this is the construtor >              <START         point               from                LeftTop>
 	// <===============>            <================================>
-	public AsciiSplit(String[][] asciiContent) {
-		AsciiBasicControl temptAscii = new AsciiBasicControl(asciiContent);
+	public AsciiSplit(String[][] asciiContent) throws IOException {
+		AsciiBasicControl temptAscii = new AsciiBasicControl(asciiContent).cutFirstColumn();
 		this.asciiProperty = temptAscii.getProperty();
 		this.asciiContent = temptAscii.getAsciiGrid();
 	}	
+	
+	public AsciiSplit(String fileAdd) throws IOException {
+		AsciiBasicControl temptAscii = new AsciiBasicControl(fileAdd).cutFirstColumn();
+		this.asciiProperty = temptAscii.getProperty();
+		this.asciiContent = temptAscii.getAsciiGrid();
+	}
 
 
 	
