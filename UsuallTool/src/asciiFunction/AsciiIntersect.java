@@ -15,7 +15,7 @@ import usualTool.AtFileReader;
 public class AsciiIntersect {
 	private String[][] asciiFile;
 	private JsonObject geoJson ;
-	
+	 
 	
 //	<===============================>
 //	<this is the constructor and the geoJson setting>
