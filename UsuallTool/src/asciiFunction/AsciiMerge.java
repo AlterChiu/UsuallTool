@@ -46,13 +46,14 @@ public class AsciiMerge {
 		setOutPutAsciiContent();
 		mergeAscii();
 	}
+	
+	
 //	<=====================>
 //	<  setting the out ascii property  >
 //	<=====================>
 	private void setOutPutAsciiProperty() {
 		this.cellSize = Double.parseDouble(this.firstProperty.get("cellSize"));
 		this.noData = this.firstProperty.get("noData");
-		System.out.println(this.noData);
 		this.secondAsciiContent = new AsciiBasicControl(this.secondAsciiContent)
 				.changeNoDataValue(this.firstProperty.get("noData")).getAsciiFile();
 
@@ -150,7 +151,6 @@ public class AsciiMerge {
 				// line read the outAscii content
 				if (Math.abs(temptColumn - this.secondBottomX) < 0.0001
 						&& Math.abs(temptRow - this.secondTopY) < 0.0001) {
-					System.out.println(row + "\t" + column + "\t" + this.secondAsciiContent.length);
 					// if the location right now is equals to the first start
 					// point, insert the first ascii content
 					for (int insertRow = 0; insertRow < this.secondAsciiContent.length; insertRow++) {

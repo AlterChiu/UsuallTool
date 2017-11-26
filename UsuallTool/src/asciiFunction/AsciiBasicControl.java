@@ -141,6 +141,23 @@ public class AsciiBasicControl {
 		return this.asciiContent;
 	}
 	
+//	<get the asciiFIle that value in range>
+	public String[][] getAsciiFile(double base , double top){
+		String noData = this.asciiContent[5][1];
+		String[][] tempt = this.asciiContent;
+		for(int line=6;line<this.asciiContent.length;line++){
+			for(int column=0;column<this.asciiContent[line].length;column++){
+				if(!this.asciiContent[line][column].equals(noData)){
+					double value = Double.parseDouble(this.asciiContent[line][column]);
+					if(value<base || value>top){
+						tempt[line][column] = noData;
+					}
+				}
+			}
+		}
+		return tempt;
+	}
+	
 	public String[][] getAsciiGrid(){
 		ArrayList<String[]> temptArray = new ArrayList<String[]>(Arrays.asList(this.asciiContent));
 		for(int i=0;i<6;i++){
