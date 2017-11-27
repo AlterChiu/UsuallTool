@@ -135,7 +135,7 @@ public class AsciiBasicControl {
 	
 	
 	
-//	<---------------------------------------------geting the ascii content------------------------------------------------->
+//	<---------------------------------------------getting the ascii content------------------------------------------------->
 //	<==========================================================================>
 	public String[][] getAsciiFile() {
 		return this.asciiContent;
@@ -167,6 +167,35 @@ public class AsciiBasicControl {
 	}
 //	<============================================================================>
 	
+	public double getMaxValue(){
+		String noData = this.asciiContent[5][1];
+		double max = -999;
+		for(int line=6;line<this.asciiContent.length;line++){
+			for(int column=0;column<this.asciiContent[line].length;column++){
+				if(!this.asciiContent[line][column].equals(noData)){
+					if(max<Double.parseDouble(this.asciiContent[line][column])){
+						max = Double.parseDouble(this.asciiContent[line][column]);
+					}
+				}
+			}
+		}
+		return new BigDecimal(max).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+	}
+	
+	public double getMinValue(){
+		String noData = this.asciiContent[5][1];
+		double min = -999;
+		for(int line=6;line<this.asciiContent.length;line++){
+			for(int column=0;column<this.asciiContent[line].length;column++){
+				if(!this.asciiContent[line][column].equals(noData)){
+					if(min>Double.parseDouble(this.asciiContent[line][column])){
+						min = Double.parseDouble(this.asciiContent[line][column]);
+					}
+				}
+			}
+		}
+		return new BigDecimal(min).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+	}
 	
 	
 	
@@ -181,12 +210,7 @@ public class AsciiBasicControl {
 	
 	
 	
-	
-	
-	
-	
-	
-	
+
 	
 //	<=================>
 //	< replace the noData value>
