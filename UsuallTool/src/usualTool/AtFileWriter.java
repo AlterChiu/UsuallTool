@@ -3,6 +3,10 @@ package usualTool;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
 public class AtFileWriter {
 	private String[][] temptDoubleArray = null;
 	private String[] temptArray = null;
@@ -23,6 +27,12 @@ public class AtFileWriter {
 		this.fw = new FileWriter(fileAdd);
 		this.temptArray = new String[]{content,""};
 		}
+	
+	public AtFileWriter(JsonObject json , String fileAdd) throws IOException{
+		Gson jsonWriter = new Gson();
+		this.fw = new FileWriter(fileAdd);
+		this.temptArray = new String[]{jsonWriter.toJson(json),""};
+	}
 
 	public void csvWriter() throws IOException {
 		wirteFIle(",");
