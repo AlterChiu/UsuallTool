@@ -26,9 +26,8 @@ public class test {
 		
 		AsciiIntersect intersect = new AsciiIntersect(asciiContent , fileAdd + "vallage.geojson" );
 		
+		
 		new AtFileWriter(intersect.getSeriesJsonObject() , fileAdd + "out.geoJson").textWriter("");
-		
-		
 	}
 
 }
