@@ -22,5 +22,9 @@
 	<classpathentry kind="lib" path="C:/code/JAVA library/ApachePoi/poi-3.17/commons-collections4-4.1.jar"/>
 	<classpathentry kind="lib" path="C:/code/JAVA library/ApachePoi/poi-3.17/poi-ooxml-3.17.jar"/>
 	<classpathentry kind="lib" path="C:/code/JAVA library/Gson/gson-2.2.2.jar"/>
+	<classpathentry kind="lib" path="C:/code/JAVA library/FewsTimeReader/BK_Utils.jar"/>
+	<classpathentry kind="lib" path="C:/code/JAVA library/FewsTimeReader/Delft_PI.jar"/>
+	<classpathentry kind="lib" path="C:/code/JAVA library/FewsTimeReader/Delft_Util.jar"/>
+	<classpathentry kind="lib" path="C:/code/JAVA library/FewsTimeReader/log4j-1.2.17.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -1,10 +1,13 @@
 package asciiFunction;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
+
+import usualTool.AtFileReader;
 
 public class AsciiMerge {
 	private TreeMap<String, String> firstProperty;
@@ -42,6 +45,20 @@ public class AsciiMerge {
 
 		this.firstProperty = new AsciiBasicControl(ascii1).getProperty();
 		this.secondProperty = new AsciiBasicControl(ascii2).getProperty();
+		setOutPutAsciiProperty();
+		setOutPutAsciiContent();
+		mergeAscii();
+	}
+	
+	public AsciiMerge(String ascii1, String ascii2) throws IOException {
+		AsciiBasicControl ascii1Basic =  new AsciiBasicControl(ascii1);
+		AsciiBasicControl ascii2Basic =  new AsciiBasicControl(ascii2);
+		
+		this.firstAsciiContent = ascii1Basic.cutFirstColumn().getAsciiFile();
+		this.secondAsciiContent = ascii2Basic.cutFirstColumn().getAsciiFile();
+		
+		this.firstProperty = ascii1Basic.getProperty();
+		this.secondProperty = ascii2Basic.getProperty();
 		setOutPutAsciiProperty();
 		setOutPutAsciiContent();
 		mergeAscii();
