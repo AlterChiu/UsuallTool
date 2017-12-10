@@ -101,6 +101,19 @@ public class AsciiBasicControl{
 
 		return temptTree;
 	}
+	
+	public String[][] getPropertyText() {
+		ArrayList<String[]> temptTree = new ArrayList<String[]>();
+
+		temptTree.add(new String[]{"ncols", this.asciiContent[0][1]});
+		temptTree.add(new String[]{"nrows", this.asciiContent[1][1]});
+		temptTree.add(new String[]{"xllcorner", this.asciiContent[2][1]});
+		temptTree.add(new String[]{"yllcorner", this.asciiContent[3][1]});
+		temptTree.add(new String[]{"cellsize", this.asciiContent[4][1]});
+		temptTree.add(new String[]{"NODATA_value", this.asciiContent[5][1]});
+
+		return temptTree.parallelStream().toArray(String[][]::new);
+	}
 
 	
 	

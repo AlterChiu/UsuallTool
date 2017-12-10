@@ -2,11 +2,10 @@ package usualTool;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
-public class TimeTranslate {
+public interface TimeInterface {
 	public static final String DMY = "dd-MM-yy";
 	public static final String MDY = "MM-dd-yy";
 	public static final String YMD = "yy-MM-dd";
@@ -21,30 +20,30 @@ public class TimeTranslate {
 	
 	
 
-	public String milliToDate(long time, String format) {
+	public static String milliToDate(long time, String format) {
 		SimpleDateFormat sdf = new SimpleDateFormat(format);
 		return sdf.format(time);
 	}
-	public String StringGetSelected(String time, String format,String selected) throws ParseException {
-		Long tempLong = this.StringToLong(time, format);
-		return this.milliToDate(tempLong, selected);
+	public static String StringGetSelected(String time, String format,String selected) throws ParseException {
+		Long tempLong = StringToLong(time, format);
+		return milliToDate(tempLong, selected);
 	}
 	
-	public String milliToTime(long time, String format) {
+	public static String milliToTime(long time, String format) {
 		return DurationFormatUtils.formatDuration(time,format);
 	}
 
-	public long StringToLong(String time, String format) throws ParseException {
+	public static long StringToLong(String time, String format) throws ParseException {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
 		return dateFormat.parse(time).getTime();
 	}
 
-	public String getDate(String time , String format){
+	public static String getDate(String time , String format){
 		SimpleDateFormat sdf = new SimpleDateFormat(format);
 		return sdf.format(time);
 	}
 	
-	public String[] getFormate() {
+	public static String[] getFormate() {
 		String[] content = { "dd-MM-yy", "MM-dd-yy", "yy-MM-dd", "yyyy-MM-dd_HH", "yyyy-MM-dd_HH:mm:ss",
 				"yyyy-MM-dd HH:mm:ss", "yyyyMMddHHmmss", "yyyy/MM/dd a HH:mm:ss", "yyyy-MM-dd a HH:mm:ss" };
 		return content;

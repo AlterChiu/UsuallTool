@@ -2,28 +2,181 @@ package FEWS.Rinfall.BUI;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.TreeMap;
 
 import javax.naming.OperationNotSupportedException;
 
+import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
 
-public class BuiTranslate implements IDMapping{
-	private File PiXmlFile;
-	private TreeMap<String,String>idMapping = null;
-	
-	public BuiTranslate(String fileAdd){
-		this.PiXmlFile = new File(fileAdd);
+import FEWS.PIXml.AtPiXmlReader;
+import nl.wldelft.util.timeseries.TimeSeriesArray;
+import usualTool.AtFileReader;
+import usualTool.TimeInterface;
+import usualTool.TimeTranslate;
+
+public class BuiTranslate implements IDMapping, TimeInterface {
+	private String fileAdd;
+	private TreeMap<String, String> idMapping = null;
+	private ArrayList<TimeSeriesArray> timeSeriesArrays;
+	private long startDate;
+	private int timeStepMultiplier;
+	private long endDate;
+
+	// <===============>
+	// <this is the constructor >
+	// <===============>
+	public BuiTranslate(String fileAdd) throws OperationNotSupportedException, IOException {
+		this.fileAdd = fileAdd;
 	}
-	
-	public BuiTranslate(File file){
-		this.PiXmlFile = file;
-	}
-	
-	public void setIDMapping(String fileAdd) throws OperationNotSupportedException, IOException, DocumentException{
+
+	public void setIDMapping(String fileAdd) throws OperationNotSupportedException, IOException, DocumentException {
 		this.idMapping = IDMapping.getIDMapping(fileAdd);
 	}
-	
-	
 
+	
+	
+	
+	
+	public String[] getBuiRainfall() throws OperationNotSupportedException, IOException {
+		this.timeSeriesArrays = new AtPiXmlReader().getTimeSeriesArrays(new File(this.fileAdd));
+		// <basic outPut setting>
+		// <___________________________________________________________________>
+		ArrayList<String> outArray = new ArrayList<String>();
+
+		// <Starting setting BUI>
+		// <____________________________________________________>
+		outArray.add("*");
+		outArray.add("*");
+		outArray.add("*Enige algemene wenken:");
+		outArray.add("*Gebruik de default dataset (1) of de volledige reeks (0) voor overige invoer");
+		outArray.add("1");
+		outArray.add("*Aantal stations");
+		outArray.add(timeSeriesArrays.size() + "");
+
+		// <checking idMapping is null or not>
+		// <_____________________________________________________________________>
+		outArray.add("*Namen van stations");
+		if (this.idMapping == null) {
+			this.timeSeriesArrays.stream().forEach(
+					timeSeriesArray -> outArray.add("\'" + timeSeriesArray.getHeader().getLocationId() + "\'"));
+		} else {
+			this.timeSeriesArrays.stream().forEach(timeSeriesArray -> outArray
+					.add("\'" + idMapping.get(timeSeriesArray.getHeader().getLocationId()) + "\'"));
+		}
+
+		// <translate to the bui format>
+		// <____________________________________________________________________________>
+		outArray.add("*Aantal gebeurtenissen (omdat het 1 bui betreft is dit altijd 1)");
+		outArray.add("*en het aantal seconden per waarnemingstijdstap");
+		TimeSeriesArray firstTimeSeriesArray = this.timeSeriesArrays.get(0);
+		outArray.add(" 1 " + firstTimeSeriesArray.getTimeStep().getMaximumStepMillis() / 1000);
+		outArray.add(
+				TimeInterface.milliToDate(firstTimeSeriesArray.getStartTime(), " yyyy MM dd HH mm ss") + TimeInterface
+						.milliToTime(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size(),
+								" dd HH mm ss"));
+
+		outArray.add("*Elke commentaarregel wordt begonnen met een * (asteriks).");
+		outArray.add("format");
+		outArray.add("*Eerste record bevat startdatum en -tijd, lengte van de gebeurtenis in dd hh mm ss");
+		outArray.add("*Het  is: yyyymmdd:hhmmss:ddhhmmss");
+		outArray.add("*Daarna voor elk station de neerslag in mm per tijdstap.");
+
+		for (int event = 0; event < firstTimeSeriesArray.size(); event++) {
+			ArrayList<String> temptValue = new ArrayList<String>();
+			for (TimeSeriesArray timeSeries : this.timeSeriesArrays) {
+				if ("NaN".equals(timeSeries.getValue(event) + "")) {
+					temptValue.add("0.00");
+				} else {
+					temptValue.add(timeSeries.getValue(event) + "");
+				}
+			}
+			;
+			outArray.add(String.join(" ", temptValue));
+		}
+		return outArray.parallelStream().toArray(String[]::new);
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	public Document getPiXMLRainfall() throws IOException, ParseException {
+		AtFileReader buiFIle = new AtFileReader(this.fileAdd);
+		String[] content = buiFIle.getContainWithOut("*");
+		String noMeaningString = content[0];
+		int stationSize = Integer.parseInt(content[1]);
+
+		// station ID
+		ArrayList<String> stationId = new ArrayList<String>();
+		Arrays.asList(buiFIle.getContainWith("'")).stream()
+				.forEach(name -> stationId.add(name.trim().substring(1, name.length() - 1)));
+
+		// timeStep
+		String[] timeStepSetting = content[2 + stationSize].trim().split(" +");
+		this.timeStepMultiplier = Integer.parseInt(timeStepSetting[0]) / Integer.parseInt(timeStepSetting[1]);
+
+		// start time
+		String[] startTimeSetting = content[3 + stationSize].trim().split(" +");
+		this.startDate = TimeInterface.StringToLong(startTimeSetting[0] + " " + startTimeSetting[1] + " " + startTimeSetting[2]
+				+ " " + startTimeSetting[3] + " " + startTimeSetting[4] + " " + startTimeSetting[5], "yyyy MM dd HH mm ss");
+		
+		// rainfallValue
+		ArrayList<String[]> rainfallValue = new ArrayList<String[]>();
+		for(int line=4+stationSize ; line<content.length;line++){
+			rainfallValue.add(content[line].trim().split(" +"));
+		}
+		
+		// end time
+		this.endDate = this.startDate + this.timeStepMultiplier*1000*rainfallValue.size();
+		
+		
+//		Starting Writing
+//		<______________________________________________________>
+		Document doc = DocumentHelper.createDocument();
+		Element timeSeries  = doc.addElement("TimeSeries");
+			timeSeries.addAttribute("xmlns" , "http://www.wldelft.nl/fews/PI");
+			timeSeries.addAttribute("xmlns:xsi","http://www.w3.org/2001/XMLSchema-instance");
+			timeSeries.addAttribute("xsi:schemaLocation","http://www.wldelft.nl/fews/PI http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd");
+			timeSeries.addAttribute("version","1.2");
+	        timeSeries.addElement("timeZone").addText("8.0");
+		
+		for(int order=0;order<stationId.size();order++){
+			Element series = timeSeries.addElement("series");
+			Element header = series.addElement("header");
+				header.addElement("type").addText("accumulative");
+				header.addElement("locationId").addText(stationId.get(order));
+				header.addElement("parameterId").addText("Rainfall");
+				header.addElement("timeStep").addAttribute("unit", "second").addAttribute("multiplier", this.timeStepMultiplier+"");
+				header.addElement("startDate").addAttribute("date", TimeInterface.milliToDate(this.startDate , "yyyy-MM-dd"))
+																		.addAttribute("time", TimeInterface.milliToDate(this.startDate, "HH:mm:ss"));
+				header.addElement("endDate").addAttribute("date", TimeInterface.milliToDate(this.endDate , "yyyy-MM-dd"))
+				.addAttribute("time", TimeInterface.milliToDate(this.endDate, "HH:mm:ss"));
+				header.addElement("missValue").addText("-999.99");
+				header.addElement("stationName").addText(stationId.get(order));
+				header.addElement("units").addText("mm");
+				header.addElement("creationDate").addText("2017-01-01");
+				header.addElement("creationTime").addText("00:00:00");
+			
+			for(int time=0;time<rainfallValue.size();time++){
+				series.addElement("event").addAttribute("date", TimeInterface.milliToDate(this.startDate+time*this.timeStepMultiplier , "yyyy-MM-dd"))
+															   .addAttribute("time", TimeInterface.milliToDate(this.startDate+time*this.timeStepMultiplier, "HH:mm:ss"))
+															   .addAttribute("value", rainfallValue.get(time)[order])
+															   .addAttribute("flag", "2");
+				
+			}
+		}
+		 
+	     return doc;
+	}
 }
