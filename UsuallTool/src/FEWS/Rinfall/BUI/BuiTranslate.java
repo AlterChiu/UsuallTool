@@ -115,7 +115,7 @@ public class BuiTranslate implements IDMapping, TimeInterface {
 		AtFileReader buiFIle = new AtFileReader(this.fileAdd);
 		String[] content = buiFIle.getContainWithOut("*");
 		String noMeaningString = content[0];
-		int stationSize = Integer.parseInt(content[1]);
+		int stationSize = Integer.parseInt(content[1].trim());
 
 		// station ID
 		ArrayList<String> stationId = new ArrayList<String>();
@@ -124,12 +124,13 @@ public class BuiTranslate implements IDMapping, TimeInterface {
 
 		// timeStep
 		String[] timeStepSetting = content[2 + stationSize].trim().split(" +");
-		this.timeStepMultiplier = Integer.parseInt(timeStepSetting[0]) / Integer.parseInt(timeStepSetting[1]);
+		this.timeStepMultiplier = Integer.parseInt(timeStepSetting[1]) / Integer.parseInt(timeStepSetting[0]);
 
 		// start time
 		String[] startTimeSetting = content[3 + stationSize].trim().split(" +");
 		this.startDate = TimeInterface.StringToLong(startTimeSetting[0] + " " + startTimeSetting[1] + " " + startTimeSetting[2]
 				+ " " + startTimeSetting[3] + " " + startTimeSetting[4] + " " + startTimeSetting[5], "yyyy MM dd HH mm ss");
+
 		
 		// rainfallValue
 		ArrayList<String[]> rainfallValue = new ArrayList<String[]>();
@@ -169,8 +170,8 @@ public class BuiTranslate implements IDMapping, TimeInterface {
 				header.addElement("creationTime").addText("00:00:00");
 			
 			for(int time=0;time<rainfallValue.size();time++){
-				series.addElement("event").addAttribute("date", TimeInterface.milliToDate(this.startDate+time*this.timeStepMultiplier , "yyyy-MM-dd"))
-															   .addAttribute("time", TimeInterface.milliToDate(this.startDate+time*this.timeStepMultiplier, "HH:mm:ss"))
+				series.addElement("event").addAttribute("date", TimeInterface.milliToDate(this.startDate+time*this.timeStepMultiplier*1000 , "yyyy-MM-dd"))
+															   .addAttribute("time", TimeInterface.milliToDate(this.startDate+time*this.timeStepMultiplier*1000, "HH:mm:ss"))
 															   .addAttribute("value", rainfallValue.get(time)[order])
 															   .addAttribute("flag", "2");
 				
