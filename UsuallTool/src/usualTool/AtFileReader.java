@@ -9,152 +9,148 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.TreeMap;
 
 public class AtFileReader {
-	private  TreeMap<Integer, String> tr = new TreeMap<Integer, String>();
+	private ArrayList<String> fileContain = new ArrayList<String>();
 
-	
-	public AtFileReader(String file_add ) throws IOException {
-
+	// <==============>
+	// <here is the construtor>
+	// <for file address or inputStream and special encoding>
+	// <==================================================>
+	public AtFileReader(String file_add) throws IOException {
 		BufferedReader Br = new BufferedReader(new InputStreamReader(new FileInputStream(file_add)));
-		int i = 0;
 		String tempt;
-
 		while ((tempt = Br.readLine()) != null) {
-			tr.put(i, tempt);
-			i++;
+			this.fileContain.add(tempt);
 		}
 		Br.close();
 	}
-	
-	public AtFileReader(InputStreamReader input) throws IOException{
+
+	public AtFileReader(InputStreamReader input) throws IOException {
 		BufferedReader Br = new BufferedReader(input);
-		int i = 0;
 		String tempt;
 
 		while ((tempt = Br.readLine()) != null) {
-			tr.put(i, tempt);
-			i++;
+			this.fileContain.add(tempt);
 		}
 		Br.close();
 	}
-	
-	
-	 public  AtFileReader(String  fileAdd ,String encode) throws IOException{          
-	            FileInputStream fis = new FileInputStream(new File(fileAdd));  
-	            byte[] lineb = new byte[500];  
-	            
-	            int readLine=0;
-	            StringBuffer sb= new StringBuffer("");  
-	            while(fis.read(lineb)> 0){  
-	                String utf8 = new String(lineb,encode);
-	                sb.append(utf8);
-	            }
-	            String content[] = sb.toString().split("\n");
-	            for(int i=0;i<content.length-1;i++){
-	            	tr.put(i, content[i]);
-	            }
-	            fis.close();  
-	    }  
 
+	public AtFileReader(String fileAdd, String encode) throws IOException {
+		FileInputStream fis = new FileInputStream(new File(fileAdd));
+		byte[] lineb = new byte[500];
+
+		int readLine = 0;
+		StringBuffer sb = new StringBuffer("");
+		while (fis.read(lineb) > 0) {
+			String utf8 = new String(lineb, encode);
+			sb.append(utf8);
+		}
+
+		this.fileContain = new ArrayList<String>(Arrays.asList(sb.toString().split("\n")));
+
+		fis.close();
+	}
+
+	// <get the file by line -> buufered reader>
+	// <_________________________________________________________________>
 	public String[] getContain() {
-		String[] content = new String[tr.size()];
-		for (int i = 0; i < tr.size(); i++) {
-			content[i] = tr.get(i);
-		}
-		return (content);
-	}
-	public String[] getContain(int start , int end){
-		
-		String[] content = new String[tr.size()-start-end];
-		for (int i = start; i < tr.size()-end; i++) {
-			content[i-start] = tr.get(i);
-		}
-		return (content);
+		return this.fileContain.parallelStream().toArray(String[]::new);
 	}
 
+	public String[] getContain(int start, int end) {
+		ArrayList<String> tempt = (ArrayList<String>) this.fileContain.clone();
+		for (int i = 0; i < start; i++) {
+			tempt.remove(0);
+		}
+		for (int i = 0; i < end; i++) {
+			tempt.remove(tempt.size() - 1);
+		}
+		return tempt.parallelStream().toArray(String[]::new);
+	}
+
+	// <get csv file>
+	// <____________________________________________________________>
 	public String[][] getCsv() {
-		String[][] content = new String[tr.size()][];
-		for (int i = 0; i < tr.size(); i++) {
-			content[i] = tr.get(i).split(",");
-		}
-		return content;
+		ArrayList<String[]> tempt = new ArrayList<String[]>();
+		this.fileContain.stream().forEach(line -> tempt.add(line.split(",")));
+		return tempt.parallelStream().toArray(String[][]::new);
 	}
-	public String[][] getCsv(int start , int end) {
-		String[][] content = new String[tr.size()-start-end][];
-		for (int i = start; i < tr.size()-end; i++) {
-			content[i-start] = tr.get(i).split(",");
+
+	public String[][] getCsv(int start, int end) {
+		ArrayList<String[]> tempt = new ArrayList<String[]>();
+		this.fileContain.stream().forEach(line -> tempt.add(line.split(",")));
+
+		for (int i = 0; i < start; i++) {
+			tempt.remove(0);
 		}
-		return content;
+		for (int i = 0; i < end; i++) {
+			tempt.remove(tempt.size() - 1);
+		}
+
+		return tempt.parallelStream().toArray(String[][]::new);
 	}
-	
+
+	// <get split file by using significant text>
+	// <__________________________________________________________>
 	public String[][] getContent(String split) {
-		String[][] content = new String[tr.size()][];
-		for (int i = 0; i < tr.size(); i++) {
-			content[i] = tr.get(i).split(split);
-		}
-		return content;
-	}
-	public String[][] getContent(String split , int start , int end) {
-		String[][] content = new String[tr.size()-start-end][];
-		for (int i = start; i < tr.size()-end; i++) {
-			content[i-start] = tr.get(i).split(split);
-		}
-		return content;
+		ArrayList<String[]> tempt = new ArrayList<String[]>();
+		this.fileContain.stream().forEach(line -> tempt.add(line.split(split)));
+		return tempt.parallelStream().toArray(String[][]::new);
 	}
 
+	public String[][] getContent(String split, int start, int end) {
+		ArrayList<String[]> tempt = new ArrayList<String[]>();
+		this.fileContain.stream().forEach(line -> tempt.add(line.split(split)));
+		return tempt.parallelStream().toArray(String[][]::new);
+	}
+
+	// <get split file by space>
+	// <_______________________________________________>
 	public String[][] getStr() {
-		String[][] content = new String[tr.size()][];
-		for (int i = 0; i < tr.size(); i++) {
-			content[i] = tr.get(i).split(" +");
-		}
-		return content;
-	}
-	
-	public String[][] getStr(int start , int end) {
-		String[][] content = new String[tr.size()-start-end][];
-		for (int i = start; i < tr.size()-end; i++) {
-			content[i-start] = tr.get(i).split(" +");
-		}
-		return content;
+		ArrayList<String[]> tempt = new ArrayList<String[]>();
+		this.fileContain.stream().forEach(line -> tempt.add(line.split(" +")));
+		return tempt.parallelStream().toArray(String[][]::new);
 	}
 
+	public String[][] getStr(int start, int end) {
+		ArrayList<String[]> tempt = new ArrayList<String[]>();
+		this.fileContain.stream().forEach(line -> tempt.add(line.split(" +")));
+
+		for (int i = 0; i < start; i++) {
+			tempt.remove(0);
+		}
+		for (int i = 0; i < end; i++) {
+			tempt.remove(tempt.size() - 1);
+		}
+
+		return tempt.parallelStream().toArray(String[][]::new);
+	}
+
+	// <get the file by line with or not the significant text>
+	// <______________________________________________________________>
 	public String[] getContainWithOut(String text) {
-		TreeMap<Integer,String> tempt  = new TreeMap<Integer,String>() ;		
-	
-		for(int i=0;i<tr.size();i++){
-			if(!tr.get(i).contains(text)){
-				tempt.put(i, tr.get(i));
+		ArrayList<String> tempt = new ArrayList<String>();
+		this.fileContain.stream().forEach(line -> {
+			if (!line.contains(text)) {
+				tempt.add(line);
 			}
-		}
-		String[] content = new String[tempt.size()];
-		Integer[] okok = tempt.keySet().toArray(new Integer[content.length]);
-		
-	for(int i=0;i<okok.length;i++){
-		content[i] = tempt.get(okok[i]);
+		});
+		return tempt.parallelStream().toArray(String[]::new);
 	}
 
-		return content;
-	}
-	
 	public String[] getContainWith(String text) {
-		TreeMap<Integer,String> tempt  = new TreeMap<Integer,String>() ;		
-	
-		for(int i=0;i<tr.size();i++){
-			if(tr.get(i).contains(text)){
-				tempt.put(i, tr.get(i));
+		ArrayList<String> tempt = new ArrayList<String>();
+		this.fileContain.stream().forEach(line -> {
+			if (line.contains(text)) {
+				tempt.add(line);
 			}
-		}
-		String[] content = new String[tempt.size()];
-		Integer[] okok = tempt.keySet().toArray(new Integer[content.length]);
-		
-	for(int i=0;i<okok.length;i++){
-		content[i] = tempt.get(okok[i]);
+		});
+		return tempt.parallelStream().toArray(String[]::new);
 	}
 
-		return content;
-	}
-	
 }
