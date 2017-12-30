@@ -9,10 +9,10 @@ import java.util.TreeMap;
 import usualTool.AtCommonMath;
 import usualTool.AtFileReader;
 
-public class AsciiBasicControl{
+public class AsciiBasicControl {
 	private String[][] asciiContent = null;
 	private String fileAdd = null;
-	private TreeMap<String,String> property;
+	private TreeMap<String, String> property;
 	private String[][] asciiGrid;
 
 	// <==============>
@@ -31,10 +31,6 @@ public class AsciiBasicControl{
 		this.asciiGrid = this.getAsciiGrid();
 	}
 
-	
-	
-	
-	
 	// <=========================>
 	// < using while ascii file start by a space >
 	// <=========================>
@@ -62,7 +58,7 @@ public class AsciiBasicControl{
 					temptArray.add(asciiArray.get(line));
 				} else {
 					ArrayList<String> temptLine = new ArrayList<String>(Arrays.asList(asciiArray.get(line)));
-					if(temptLine.get(0).trim().equals("")) {
+					if (temptLine.get(0).trim().equals("")) {
 						temptLine.remove(0);
 					}
 					temptArray.add(temptLine.parallelStream().toArray(String[]::new));
@@ -72,25 +68,23 @@ public class AsciiBasicControl{
 		}
 		return this;
 	}
-	
-	
-	
 
 	// <==================>
 	// < get the read asciiFile property>
 	// <==================>
 	public TreeMap<String, String> getProperty() {
 		TreeMap<String, String> temptTree = new TreeMap<String, String>();
-		double cellSize = Double.parseDouble(new BigDecimal(this.asciiContent[4][1])
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
-		
-		
+		double cellSize = new BigDecimal(this.asciiContent[4][1]).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
+
 		// set the xllCorner to xllCenter
-		if(this.asciiContent[2][0].contains("corner")) {
-			this.asciiContent[2][1] = (Double.parseDouble(this.asciiContent[2][1]) + cellSize*0.5)+"";
+		if (this.asciiContent[2][0].contains("corner")) {
+			this.asciiContent[2][0] = "xllcenter";
+			this.asciiContent[2][1] = (Double.parseDouble(this.asciiContent[2][1]) + cellSize * 0.5) + "";
 		}
-		if(this.asciiContent[3][0].contains("corner")) {
-			this.asciiContent[3][1] = (Double.parseDouble(this.asciiContent[3][1]) + cellSize*0.5)+"";
+		if (this.asciiContent[3][0].contains("corner")) {
+			this.asciiContent[3][0] = "yllcenter";
+			this.asciiContent[3][1] = (Double.parseDouble(this.asciiContent[3][1]) + cellSize * 0.5) + "";
 		}
 
 		temptTree.put("column", this.asciiContent[0][1]);
@@ -99,44 +93,40 @@ public class AsciiBasicControl{
 		temptTree.put("bottomY", this.asciiContent[3][1]);
 		temptTree.put("cellSize", this.asciiContent[4][1]);
 		temptTree.put("noData", this.asciiContent[5][1]);
-		
 
 		temptTree.put("topX",
-				new BigDecimal(
-						Double.parseDouble(this.asciiContent[2][1]) + cellSize * (Integer.parseInt(temptTree.get("column")) - 1))
+				new BigDecimal(Double.parseDouble(this.asciiContent[2][1])
+						+ cellSize * (Integer.parseInt(temptTree.get("column")) - 1))
 								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
 
 		temptTree.put("topY",
-				new BigDecimal(
-						Double.parseDouble(this.asciiContent[3][1]) + cellSize * (Integer.parseInt(temptTree.get("row")) - 1))
+				new BigDecimal(Double.parseDouble(this.asciiContent[3][1])
+						+ cellSize * (Integer.parseInt(temptTree.get("row")) - 1))
 								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
 
 		return temptTree;
 	}
-	
+
 	public String[][] getPropertyText() {
 		ArrayList<String[]> temptTree = new ArrayList<String[]>();
 
-		temptTree.add(new String[]{"ncols", this.asciiContent[0][1]});
-		temptTree.add(new String[]{"nrows", this.asciiContent[1][1]});
-		temptTree.add(new String[]{"xllcorner", this.asciiContent[2][1]});
-		temptTree.add(new String[]{"yllcorner", this.asciiContent[3][1]});
-		temptTree.add(new String[]{"cellsize", this.asciiContent[4][1]});
-		temptTree.add(new String[]{"NODATA_value", this.asciiContent[5][1]});
+		temptTree.add(new String[] { "ncols", this.asciiContent[0][1] });
+		temptTree.add(new String[] { "nrows", this.asciiContent[1][1] });
+		temptTree.add(new String[] { "xllcorner", this.asciiContent[2][1] });
+		temptTree.add(new String[] { "yllcorner", this.asciiContent[3][1] });
+		temptTree.add(new String[] { "cellsize", this.asciiContent[4][1] });
+		temptTree.add(new String[] { "NODATA_value", this.asciiContent[5][1] });
 
 		return temptTree.parallelStream().toArray(String[][]::new);
 	}
 
-	
-	
-	
 	// <===========================>
 	// < get the value by giving location of ascii >
 	// <===========================>
 	public String getValue(double x, double y) {
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
-		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 *cellSize;
-		double startY = Double.parseDouble(this.property.get("topY")) + 0.5 *cellSize;
+		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
+		double startY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
 
 		int row = new BigDecimal((startY - y) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
 		int column = new BigDecimal((x - startX) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
@@ -147,52 +137,43 @@ public class AsciiBasicControl{
 		}
 	}
 
-	
-	
-	
-	
 	// <===============================>
-	// < get the position by giving coordinate of ascii >                            < x , y ><column , row>
+	// < get the position by giving coordinate of ascii > < x , y ><column , row>
 	// <================================>
 	public int[] getPosition(double x, double y) {
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
-		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 *cellSize;
-		double startY = Double.parseDouble(this.property.get("topY")) + 0.5 *cellSize;
-		
+		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
+		double startY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
 
 		int row = new BigDecimal((startY - y) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
 		int column = new BigDecimal((x - startX) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
-		return new int[]{column,row};
+		return new int[] { column, row };
 	}
-	
-	public double[] getCoordinate(int column , int row){
+
+	public double[] getCoordinate(int column, int row) {
 		double startX = Double.parseDouble(this.property.get("bottomX"));
 		double startY = Double.parseDouble(this.property.get("topY"));
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
-		
-		double x =  new BigDecimal(startX + column*cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
-		double y = new BigDecimal(startY - row*cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
-		
-		return new double[]{x,y};
+
+		double x = new BigDecimal(startX + column * cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
+		double y = new BigDecimal(startY - row * cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
+
+		return new double[] { x, y };
 	}
-	
-	public double[] getClosestCoordinate(double x,double y){
+
+	public double[] getClosestCoordinate(double x, double y) {
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
-		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 *cellSize;
-		double startY = Double.parseDouble(this.property.get("topY")) + 0.5 *cellSize;
+		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
+		double startY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
 
 		int row = new BigDecimal((startY - y) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
 		int column = new BigDecimal((x - startX) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
-		
-		return new double[]{startX + column*cellSize , startY - row*cellSize};
+
+		return new double[] { startX + column * cellSize, startY - row * cellSize };
 	}
-	
-	
-	
-	
-	
-	
-	
+
 	// <===========================>
 	// < get the ASCII GRID >
 	// <===========================>
@@ -219,7 +200,7 @@ public class AsciiBasicControl{
 		}
 		return tempt;
 	}
-	
+
 	public String[][] getAsciiGrid() {
 		ArrayList<String[]> temptArray = new ArrayList<String[]>(Arrays.asList(this.asciiContent));
 		for (int i = 0; i < 6; i++) {
@@ -228,9 +209,8 @@ public class AsciiBasicControl{
 		return temptArray.parallelStream().toArray(String[][]::new);
 	}
 
-	
-//	<getting the asciiGrid by setting the coordinate>
-//	<______________________________________________________________________________________________>
+	// <getting the asciiGrid by setting the coordinate>
+	// <______________________________________________________________________________________________>
 	public String[][] getAsciiGrid(double minX, double minY, double maxX, double maxY) {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
 		TreeMap<String, String> temptProperty = this.getProperty();
@@ -259,9 +239,8 @@ public class AsciiBasicControl{
 		return asciiGrid.parallelStream().toArray(String[][]::new);
 	}
 
-	
-//	<get asciiGrid by setting the position>
-//	<___________________________________________________________________________>
+	// <get asciiGrid by setting the position>
+	// <___________________________________________________________________________>
 	public String[][] getAsciiGrid(int minX, int minY, int maxX, int maxY) {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
 
@@ -284,20 +263,13 @@ public class AsciiBasicControl{
 		return asciiGrid.parallelStream().toArray(String[][]::new);
 	}
 	// <============================================================================>
-	
-	
-	
-	
-	
-	
-	
-//	<=========================>
-//	<getting the specifics value in asciiFile>
-//	<===========================>
-	
 
-//	<get the max value in asciiFile>
-//	<__________________________________________________________________>
+	// <=========================>
+	// <getting the specifics value in asciiFile>
+	// <===========================>
+
+	// <get the max value in asciiFile>
+	// <__________________________________________________________________>
 	public double getMaxValue() {
 		String noData = this.asciiContent[5][1];
 		double max = -999;
@@ -328,12 +300,6 @@ public class AsciiBasicControl{
 		return new BigDecimal(min).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
-	
-	
-	
-	
-	
-	
 	// <=================>
 	// < replace the noData value>
 	// <=================>

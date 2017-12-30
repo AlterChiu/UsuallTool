@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 import javax.naming.OperationNotSupportedException;
 
@@ -30,10 +31,9 @@ public class test {
 	
 		String fileAdd = "C:\\HomeWork\\山峰可可\\LevelDEM\\";
 		
-		String[][] tempt = new AsciiMerge(fileAdd + "Zone1U1.asc" , fileAdd + "Zone1U2.asc").getMergedAscii();
-		tempt = new AsciiMerge(fileAdd + "Zone4.asc" , tempt).getMergedAscii();
+		TreeMap<String,String> temptTree = new AsciiBasicControl(fileAdd + "Zone1U1.asc").getProperty();
 		
-		new AtFileWriter(tempt , fileAdd + "total.asc").textWriter("    ");;
+		System.out.println(temptTree.get("bottomX"));
 		
 		
 		
