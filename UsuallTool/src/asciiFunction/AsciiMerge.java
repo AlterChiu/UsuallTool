@@ -283,10 +283,4 @@ public class AsciiMerge {
 
 		return temptTree;
 	}
-
-	
-
-	
-	
-
 }
