@@ -64,6 +64,34 @@ public class AsciiMerge {
 		mergeAscii();
 	}
 	
+	public AsciiMerge(String ascii1 , String[][] ascii2) throws IOException {
+		AsciiBasicControl ascii1Basic =  new AsciiBasicControl(ascii1);
+		AsciiBasicControl ascii2Basic =  new AsciiBasicControl(ascii2);
+		
+		this.firstAsciiContent = ascii1Basic.cutFirstColumn().getAsciiFile();
+		this.secondAsciiContent = ascii2Basic.getAsciiFile();
+		
+		this.firstProperty = ascii1Basic.getProperty();
+		this.secondProperty = ascii2Basic.getProperty();
+		setOutPutAsciiProperty();
+		setOutPutAsciiContent();
+		mergeAscii();
+	}
+	
+	public AsciiMerge(String[][] ascii1 , String ascii2) throws IOException {
+		AsciiBasicControl ascii1Basic =  new AsciiBasicControl(ascii1);
+		AsciiBasicControl ascii2Basic =  new AsciiBasicControl(ascii2);
+		
+		this.firstAsciiContent = ascii1Basic.getAsciiFile();
+		this.secondAsciiContent = ascii2Basic.cutFirstColumn().getAsciiFile();
+		
+		this.firstProperty = ascii1Basic.getProperty();
+		this.secondProperty = ascii2Basic.getProperty();
+		setOutPutAsciiProperty();
+		setOutPutAsciiContent();
+		mergeAscii();
+	}
+	
 	
 //	<=====================>
 //	<  setting the out ascii property  >
@@ -225,8 +253,8 @@ public class AsciiMerge {
 
 		temptContent.add(0, new String[] { "NODATA_value ", temptTree.get("noData") });
 		temptContent.add(0, new String[] { "cellsize", temptTree.get("cellSize") });
-		temptContent.add(0, new String[] { "yllcorner", temptTree.get("bottomY") });
-		temptContent.add(0, new String[] { "xllcorner", temptTree.get("bottomX") });
+		temptContent.add(0, new String[] { "yllcenter", temptTree.get("bottomY") });
+		temptContent.add(0, new String[] { "xllcenter", temptTree.get("bottomX") });
 		temptContent.add(0, new String[] { "nrows", temptTree.get("row") });
 		temptContent.add(0, new String[] { "ncols", temptTree.get("column") });
 
