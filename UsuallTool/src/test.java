@@ -29,11 +29,10 @@ public class test {
 //		System.out.println("difference\t:\t" + dif.getDifferenceTotal());
 //		
 	
-		String fileAdd = "C:\\HomeWork\\山峰可可\\LevelDEM\\";
+		String fileAdd = "S:\\Users\\alter\\Desktop\\";
+		BuiTranslate bui = new BuiTranslate(fileAdd + "rainfall.xml");
+		new AtFileWriter(bui.getBuiRainfall() , fileAdd + "rainfall.bui").textWriter("");;
 		
-		TreeMap<String,String> temptTree = new AsciiBasicControl(fileAdd + "Zone1U1.asc").getProperty();
-		
-		System.out.println(temptTree.get("bottomX"));
 		
 		
 		

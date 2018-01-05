@@ -77,16 +77,16 @@ public class BuiTranslate implements IDMapping, TimeInterface {
 		outArray.add("*en het aantal seconden per waarnemingstijdstap");
 		TimeSeriesArray firstTimeSeriesArray = this.timeSeriesArrays.get(0);
 		outArray.add(" 1 " + firstTimeSeriesArray.getTimeStep().getMaximumStepMillis() / 1000);
+	
+		outArray.add("*Elke commentaarregel wordt begonnen met een * (asteriks).");
+		outArray.add("*Eerste record bevat startdatum en -tijd, lengte van de gebeurtenis in dd hh mm ss");
+		outArray.add("*Het format is: yyyymmdd:hhmmss:ddhhmmss");
+		outArray.add("*Daarna voor elk station de neerslag in mm per tijdstap.");
+		
 		outArray.add(
 				TimeInterface.milliToDate(firstTimeSeriesArray.getStartTime(), " yyyy MM dd HH mm ss") + TimeInterface
 						.milliToTime(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size(),
 								" dd HH mm ss"));
-
-		outArray.add("*Elke commentaarregel wordt begonnen met een * (asteriks).");
-		outArray.add("format");
-		outArray.add("*Eerste record bevat startdatum en -tijd, lengte van de gebeurtenis in dd hh mm ss");
-		outArray.add("*Het  is: yyyymmdd:hhmmss:ddhhmmss");
-		outArray.add("*Daarna voor elk station de neerslag in mm per tijdstap.");
 
 		for (int event = 0; event < firstTimeSeriesArray.size(); event++) {
 			ArrayList<String> temptValue = new ArrayList<String>();
