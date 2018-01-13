@@ -1,6 +1,8 @@
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.TreeMap;
 
 import javax.naming.OperationNotSupportedException;
@@ -28,11 +30,11 @@ public class test {
 //		System.out.println("Persentage\t:\t" + dif.getPersentage());
 //		System.out.println("difference\t:\t" + dif.getDifferenceTotal());
 //		
+	String fileAdd = "C:\\HomeWork\\測量實習\\乙班程式\\導線\\";
+	ArrayList<String> fileList = new ArrayList<String>(Arrays.asList(new File(fileAdd).list()));
 	
-		String fileAdd = "S:\\Users\\alter\\Desktop\\";
-		BuiTranslate bui = new BuiTranslate(fileAdd + "rainfall.xml");
-		new AtFileWriter(bui.getBuiRainfall() , fileAdd + "rainfall.bui").textWriter("");;
-		
+	fileList.forEach(e -> System.out.println(e.substring(0, 9)));
+	 
 		
 		
 		
