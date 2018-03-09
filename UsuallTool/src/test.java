@@ -9,7 +9,10 @@ import javax.naming.OperationNotSupportedException;
 
 import FEWS.Rinfall.BUI.BuiTranslate;
 import asciiFunction.AsciiBasicControl;
+import asciiFunction.AsciiGridChange;
 import asciiFunction.AsciiMerge;
+import asciiFunction.AsciiSplit;
+import asciiFunction.AsciiToJson;
 import usualTool.AtFileWriter;
 
 
@@ -30,12 +33,17 @@ public class test {
 //		System.out.println("Persentage\t:\t" + dif.getPersentage());
 //		System.out.println("difference\t:\t" + dif.getDifferenceTotal());
 //		
-	String fileAdd = "C:\\HomeWork\\測量實習\\乙班程式\\導線\\";
-	ArrayList<String> fileList = new ArrayList<String>(Arrays.asList(new File(fileAdd).list()));
 	
-	fileList.forEach(e -> System.out.println(e.substring(0, 9)));
-	 
-		
+	String columnDem = "C:\\mapReduce\\OriginalDEM\\ZoneU1_20m.asc";
+	String columnKnDem = "C:\\mapReduce\\OriginalDEM\\ZoneU1_20m(kn).asc";
+	
+	String nullDem = "S:\\mapReduce\\OriginalDEM\\ZoneU1_20mNULL.asc";
+	
+	String[][] mergeDemFile = new AsciiMerge(columnDem , nullDem).getMergedAscii();
+	String[][] mergeKnDemFile = new AsciiMerge(columnKnDem , nullDem).getMergedAscii();
+	
+	new AtFileWriter(mergeDemFile , columnDem).textWriter("    ");
+	new AtFileWriter(mergeKnDemFile , columnKnDem).textWriter("    ");
 		
 		
 //		

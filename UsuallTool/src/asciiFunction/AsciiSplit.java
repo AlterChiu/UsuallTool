@@ -116,6 +116,10 @@ public class AsciiSplit {
 			}
 			splitNode.add(rowSize);
 			
+			for(int tempt : splitNode) {
+				System.out.println(tempt);
+			}
+			
 //			<get the list of split asciiFile>
 //			______________________________________________________________________________
 			for(int i=1;i<splitNode.size();i++){
@@ -162,8 +166,8 @@ public class AsciiSplit {
 
 				temptAscii.add(0, new String[] { "nodata_value", nodata_value });
 				temptAscii.add(0, new String[] { "cellSize", cellSize });
-				temptAscii.add(0, new String[] { "yllCorner", yllCorner });
-				temptAscii.add(0, new String[] { "xllCorner", xllCorner });
+				temptAscii.add(0, new String[] { "yllCenter", yllCorner });
+				temptAscii.add(0, new String[] { "xllCenter", xllCorner });
 				temptAscii.add(0, new String[] { "nrows", nrows });
 				temptAscii.add(0, new String[] { "ncols", ncols });
 			
@@ -184,8 +188,8 @@ public class AsciiSplit {
 				String ncols = this.asciiProperty.get("column");
 				String nrows = new BigDecimal(end - start)
 						.setScale(0, BigDecimal.ROUND_HALF_UP).intValue() + "";
-				String yllCorner = new BigDecimal(Double.parseDouble(this.asciiProperty.get("TopY"))
-						- start * Double.parseDouble(this.asciiProperty.get("cellSize")))
+				String yllCorner = new BigDecimal(Double.parseDouble(this.asciiProperty.get("topY"))
+						- end * Double.parseDouble(this.asciiProperty.get("cellSize")))
 								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString();
 				String xllCorner = this.asciiProperty.get("bottomX");
 				String cellSize = this.asciiProperty.get("cellSize");
@@ -193,8 +197,8 @@ public class AsciiSplit {
 
 				temptAscii.add(0, new String[] { "nodata_value", nodata_value });
 				temptAscii.add(0, new String[] { "cellSize", cellSize });
-				temptAscii.add(0, new String[] { "yllCorner", yllCorner });
-				temptAscii.add(0, new String[] { "xllCorner", xllCorner });
+				temptAscii.add(0, new String[] { "yllCenter", yllCorner });
+				temptAscii.add(0, new String[] { "xllCenter", xllCorner });
 				temptAscii.add(0, new String[] { "nrows", nrows });
 				temptAscii.add(0, new String[] { "ncols", ncols });
 		}

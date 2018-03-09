@@ -12,7 +12,7 @@ public class globalAscii {
 	// column
 	// row
 	// cellSize
-	// NODATA_value
+	// noData
 	// topX , topY                 (rightTop)
 	// bottomX , bottomY   (LeftBottom)
 }
