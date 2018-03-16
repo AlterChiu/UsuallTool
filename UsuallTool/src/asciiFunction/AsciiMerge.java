@@ -171,7 +171,7 @@ public class AsciiMerge {
 						// if the location right now is equals to the first
 						// start point, insert the first ascii content
 						for (int insertRow = 0; insertRow < this.firstAsciiContent.length; insertRow++) {
-							for (int insertColumn = 0; insertColumn < this.firstAsciiContent[row].length; insertColumn++) {
+							for (int insertColumn = 0; insertColumn < this.firstAsciiContent[insertRow].length; insertColumn++) {
 								this.outAsciiContent[row + insertRow][column
 										+ insertColumn] = this.firstAsciiContent[insertRow][insertColumn];
 							}
@@ -199,7 +199,7 @@ public class AsciiMerge {
 					// if the location right now is equals to the first start
 					// point, insert the first ascii content
 					for (int insertRow = 0; insertRow < this.secondAsciiContent.length; insertRow++) {
-						for (int insertColumn = 0; insertColumn < this.secondAsciiContent[row].length; insertColumn++) {
+						for (int insertColumn = 0; insertColumn < this.secondAsciiContent[insertRow].length; insertColumn++) {
 							if(!this.secondAsciiContent[insertRow][insertColumn].equals(this.noData)){
 							this.outAsciiContent[row + insertRow][column
 									+ insertColumn] = this.secondAsciiContent[insertRow][insertColumn];
