@@ -18,6 +18,10 @@ public class AtArrayFunction<E> {
 	public AtArrayFunction(E[] content){
 		this.singleContent = content;
 	}
+	public AtArrayFunction(ArrayList<E> arrayList) {
+		
+	}
+	
 	public String[] getSingleString(){
 		ArrayList<String> tempt = new ArrayList<String>();
 		for(E e: singleContent){

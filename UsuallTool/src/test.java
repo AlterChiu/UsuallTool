@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -6,6 +8,11 @@ import java.util.Arrays;
 import java.util.TreeMap;
 
 import javax.naming.OperationNotSupportedException;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import FEWS.Rinfall.BUI.BuiTranslate;
 import asciiFunction.AsciiBasicControl;
@@ -21,12 +28,22 @@ public class test {
 	public static void main(String[] args) throws IOException, OperationNotSupportedException, ParseException {
 		// TODO Auto-generated method stub
 
+//		
+//		String originalDem = "S:\\Users\\alter\\Desktop\\testRainfall.xml";
+//		String target = "S:\\Users\\alter\\Desktop\\testRainfall.BUI";
+//		
+//		
+//		BuiTranslate bui = new BuiTranslate(originalDem);
+//		new AtFileWriter(bui.getBuiRainfall() , target).textWriter("");;
 		
-		String originalDem = "C:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Modules\\WRA\\Taiwan\\Southern\\Tainan\\Sobek\\Zone4\\Input\\Rainfall.xml";
-		String temptDemFolder = "C:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Modules\\WRA\\Taiwan\\Southern\\Tainan\\Sobek\\Zone4\\Input\\Rainfall.bui";
 		
-		BuiTranslate bui = new BuiTranslate(originalDem);
-		new AtFileWriter(bui.getBuiRainfall() , temptDemFolder).textWriter("");;
+		String filePath = "S:\\Users\\alter\\Desktop\\test.json";
+		JsonParser parser = new JsonParser();
+        JsonElement jsonElement = parser.parse(new FileReader(filePath));
+        JsonObject  jsonObject = jsonElement.getAsJsonObject();
+		 
+		
+		System.out.println(jsonObject.get("test").getAsString());
 	
 	}
 }

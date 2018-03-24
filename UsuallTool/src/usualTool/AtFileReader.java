@@ -14,20 +14,29 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.TreeMap;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+
 public class AtFileReader {
 	private ArrayList<String> fileContain = new ArrayList<String>();
+	private String fileAdd = null;
+	private BufferedReader br;
 
 	// <==============>
 	// <here is the construtor>
 	// <for file address or inputStream and special encoding>
 	// <==================================================>
 	public AtFileReader(String file_add) throws IOException {
-		BufferedReader Br = new BufferedReader(new InputStreamReader(new FileInputStream(file_add)));
+		this.br = new BufferedReader(new InputStreamReader(new FileInputStream(file_add)));
+		this.fileAdd = file_add;
 		String tempt;
-		while ((tempt = Br.readLine()) != null) {
+		while ((tempt = br.readLine()) != null) {
 			this.fileContain.add(tempt);
 		}
-		Br.close();
+		br.close();
 	}
 
 	public AtFileReader(InputStreamReader input) throws IOException {
@@ -151,6 +160,12 @@ public class AtFileReader {
 			}
 		});
 		return tempt.parallelStream().toArray(String[]::new);
+	}
+	
+	public JsonObject getJsonObject() throws JsonIOException, JsonSyntaxException, FileNotFoundException {
+		JsonParser parser = new JsonParser();
+        JsonElement jsonElement = parser.parse(new FileReader(fileAdd));
+        return  jsonElement.getAsJsonObject();
 	}
 
 }

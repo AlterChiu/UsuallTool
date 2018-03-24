@@ -8,6 +8,7 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 public class AtFileWriter {
@@ -35,7 +36,7 @@ public class AtFileWriter {
 
 	public AtFileWriter(JsonObject json, String fileAdd) throws IOException {
 		this.fileAdd = fileAdd;
-		Gson jsonWriter = new Gson();
+		Gson jsonWriter = new GsonBuilder().setPrettyPrinting().create();
 		this.temptArray = new String[] { jsonWriter.toJson(json), "" };
 	}
 
@@ -85,5 +86,6 @@ public class AtFileWriter {
 		xw.write(doc);
 		xw.close();
 	}
+	
 
 }
