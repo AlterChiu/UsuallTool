@@ -1,82 +1,155 @@
 package usualTool;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
-public class AtArrayFunction<E> {
-	private String[][] content;
-	private String[] column;
-	private E[] singleContent;
-	
+public class AtArrayFunction<type> {
 
-	public AtArrayFunction(String[][] content){
-		this.content = content;
+	public double[] getDoubleArray(ArrayList<Double> temptList) {
+		return temptList.stream().mapToDouble(Double::doubleValue).toArray();
 	}
-	
-	public AtArrayFunction(E[] content){
-		this.singleContent = content;
+
+	public double[][] getDoubleMatrix(ArrayList<Double[]> temptList) {
+		double outArray[][] = new double[temptList.size()][];
+
+		for (int index = 0; index < temptList.size(); index++) {
+			outArray[index] = Arrays.asList(temptList.get(index)).stream().mapToDouble(Double::doubleValue).toArray();
+		}
+		return outArray;
 	}
-	public AtArrayFunction(ArrayList<E> arrayList) {
+
+	public String[] getStringArray(ArrayList<String> temptList) {
+		return temptList.parallelStream().toArray(String[]::new);
+	}
+
+	public String[][] getStringMatrix(ArrayList<String[]> temptList) {
+		return temptList.parallelStream().toArray(String[][]::new);
+	}
+
+	public type getMostReapetTimesValue(ArrayList<type> temptList) {
+		ArrayList<type> noDuplicate = temptList;
+		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
 		
+		int maxReapet = 0;
+		type maxReapetValue  = null;
+		for(type temptValue : noDuplicate) {
+			int times = Collections.frequency(temptList, temptValue);
+			if(times > maxReapet) {
+				maxReapet = times;
+				maxReapetValue = temptValue;
+			}
+		}
+		return maxReapetValue;
 	}
 	
-	public String[] getSingleString(){
-		ArrayList<String> tempt = new ArrayList<String>();
-		for(E e: singleContent){
-			tempt.add(String.valueOf(e));
+	public int  getMostReapetTimes(ArrayList<type> temptList) {
+		ArrayList<type> noDuplicate = temptList;
+		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
+		
+		int maxReapet = 0;
+		for(type temptValue : noDuplicate) {
+			int times = Collections.frequency(temptList, temptValue);
+			if(times > maxReapet) {
+				maxReapet = times;
+			}
 		}
-		return tempt.parallelStream().toArray(String[]::new);
+		return maxReapet;
+	}
+	
+	public type getLeastReapetTimesValue(ArrayList<type> temptList) {
+		ArrayList<type> noDuplicate = temptList;
+		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
+		
+		int leastReapet = 9999999;
+		type leastReapetValue  = null;
+		for(type temptValue : noDuplicate) {
+			int times = Collections.frequency(temptList, temptValue);
+			if(times < leastReapet) {
+				leastReapet = times;
+				leastReapetValue = temptValue;
+			}
+		}
+		return leastReapetValue;
+	}
+	
+	public int  getLeastReapetTimes(ArrayList<type> temptList) {
+		ArrayList<type> noDuplicate = temptList;
+		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
+		
+		int leastReapet = 0;
+		for(type temptValue : noDuplicate) {
+			int times = Collections.frequency(temptList, temptValue);
+			if(times < leastReapet) {
+				leastReapet = times;
+			}
+		}
+		return leastReapet;
+	}
+	
+	public ArrayList<type> getSortedArrayList(ArrayList<type> temptList){
+		return new ArrayList<type>(temptList.stream().sorted().collect(Collectors.toList()));
+	}
+	
+	public ArrayList<type> getSortedArrayList(type[] temptList){
+		return new ArrayList<type>(Arrays.asList(temptList).stream().sorted().collect(Collectors.toList()));
+	}
+	
+	public ArrayList<type> getReverseSortedArrayList(ArrayList<type> temptList){
+		Collections.sort(temptList,Collections.reverseOrder());
+		return temptList;
+	}
+	
+	public ArrayList<type> getReverseSortedArrayList(type[] temptList){
+		ArrayList<type>  temptSave = new ArrayList<type>(Arrays.asList(temptList));
+		return getReverseSortedArrayList(temptSave);
+	}
+	
+	
+	public String[] getMostReapetArrayValue(ArrayList<type[]> temptList){
+		AtArrayFunction<String>arrayFunction = new AtArrayFunction<String>();
+		ArrayList<String> compareList = new ArrayList<String>();
+		temptList.stream().forEach(array -> {
+			String temptValue = String.valueOf(array[0]);
+			temptValue = temptValue + ","+array[1];
+			compareList.add(temptValue);
+		});
+		return Arrays.asList(arrayFunction.getMostReapetTimesValue(compareList).split(",")).parallelStream().toArray(String[]::new);
 	}
 
-	public double[] getSingleDouble(){
-		ArrayList<Double> tempt = new ArrayList<Double>();
-		for(E e: singleContent){
-			tempt.add(Double.parseDouble(e+""));
-		}
-		return tempt.stream().mapToDouble(Double::doubleValue).toArray();
+	public int getMostReapetArrayTimes(ArrayList<type[]> temptList){
+		AtArrayFunction<String>arrayFunction = new AtArrayFunction<String>();
+		ArrayList<String> compareList = new ArrayList<String>();
+		temptList.stream().forEach(array -> {
+			String temptValue = String.valueOf(array[0]);
+			temptValue = temptValue + ","+array[1];
+			compareList.add(temptValue);
+		});
+		return arrayFunction.getMostReapetTimes(compareList);
 	}
 	
-	/**
-	 * 
-	 * @param order : which column you selected
-	 * @return	this column you selected
-	 */
-	
-	public String[] getColumnByOrder(int order){
-		String[] temp = new String[this.content.length];
-		for(int i=0;i<temp.length;i++){
-			temp[i] = this.content[i][order];
-		}
-		return temp;
+	public String[] getLeastReapetArrayValue(ArrayList<type[]> temptList){
+		AtArrayFunction<String>arrayFunction = new AtArrayFunction<String>();
+		ArrayList<String> compareList = new ArrayList<String>();
+		temptList.stream().forEach(array -> {
+			String temptValue = String.valueOf(array[0]);
+			temptValue = temptValue + ","+array[1];
+			compareList.add(temptValue);
+		});
+		return Arrays.asList(arrayFunction.getLeastReapetTimesValue(compareList).split(",")).parallelStream().toArray(String[]::new);
 	}
-	
-	public List<E> getListByOrder(int order){
-		List<E> temp = new ArrayList<E>();
-		for(int i=0;i<content.length;i++){
-			temp.add((E)content[i][order]);
-		}
-		return temp;
+
+	public int getLeastReapetArrayTimes(ArrayList<type[]> temptList){
+		AtArrayFunction<String>arrayFunction = new AtArrayFunction<String>();
+		ArrayList<String> compareList = new ArrayList<String>();
+		temptList.stream().forEach(array -> {
+			String temptValue = String.valueOf(array[0]);
+			temptValue = temptValue + ","+array[1];
+			compareList.add(temptValue);
+		});
+		return arrayFunction.getLeastReapetTimes(compareList);
 	}
-	/**
-	 * 
-	 * @param order : which column be base
-	 * @return	a double[]
-	 */
-	public double[] getColumnByOrderInDouble(int order){
-		this.column = new AtArrayFunction(this.content).getColumnByOrder(order);
-		return Arrays.stream(this.column).mapToDouble(Double :: parseDouble).toArray();
-	}
-	
-	public String[][] getColumnWithoutOrder(int order){
-		ArrayList<String[]> out = new ArrayList<String[]>();
-		for(String line[] :content){
-			ArrayList<String> tempt = new ArrayList<String>(Arrays.asList(line));
-			tempt.remove(order);
-			out.add(tempt.parallelStream().toArray(String[]::new));
-		}
-		return out.parallelStream().toArray(String[][]::new);
-	}
-	
+
 }
