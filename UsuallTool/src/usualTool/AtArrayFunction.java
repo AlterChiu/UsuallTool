@@ -58,6 +58,19 @@ public class AtArrayFunction<type> {
 		}
 		return maxReapet;
 	}
+	public int  getMostReapetTimes(ArrayList<type> temptList , int minTimes) {
+		ArrayList<type> noDuplicate = temptList;
+		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
+		
+		int maxReapet = 0;
+		for(type temptValue : noDuplicate) {
+			int times = Collections.frequency(temptList, temptValue);
+			if(times > maxReapet && times>= minTimes) {
+				maxReapet = times;
+			}
+		}
+		return maxReapet;
+	}
 	
 	public type getLeastReapetTimesValue(ArrayList<type> temptList) {
 		ArrayList<type> noDuplicate = temptList;
@@ -83,6 +96,20 @@ public class AtArrayFunction<type> {
 		for(type temptValue : noDuplicate) {
 			int times = Collections.frequency(temptList, temptValue);
 			if(times < leastReapet) {
+				leastReapet = times;
+			}
+		}
+		return leastReapet;
+	}
+	
+	public int  getLeastReapetTimes(ArrayList<type> temptList , int maxTimes) {
+		ArrayList<type> noDuplicate = temptList;
+		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
+		
+		int leastReapet = 0;
+		for(type temptValue : noDuplicate) {
+			int times = Collections.frequency(temptList, temptValue);
+			if(times < leastReapet && times<=maxTimes) {
 				leastReapet = times;
 			}
 		}
@@ -130,6 +157,17 @@ public class AtArrayFunction<type> {
 		return arrayFunction.getMostReapetTimes(compareList);
 	}
 	
+	public int getMostReapetArrayTimes(ArrayList<type[]> temptList , int minTImes){
+		AtArrayFunction<String>arrayFunction = new AtArrayFunction<String>();
+		ArrayList<String> compareList = new ArrayList<String>();
+		temptList.stream().forEach(array -> {
+			String temptValue = String.valueOf(array[0]);
+			temptValue = temptValue + ","+array[1];
+			compareList.add(temptValue);
+		});
+		return arrayFunction.getMostReapetTimes(compareList , minTImes);
+	}
+	
 	public String[] getLeastReapetArrayValue(ArrayList<type[]> temptList){
 		AtArrayFunction<String>arrayFunction = new AtArrayFunction<String>();
 		ArrayList<String> compareList = new ArrayList<String>();
@@ -141,7 +179,7 @@ public class AtArrayFunction<type> {
 		return Arrays.asList(arrayFunction.getLeastReapetTimesValue(compareList).split(",")).parallelStream().toArray(String[]::new);
 	}
 
-	public int getLeastReapetArrayTimes(ArrayList<type[]> temptList){
+	public int getLeastReapetArrayTimes(ArrayList<type[]> temptList , int maxTimes){
 		AtArrayFunction<String>arrayFunction = new AtArrayFunction<String>();
 		ArrayList<String> compareList = new ArrayList<String>();
 		temptList.stream().forEach(array -> {
@@ -149,7 +187,7 @@ public class AtArrayFunction<type> {
 			temptValue = temptValue + ","+array[1];
 			compareList.add(temptValue);
 		});
-		return arrayFunction.getLeastReapetTimes(compareList);
+		return arrayFunction.getLeastReapetTimes(compareList,maxTimes);
 	}
 
 }

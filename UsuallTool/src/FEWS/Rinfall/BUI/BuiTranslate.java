@@ -21,7 +21,7 @@ import usualTool.AtFileReader;
 import usualTool.TimeInterface;
 import usualTool.TimeTranslate;
 
-public class BuiTranslate implements IDMapping, TimeInterface {
+public class BuiTranslate implements TimeInterface {
 	private String fileAdd;
 	private TreeMap<String, String> idMapping = null;
 	private ArrayList<TimeSeriesArray> timeSeriesArrays;
@@ -34,10 +34,6 @@ public class BuiTranslate implements IDMapping, TimeInterface {
 	// <===============>
 	public BuiTranslate(String fileAdd) throws OperationNotSupportedException, IOException {
 		this.fileAdd = fileAdd;
-	}
-
-	public void setIDMapping(String fileAdd) throws OperationNotSupportedException, IOException, DocumentException {
-		this.idMapping = IDMapping.getIDMapping(fileAdd);
 	}
 
 	

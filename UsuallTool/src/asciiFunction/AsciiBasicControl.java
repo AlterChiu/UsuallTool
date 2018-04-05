@@ -113,7 +113,7 @@ public class AsciiBasicControl {
 		temptTree.add(new String[] { "ncols", this.asciiContent[0][1] });
 		temptTree.add(new String[] { "nrows", this.asciiContent[1][1] });
 		temptTree.add(new String[] { "xllcenter", this.asciiContent[2][1] });
-		temptTree.add(new String[] { "yllcneter", this.asciiContent[3][1] });
+		temptTree.add(new String[] { "yllcenter", this.asciiContent[3][1] });
 		temptTree.add(new String[] { "cellsize", this.asciiContent[4][1] });
 		temptTree.add(new String[] { "NODATA_value", this.asciiContent[5][1] });
 
