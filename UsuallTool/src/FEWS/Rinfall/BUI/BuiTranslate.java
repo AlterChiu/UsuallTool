@@ -28,6 +28,7 @@ public class BuiTranslate implements TimeInterface {
 	private long startDate;
 	private int timeStepMultiplier;
 	private long endDate;
+	private int timeSteps = 60;
 
 	// <===============>
 	// <this is the constructor >
@@ -35,7 +36,10 @@ public class BuiTranslate implements TimeInterface {
 	public BuiTranslate(String fileAdd) throws OperationNotSupportedException, IOException {
 		this.fileAdd = fileAdd;
 	}
-
+	public BuiTranslate setTimeSteps(int timeSteps) {
+		this.timeSteps = timeSteps;
+		return this;
+	}
 	
 	
 	
@@ -90,7 +94,7 @@ public class BuiTranslate implements TimeInterface {
 				if ("NaN".equals(timeSeries.getValue(event) + "")) {
 					temptValue.add("0.00");
 				} else {
-					temptValue.add(timeSeries.getValue(event) + "");
+					temptValue.add(timeSeries.getValue(event)* this.timeSteps/60 + "");
 				}
 			}
 			;
@@ -99,7 +103,70 @@ public class BuiTranslate implements TimeInterface {
 		return outArray.parallelStream().toArray(String[]::new);
 	}
 
+	public String[] getBuiRainfall_Fill(String fill , int times) throws OperationNotSupportedException, IOException {
+		this.timeSeriesArrays = new AtPiXmlReader().getTimeSeriesArrays(new File(this.fileAdd));
+		// <basic outPut setting>
+		// <___________________________________________________________________>
+		ArrayList<String> outArray = new ArrayList<String>();
+
+		// <Starting setting BUI>
+		// <____________________________________________________>
+		outArray.add("*");
+		outArray.add("*");
+		outArray.add("*Enige algemene wenken:");
+		outArray.add("*Gebruik de default dataset (1) of de volledige reeks (0) voor overige invoer");
+		outArray.add("1");
+		outArray.add("*Aantal stations");
+		outArray.add(timeSeriesArrays.size() + "");
+
+		// <checking idMapping is null or not>
+		// <_____________________________________________________________________>
+		outArray.add("*Namen van stations");
+		if (this.idMapping == null) {
+			this.timeSeriesArrays.stream().forEach(
+					timeSeriesArray -> outArray.add("\'" + timeSeriesArray.getHeader().getLocationId() + "\'"));
+		} else {
+			this.timeSeriesArrays.stream().forEach(timeSeriesArray -> outArray
+					.add("\'" + idMapping.get(timeSeriesArray.getHeader().getLocationId()) + "\'"));
+		}
+
+		// <translate to the bui format>
+		// <____________________________________________________________________________>
+		outArray.add("*Aantal gebeurtenissen (omdat het 1 bui betreft is dit altijd 1)");
+		outArray.add("*en het aantal seconden per waarnemingstijdstap");
+		TimeSeriesArray firstTimeSeriesArray = this.timeSeriesArrays.get(0);
+		outArray.add(" 1 " + firstTimeSeriesArray.getTimeStep().getMaximumStepMillis() / 1000);
 	
+		outArray.add("*Elke commentaarregel wordt begonnen met een * (asteriks).");
+		outArray.add("*Eerste record bevat startdatum en -tijd, lengte van de gebeurtenis in dd hh mm ss");
+		outArray.add("*Het format is: yyyymmdd:hhmmss:ddhhmmss");
+		outArray.add("*Daarna voor elk station de neerslag in mm per tijdstap.");
+		
+		long previousTime = this.timeSteps * 60 * 1000 * times;
+		
+		outArray.add(
+				TimeInterface.milliToDate(firstTimeSeriesArray.getStartTime() - previousTime, " yyyy MM dd HH mm ss") + TimeInterface
+						.milliToTime(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size() + previousTime,
+								" dd HH mm ss"));
+
+		for (int event = 0; event < firstTimeSeriesArray.size(); event++) {
+			ArrayList<String> temptValue = new ArrayList<String>();
+			for (TimeSeriesArray timeSeries : this.timeSeriesArrays) {
+				if ("NaN".equals(timeSeries.getValue(event) + "")) {
+					temptValue.add("0.00");
+				} else {
+					temptValue.add(timeSeries.getValue(event)* this.timeSteps/60 + "");
+				}
+			};
+			for(int index =0 ; index<times ; index++) {
+				temptValue.add(0 , fill);
+			}
+			
+			
+			outArray.add(String.join(" ", temptValue));
+		}
+		return outArray.parallelStream().toArray(String[]::new);
+	}
 	
 	
 	
