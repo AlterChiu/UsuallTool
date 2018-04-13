@@ -28,7 +28,8 @@ public class BuiTranslate implements TimeInterface {
 	private long startDate;
 	private int timeStepMultiplier;
 	private long endDate;
-	private int timeSteps = 60;
+	private double timeSteps = 60;
+	private int valueTimes = 1;
 
 	// <===============>
 	// <this is the constructor >
@@ -36,8 +37,12 @@ public class BuiTranslate implements TimeInterface {
 	public BuiTranslate(String fileAdd) throws OperationNotSupportedException, IOException {
 		this.fileAdd = fileAdd;
 	}
-	public BuiTranslate setTimeSteps(int timeSteps) {
+	public BuiTranslate setTimeSteps(double timeSteps) {
 		this.timeSteps = timeSteps;
+		return this;
+	}
+	public BuiTranslate setValueTimes(int times) {
+		this.valueTimes = times;
 		return this;
 	}
 	
@@ -142,29 +147,31 @@ public class BuiTranslate implements TimeInterface {
 		outArray.add("*Het format is: yyyymmdd:hhmmss:ddhhmmss");
 		outArray.add("*Daarna voor elk station de neerslag in mm per tijdstap.");
 		
-		long previousTime = this.timeSteps * 60 * 1000 * times;
+		double previousTime = this.timeSteps/60 * 3600 * 1000 * times;
+		
 		
 		outArray.add(
-				TimeInterface.milliToDate(firstTimeSeriesArray.getStartTime() - previousTime, " yyyy MM dd HH mm ss") + TimeInterface
-						.milliToTime(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size() + previousTime,
+				TimeInterface.milliToDate(firstTimeSeriesArray.getStartTime() - (long)previousTime, " yyyy MM dd HH mm ss") + TimeInterface
+						.milliToTime(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size() + (long)previousTime,
 								" dd HH mm ss"));
 
-		for (int event = 0; event < firstTimeSeriesArray.size(); event++) {
+		for (int event = 0; event < firstTimeSeriesArray.size() + times; event++) {
 			ArrayList<String> temptValue = new ArrayList<String>();
 			for (TimeSeriesArray timeSeries : this.timeSeriesArrays) {
-				if ("NaN".equals(timeSeries.getValue(event) + "")) {
+				try {
+				if ("NaN".equals(timeSeries.getValue(event-times) + "")) {
 					temptValue.add("0.00");
 				} else {
-					temptValue.add(timeSeries.getValue(event)* this.timeSteps/60 + "");
+					temptValue.add(timeSeries.getValue(event-times)* this.timeSteps/60 * this.valueTimes + "");
 				}
-			};
-			for(int index =0 ; index<times ; index++) {
-				temptValue.add(0 , fill);
+				}catch(Exception e) {
+					temptValue.add(0,fill);
+				}
 			}
-			
 			
 			outArray.add(String.join(" ", temptValue));
 		}
+			
 		return outArray.parallelStream().toArray(String[]::new);
 	}
 	
