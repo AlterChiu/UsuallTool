@@ -257,16 +257,16 @@ public class AsciiBasicControl {
 		double cellSize = Double.parseDouble(property.get("cellSize"));
 
 		int startLine = new BigDecimal((Double.parseDouble(property.get("topY")) - maxY) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).intValue() + 6;
+				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_DOWN).intValue() + 6;
 
 		int endLine = new BigDecimal((Double.parseDouble(property.get("topY")) - minY) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).intValue() + 6;
+				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_DOWN).intValue() + 6;
 
-		int startColumn = new BigDecimal(minX - (Double.parseDouble(property.get("bottomX"))) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).intValue();
+		int startColumn = new BigDecimal((minX - Double.parseDouble(property.get("bottomX"))) / cellSize)
+				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_DOWN).intValue();
 
-		int endColumn = new BigDecimal(maxX - (Double.parseDouble(property.get("bottomX"))) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).intValue();
+		int endColumn = new BigDecimal((maxX - Double.parseDouble(property.get("bottomX"))) / cellSize)
+				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_DOWN).intValue();
 
 		int outRow = endLine - startLine;
 		int outColumn = endColumn - startColumn;

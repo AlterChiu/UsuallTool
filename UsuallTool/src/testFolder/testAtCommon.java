@@ -17,6 +17,7 @@ import org.dom4j.io.SAXReader;
 import FEWS.PIXml.AtPiXmlReader;
 import FEWS.Rinfall.BUI.BuiTranslate;
 import asciiFunction.AsciiBasicControl;
+import asciiFunction.AsciiBuffer;
 import asciiFunction.AsciiMerge;
 import asciiFunction.XYZToAscii;
 import nl.wldelft.util.timeseries.TimeSeriesArray;
@@ -95,18 +96,35 @@ public class testAtCommon {
 		// Element root = document.getRootElement();
 		//
 		// System.out.println(root.getNamespaceURI());
-		String fileName[] = new String[] {"94193076" , "94193077" , "94193079" , "94193088" , "94193089"};
-		
-		String fileAdd = "S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\";
-		String saveAdd = "S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\merge.asc";
-		String[][] temptAscii  = new AsciiBasicControl(fileAdd + fileName[0] + ".asc").getAsciiFile();
-		
-		for(int index = 1 ; index<fileName.length;index++) {
-			temptAscii = new AsciiMerge(temptAscii , fileAdd + fileName[index] + ".asc").getMergedAscii();
+//		String fileName[] = new String[] {"94193076" , "94193077" , "94193079" , "94193088" , "94193089"};
+//		
+//		String fileAdd = "S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\";
+//		String saveAdd = "S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\merge.asc";
+//		String[][] temptAscii  = new AsciiBasicControl(fileAdd + fileName[0] + ".asc").getAsciiFile();
+//		
+//		for(int index = 1 ; index<fileName.length;index++) {
+//			temptAscii = new AsciiMerge(temptAscii , fileAdd + fileName[index] + ".asc").getMergedAscii();
+//		}
+//		
+//		new AtFileWriter(temptAscii , saveAdd).textWriter("    ");
+		String[][] position = getIotPosition();
+		AsciiBuffer buffer =  new AsciiBuffer("S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\merge.asc");
+		for(String[] sensor : position) {
+			buffer.setPoint(Double.parseDouble(sensor[1]), Double.parseDouble(sensor[1]));
 		}
-		
-		new AtFileWriter(temptAscii , saveAdd).textWriter("    ");
+		new AtFileWriter(buffer.getSelecBufferAscii(30) , "S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\merge_selected.asc").textWriter("    ");
 
 	}
 
+	static public String[][] getIotPosition() {
+		return new String[][] { { "安中五站", "162367.190368440000000", "2551199.148974450000000" },
+				{ "海佃四站", "165662.855498722000000", "2551505.057514020000000" },
+				{ "海佃三段站", "166352.509038435000000", "2549777.889128630000000" },
+				{ "朝皇宮站", "166393.082894916000000", "2548985.283620740000000" },
+				{ "龍金站", "169920.008159805000000", "2551706.181965540000000" },
+				{ "安中站", "167329.839003952000000", "2549390.511627280000000" },
+				{ "頂安站", "168461.012654870000000", "2549258.957237000000000" },
+				{ "安和站", "169782.704140448000000", "2549447.958468440000000" },
+				{ "溪頂寮站", "169520.714143787000000", "2547951.882686490000000" } };
+	}
 }

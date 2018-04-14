@@ -27,18 +27,18 @@ public class AsciiBuffer {
 	public String[][] getSelectBufferAscii(double buffer) {
 		ArrayList<String[][]> selectedAscii = new ArrayList<String[][]>();
 		for (Double[] position : bufferCenter) {
-			double minX = position[0] - this.cellSize * buffer;
-			double maxX = position[0] + this.cellSize * buffer;
-			double maxY = position[1] + this.cellSize * buffer;
-			double minY = position[1] + this.cellSize * buffer;
+			double minX = position[0] - buffer;
+			double maxX = position[0] + buffer;
+			double maxY = position[1] + buffer;
+			double minY = position[1] - buffer;
 
 			String[][] temptAscii = this.asciiControl.getClipAsciiFile(minX, minY, maxX, maxY);
 			AsciiBasicControl temptAsciiControl = new AsciiBasicControl(temptAscii);
 			String temptGrid[][] = temptAsciiControl.getAsciiGrid();
-			for(int row=0;row<temptGrid.length;row++) {
-				for(int column=0;column<temptGrid[0].length;column++) {
-					double dis = getDistance(temptAsciiControl.getCoordinate(column, row) , position);
-					if(dis>buffer) {
+			for (int row = 0; row < temptGrid.length; row++) {
+				for (int column = 0; column < temptGrid[0].length; column++) {
+					double dis = getDistance(temptAsciiControl.getCoordinate(column, row), position);
+					if (dis > buffer) {
 						temptAsciiControl.setValue(column, row, noData);
 					}
 				}
@@ -58,7 +58,7 @@ public class AsciiBuffer {
 			double minX = position[0] - this.cellSize * bufferGrid;
 			double maxX = position[0] + this.cellSize * bufferGrid;
 			double maxY = position[1] + this.cellSize * bufferGrid;
-			double minY = position[1] + this.cellSize * bufferGrid;
+			double minY = position[1] - this.cellSize * bufferGrid;
 
 			selectedAscii.add(this.asciiControl.getClipAsciiFile(minX, minY, maxX, maxY));
 		}
