@@ -137,6 +137,44 @@ public class AsciiBasicControl {
 		}
 	}
 
+	public AsciiBasicControl setValue(double x, double y, double value) {
+		int[] position = this.getPosition(x, y);
+		String stringValue = new BigDecimal(value).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
+		try {
+			this.asciiContent[position[1] + 6][position[0]] = stringValue;
+			this.asciiGrid[position[1]][position[0]] = stringValue;
+		} catch (Exception e) {
+		}
+		return this;
+	}
+
+	public AsciiBasicControl setValue(double x, double y, String value) {
+		int[] position = this.getPosition(x, y);
+		try {
+			this.asciiContent[position[1] + 6][position[0]] = value;
+			this.asciiGrid[position[1]][position[0]] = value;
+		} catch (Exception e) {
+		}
+		return this;
+	}
+
+	public AsciiBasicControl setValue(int x, int y, double value) {
+		String stringValue = new BigDecimal(value).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
+		try {
+			this.asciiContent[y + 6][x] = stringValue;
+			this.asciiGrid[y][x] = stringValue;
+		} catch (Exception e) {
+
+		}
+		return this;
+	}
+
+	public AsciiBasicControl setValue(int x, int y, String value) {
+		this.asciiContent[y + 6][x] = value;
+		this.asciiGrid[y][x] = value;
+		return this;
+	}
+
 	// <===============================>
 	// < get the position by giving coordinate of ascii > < x , y ><column , row>
 	// <================================>
@@ -190,11 +228,14 @@ public class AsciiBasicControl {
 		String[][] tempt = this.asciiContent;
 		for (int line = 6; line < this.asciiContent.length; line++) {
 			for (int column = 0; column < this.asciiContent[line].length; column++) {
-				if (!this.asciiContent[line][column].equals(noData)) {
-					double value = Double.parseDouble(this.asciiContent[line][column]);
-					if (value < base || value > top) {
-						tempt[line][column] = noData;
+				try {
+					if (!this.asciiContent[line][column].equals(noData)) {
+						double value = Double.parseDouble(this.asciiContent[line][column]);
+						if (value < base || value > top) {
+							tempt[line][column] = noData;
+						}
 					}
+				} catch (Exception e) {
 				}
 			}
 		}
@@ -211,22 +252,34 @@ public class AsciiBasicControl {
 
 	// <getting the asciiGrid by setting the coordinate>
 	// <______________________________________________________________________________________________>
-	public String[][] getAsciiGrid(double minX, double minY, double maxX, double maxY) {
+	public String[][] getClipAsciiFile(double minX, double minY, double maxX, double maxY) {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
-		TreeMap<String, String> temptProperty = this.getProperty();
-		double cellSize = Double.parseDouble(temptProperty.get("cellSize"));
+		double cellSize = Double.parseDouble(property.get("cellSize"));
 
-		int startLine = new BigDecimal((Double.parseDouble(temptProperty.get("topY")) - maxY) / cellSize)
+		int startLine = new BigDecimal((Double.parseDouble(property.get("topY")) - maxY) / cellSize)
 				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).intValue() + 6;
 
-		int endLine = new BigDecimal((Double.parseDouble(temptProperty.get("topY")) - minY) / cellSize)
+		int endLine = new BigDecimal((Double.parseDouble(property.get("topY")) - minY) / cellSize)
 				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).intValue() + 6;
 
-		int startColumn = new BigDecimal(minX - (Double.parseDouble(temptProperty.get("bottomX"))) / cellSize)
+		int startColumn = new BigDecimal(minX - (Double.parseDouble(property.get("bottomX"))) / cellSize)
 				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).intValue();
 
-		int endColumn = new BigDecimal(maxX - (Double.parseDouble(temptProperty.get("bottomX"))) / cellSize)
+		int endColumn = new BigDecimal(maxX - (Double.parseDouble(property.get("bottomX"))) / cellSize)
 				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).intValue();
+
+		int outRow = endLine - startLine;
+		int outColumn = endColumn - startColumn;
+		double[] outllCenter = this.getCoordinate(startColumn, endLine);
+		String xllCenter = new BigDecimal(outllCenter[0]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
+		String yllCenter = new BigDecimal(outllCenter[1]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
+
+		asciiGrid.add(new String[] { "ncols", outColumn + "" });
+		asciiGrid.add(new String[] { "nrows", outRow + "" });
+		asciiGrid.add(new String[] { "xllcenter", xllCenter + "" });
+		asciiGrid.add(new String[] { "yllcenter", yllCenter + "" });
+		asciiGrid.add(new String[] { "cellsize", property.get("cellSize") });
+		asciiGrid.add(new String[] { "nodata_value", property.get("noData") });
 
 		for (int line = startLine; line <= endLine; line++) {
 			ArrayList<String> temptLine = new ArrayList<String>();
@@ -241,7 +294,7 @@ public class AsciiBasicControl {
 
 	// <get asciiGrid by setting the position>
 	// <___________________________________________________________________________>
-	public String[][] getAsciiGrid(int minX, int minY, int maxX, int maxY) {
+	public String[][] getClipAsciiFile(int minX, int minY, int maxX, int maxY) {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
 
 		int startLine = maxY + 6;
@@ -251,6 +304,19 @@ public class AsciiBasicControl {
 		int startColumn = minX;
 
 		int endColumn = maxX;
+
+		int outRow = endLine - startLine;
+		int outColumn = endColumn - startColumn;
+		double[] outllCenter = this.getCoordinate(startColumn, endLine);
+		String xllCenter = new BigDecimal(outllCenter[0]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
+		String yllCenter = new BigDecimal(outllCenter[1]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
+
+		asciiGrid.add(new String[] { "ncols", outColumn + "" });
+		asciiGrid.add(new String[] { "nrows", outRow + "" });
+		asciiGrid.add(new String[] { "xllcenter", xllCenter + "" });
+		asciiGrid.add(new String[] { "yllcenter", yllCenter + "" });
+		asciiGrid.add(new String[] { "cellsize", this.property.get("cellSize") });
+		asciiGrid.add(new String[] { "nodata_value", this.property.get("noData") });
 
 		for (int line = startLine; line <= endLine; line++) {
 			ArrayList<String> temptLine = new ArrayList<String>();

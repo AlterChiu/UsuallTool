@@ -16,6 +16,9 @@ import org.dom4j.io.SAXReader;
 
 import FEWS.PIXml.AtPiXmlReader;
 import FEWS.Rinfall.BUI.BuiTranslate;
+import asciiFunction.AsciiBasicControl;
+import asciiFunction.AsciiMerge;
+import asciiFunction.XYZToAscii;
 import nl.wldelft.util.timeseries.TimeSeriesArray;
 import usualTool.AtFileWriter;
 import usualTool.TimeTranslate;
@@ -73,27 +76,36 @@ public class testAtCommon {
 
 		// getBUI
 		// =================================================
-		// String fileAdd =
-		// "S:\\HomeWork\\ICCCBE2018\\DEMUncertainty\\eventRainfall\\201609270900_1H_24H.xml";
-		// String saveAdd =
-		// "S:\\HomeWork\\\\ICCCBE2018\\\\DEMUncertainty\\\\eventRainfall\\\\201609270900_1H_48H.BUI";
+//		String fileAdd = "S:\\HomeWork\\ICCCBE2018\\DEMUncertainty\\eventRainfall\\201606110000_1H_24H.xml";
+//		String saveAdd = "S:\\HomeWork\\\\ICCCBE2018\\\\DEMUncertainty\\\\eventRainfall\\\\201606110000_1H_48H.BUI";
+//
+////		new AtFileWriter(new BuiTranslate(fileAdd).getBuiRainfall(), saveAdd).textWriter("");
+//		new AtFileWriter(new BuiTranslate(fileAdd).getBuiRainfall_Fill("0.0", 24), saveAdd).textWriter("");
+
+		// String fileAdd = "S:\\Users\\alter\\Desktop\\Boundary.xml";
 		//
-		// new AtFileWriter(new BuiTranslate(fileAdd).getBuiRainfall_Fill("0.0" , 24) ,
-		// saveAdd).textWriter("");
-
-		String fileAdd = "S:\\Users\\alter\\Desktop\\Boundary.xml";
-
-		Map<String, String> nameSpace = new HashMap<String, String>();
-		nameSpace.put("np", "");
+		// Map<String, String> nameSpace = new HashMap<String, String>();
+		// nameSpace.put("np", "");
+		// //
+		// SAXReader reader = new SAXReader();
+		// reader.getDocumentFactory().setXPathNamespaceURIs(nameSpace);
 		//
-		SAXReader reader = new SAXReader();
-		reader.getDocumentFactory().setXPathNamespaceURIs(nameSpace);
-
-		Document document = reader.read(new File(fileAdd));
-
-		Element root = document.getRootElement();
-
-		System.out.println(root.getNamespaceURI());
+		// Document document = reader.read(new File(fileAdd));
+		//
+		// Element root = document.getRootElement();
+		//
+		// System.out.println(root.getNamespaceURI());
+		String fileName[] = new String[] {"94193076" , "94193077" , "94193079" , "94193088" , "94193089"};
+		
+		String fileAdd = "S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\";
+		String saveAdd = "S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\merge.asc";
+		String[][] temptAscii  = new AsciiBasicControl(fileAdd + fileName[0] + ".asc").getAsciiFile();
+		
+		for(int index = 1 ; index<fileName.length;index++) {
+			temptAscii = new AsciiMerge(temptAscii , fileAdd + fileName[index] + ".asc").getMergedAscii();
+		}
+		
+		new AtFileWriter(temptAscii , saveAdd).textWriter("    ");
 
 	}
 

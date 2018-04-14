@@ -1,4 +1,4 @@
-package asciiFunction;
+package usualTool;
 
 import java.io.File;
 import java.util.HashMap;

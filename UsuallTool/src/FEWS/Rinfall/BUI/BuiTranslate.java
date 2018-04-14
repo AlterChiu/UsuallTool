@@ -28,7 +28,6 @@ public class BuiTranslate implements TimeInterface {
 	private long startDate;
 	private int timeStepMultiplier;
 	private long endDate;
-	private double timeSteps = 60;
 	private int valueTimes = 1;
 
 	// <===============>
@@ -36,10 +35,6 @@ public class BuiTranslate implements TimeInterface {
 	// <===============>
 	public BuiTranslate(String fileAdd) throws OperationNotSupportedException, IOException {
 		this.fileAdd = fileAdd;
-	}
-	public BuiTranslate setTimeSteps(double timeSteps) {
-		this.timeSteps = timeSteps;
-		return this;
 	}
 	public BuiTranslate setValueTimes(int times) {
 		this.valueTimes = times;
@@ -99,7 +94,7 @@ public class BuiTranslate implements TimeInterface {
 				if ("NaN".equals(timeSeries.getValue(event) + "")) {
 					temptValue.add("0.00");
 				} else {
-					temptValue.add(timeSeries.getValue(event)* this.timeSteps/60 + "");
+					temptValue.add(timeSeries.getValue(event) + "");
 				}
 			}
 			;
@@ -147,8 +142,8 @@ public class BuiTranslate implements TimeInterface {
 		outArray.add("*Het format is: yyyymmdd:hhmmss:ddhhmmss");
 		outArray.add("*Daarna voor elk station de neerslag in mm per tijdstap.");
 		
-		double previousTime = this.timeSteps/60 * 3600 * 1000 * times;
-		
+		double previousTime = (firstTimeSeriesArray.getTimeStep().getStepMillis()) * times;
+	
 		
 		outArray.add(
 				TimeInterface.milliToDate(firstTimeSeriesArray.getStartTime() - (long)previousTime, " yyyy MM dd HH mm ss") + TimeInterface
@@ -162,7 +157,7 @@ public class BuiTranslate implements TimeInterface {
 				if ("NaN".equals(timeSeries.getValue(event-times) + "")) {
 					temptValue.add("0.00");
 				} else {
-					temptValue.add(timeSeries.getValue(event-times)* this.timeSteps/60 * this.valueTimes + "");
+					temptValue.add(timeSeries.getValue(event-times) * this.valueTimes + "");
 				}
 				}catch(Exception e) {
 					temptValue.add(0,fill);
