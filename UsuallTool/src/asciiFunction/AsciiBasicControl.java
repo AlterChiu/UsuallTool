@@ -257,16 +257,16 @@ public class AsciiBasicControl {
 		double cellSize = Double.parseDouble(property.get("cellSize"));
 
 		int startLine = new BigDecimal((Double.parseDouble(property.get("topY")) - maxY) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_DOWN).intValue() + 6;
+				.setScale(globalAscii.scale, BigDecimal.ROUND_DOWN).intValue() + 6;
 
 		int endLine = new BigDecimal((Double.parseDouble(property.get("topY")) - minY) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_DOWN).intValue() + 6;
+				.setScale(globalAscii.scale, BigDecimal.ROUND_DOWN).intValue() + 6;
 
 		int startColumn = new BigDecimal((minX - Double.parseDouble(property.get("bottomX"))) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_DOWN).intValue();
+				.setScale(globalAscii.scale, BigDecimal.ROUND_DOWN).intValue();
 
 		int endColumn = new BigDecimal((maxX - Double.parseDouble(property.get("bottomX"))) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_DOWN).intValue();
+				.setScale(globalAscii.scale, BigDecimal.ROUND_DOWN).intValue();
 
 		int outRow = endLine - startLine;
 		int outColumn = endColumn - startColumn;
@@ -281,7 +281,7 @@ public class AsciiBasicControl {
 		asciiGrid.add(new String[] { "cellsize", property.get("cellSize") });
 		asciiGrid.add(new String[] { "nodata_value", property.get("noData") });
 
-		for (int line = startLine; line >= endLine; line--) {
+		for (int line = startLine; line <= endLine; line++) {
 			ArrayList<String> temptLine = new ArrayList<String>();
 			for (int column = startColumn; column <= endColumn; column++) {
 				temptLine.add(this.asciiContent[line][column]);
@@ -318,7 +318,7 @@ public class AsciiBasicControl {
 		asciiGrid.add(new String[] { "cellsize", this.property.get("cellSize") });
 		asciiGrid.add(new String[] { "nodata_value", this.property.get("noData") });
 
-		for (int line = endLine; line >= startLine; line--) {
+		for (int line = startLine; line <= endLine; line--) {
 			ArrayList<String> temptLine = new ArrayList<String>();
 			for (int column = startColumn; column <= endColumn; column++) {
 				temptLine.add(this.asciiContent[line][column]);

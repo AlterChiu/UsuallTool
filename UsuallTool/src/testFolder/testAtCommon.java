@@ -107,12 +107,9 @@ public class testAtCommon {
 //		}
 //		
 //		new AtFileWriter(temptAscii , saveAdd).textWriter("    ");
-		String[][] position = getIotPosition();
-		AsciiBuffer buffer =  new AsciiBuffer("S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\merge.asc");
-		for(String[] sensor : position) {
-			buffer.setPoint(Double.parseDouble(sensor[1]), Double.parseDouble(sensor[1]));
-		}
-		new AtFileWriter(buffer.getSelecBufferAscii(30) , "S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\merge_selected.asc").textWriter("    ");
+		AsciiBasicControl ascii = new AsciiBasicControl("S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\merge.asc");
+		new AtFileWriter(ascii.getClipAsciiFile(161367., 2550199., 162467., 2551299.0) , "S:\\\\HomeWork\\\\ICCCBE2018\\\\LevelDEM\\\\IOT_1m\\\\test.asc").textWriter("    ");
+		
 
 	}
 
