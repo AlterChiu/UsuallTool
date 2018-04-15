@@ -281,9 +281,9 @@ public class AsciiBasicControl {
 		asciiGrid.add(new String[] { "cellsize", property.get("cellSize") });
 		asciiGrid.add(new String[] { "nodata_value", property.get("noData") });
 
-		for (int line = startLine; line <= endLine; line++) {
+		for (int line = startLine; line < endLine; line++) {
 			ArrayList<String> temptLine = new ArrayList<String>();
-			for (int column = startColumn; column <= endColumn; column++) {
+			for (int column = startColumn; column < endColumn; column++) {
 				temptLine.add(this.asciiContent[line][column]);
 			}
 			asciiGrid.add(temptLine.parallelStream().toArray(String[]::new));
