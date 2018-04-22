@@ -28,87 +28,10 @@ public class testAtCommon {
 
 	public static void main(String[] args) throws OperationNotSupportedException, IOException, DocumentException {
 		// TODO Auto-generated method stub
-
-		// String fileAdd =
-		// "S:\\HomeWork\\ICCCBE2018\\DEMUncertainty\\eventRainfall\\201609270900_1H_24H.xml";
-		// String saveAdd =
-		// "S:\\HomeWork\\ICCCBE2018\\DEMUncertainty\\eventRainfall\\201609270900_1H_24H.BUI";
-		//
-		// new AtFileWriter(new BuiTranslate(fileAdd).getBuiRainfall() ,
-		// saveAdd).textWriter("");
-
-		// get 1D value
-		// ==========================================
-		// String fileAdd ="C:\\Sobek213\\Output\\0927\\BinHai.xml";
-		//// String fileAdd = "C:\\\\Sobek213\\\\Output\\0927\\AhnSung.xml";
-		//// String fileAdd = "C:\\\\\\\\Sobek213\\\\\\\\Output\\\0927\\\\\ReinAi.xml";
-		// ArrayList<TimeSeriesArray> reader = new
-		// AtPiXmlReader().getTimeSeriesArrays(fileAdd);
-		//
-		// TimeSeriesArray timeSeries = reader.get(0);
-		//
-		// for(int index = 144 ; index<timeSeries.size()-1;index++) {
-		// System.out.println(timeSeries.getValue(index));
-		// }
-
-		// getboundary
-		// ====================================
-		// String fileAdd = "S:\\Users\\alter\\Desktop\\boundary.xml";
-		// String saveAdd = "S:\\\\Users\\\\alter\\\\Desktop\\\\save.txt";
-		// ArrayList<TimeSeriesArray> reader = new
-		// AtPiXmlReader().getTimeSeriesArrays(fileAdd);
-		// TimeTranslate tt = new TimeTranslate();
-		//
-		//
-		// TimeSeriesArray timeSeries = reader.get(0);
-		// ArrayList<String> temptOut = new ArrayList<String>();
-		// for(int index = 0 ; index<timeSeries.size();index++) {
-		// String tempt = "";
-		// tempt = tempt + "'";
-		// tempt = tempt + tt.milliToDate(timeSeries.getTime(index) ,
-		// "yyyy/MM/dd;HH;mm;ss");
-		// tempt = tempt + "' ";
-		// tempt = tempt + timeSeries.getValue(index) + " <";
-		//
-		// temptOut.add(tempt);
-		// }
-		// new AtFileWriter(temptOut.parallelStream().toArray(String[]::new) ,
-		// saveAdd).textWriter("");
-
-		// getBUI
-		// =================================================
-//		String fileAdd = "S:\\HomeWork\\ICCCBE2018\\DEMUncertainty\\eventRainfall\\201606110000_1H_24H.xml";
-//		String saveAdd = "S:\\HomeWork\\\\ICCCBE2018\\\\DEMUncertainty\\\\eventRainfall\\\\201606110000_1H_48H.BUI";
-//
-////		new AtFileWriter(new BuiTranslate(fileAdd).getBuiRainfall(), saveAdd).textWriter("");
-//		new AtFileWriter(new BuiTranslate(fileAdd).getBuiRainfall_Fill("0.0", 24), saveAdd).textWriter("");
-
-		// String fileAdd = "S:\\Users\\alter\\Desktop\\Boundary.xml";
-		//
-		// Map<String, String> nameSpace = new HashMap<String, String>();
-		// nameSpace.put("np", "");
-		// //
-		// SAXReader reader = new SAXReader();
-		// reader.getDocumentFactory().setXPathNamespaceURIs(nameSpace);
-		//
-		// Document document = reader.read(new File(fileAdd));
-		//
-		// Element root = document.getRootElement();
-		//
-		// System.out.println(root.getNamespaceURI());
-//		String fileName[] = new String[] {"94193076" , "94193077" , "94193079" , "94193088" , "94193089"};
-//		
-//		String fileAdd = "S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\";
-//		String saveAdd = "S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\merge.asc";
-//		String[][] temptAscii  = new AsciiBasicControl(fileAdd + fileName[0] + ".asc").getAsciiFile();
-//		
-//		for(int index = 1 ; index<fileName.length;index++) {
-//			temptAscii = new AsciiMerge(temptAscii , fileAdd + fileName[index] + ".asc").getMergedAscii();
-//		}
-//		
-//		new AtFileWriter(temptAscii , saveAdd).textWriter("    ");
-		AsciiBasicControl ascii = new AsciiBasicControl("S:\\HomeWork\\ICCCBE2018\\LevelDEM\\IOT_1m\\merge.asc");
-		new AtFileWriter(ascii.getClipAsciiFile(161367., 2550199., 162467., 2551299.0) , "S:\\\\HomeWork\\\\ICCCBE2018\\\\LevelDEM\\\\IOT_1m\\\\test.asc").textWriter("    ");
+		String fileAdd = "S:\\HomeWork\\測量實習\\106-2\\三角三邊\\original\\";
+		for(String name : new File(fileAdd).list()) {
+			System.out.println(name);
+		}
 		
 
 	}

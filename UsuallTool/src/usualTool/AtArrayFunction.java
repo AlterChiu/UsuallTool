@@ -46,7 +46,7 @@ public class AtArrayFunction<type> {
 	}
 	
 	public int  getMostReapetTimes(ArrayList<type> temptList) {
-		ArrayList<type> noDuplicate = temptList;
+		ArrayList<type> noDuplicate = (ArrayList<type>)temptList.clone();
 		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
 		
 		int maxReapet = 0;
@@ -59,7 +59,7 @@ public class AtArrayFunction<type> {
 		return maxReapet;
 	}
 	public int  getMostReapetTimes(ArrayList<type> temptList , int minTimes) {
-		ArrayList<type> noDuplicate = temptList;
+		ArrayList<type> noDuplicate = (ArrayList<type>)temptList.clone();;
 		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
 		
 		int maxReapet = 0;
@@ -73,7 +73,7 @@ public class AtArrayFunction<type> {
 	}
 	
 	public type getLeastReapetTimesValue(ArrayList<type> temptList) {
-		ArrayList<type> noDuplicate = temptList;
+		ArrayList<type> noDuplicate = (ArrayList<type>)temptList.clone();;
 		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
 		
 		int leastReapet = 9999999;
@@ -89,7 +89,7 @@ public class AtArrayFunction<type> {
 	}
 	
 	public int  getLeastReapetTimes(ArrayList<type> temptList) {
-		ArrayList<type> noDuplicate = temptList;
+		ArrayList<type> noDuplicate = (ArrayList<type>)temptList.clone();;
 		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
 		
 		int leastReapet = 0;
@@ -103,7 +103,7 @@ public class AtArrayFunction<type> {
 	}
 	
 	public int  getLeastReapetTimes(ArrayList<type> temptList , int maxTimes) {
-		ArrayList<type> noDuplicate = temptList;
+		ArrayList<type> noDuplicate = (ArrayList<type>)temptList.clone();;
 		noDuplicate = new ArrayList<type>(noDuplicate.stream().distinct().collect(Collectors.toList()));
 		
 		int leastReapet = 0;

@@ -7,13 +7,19 @@ import java.util.TreeMap;
 public class AsciiBuffer {
 	private AsciiBasicControl asciiControl;
 	private ArrayList<Double[]> bufferCenter = new ArrayList<Double[]>();
-	private ArrayList<String[][]> selectedBuffer = new ArrayList<String[][]>();
 	private TreeMap<String, String> property;
 	private double cellSize;
 	private String noData = "null";
 
 	public AsciiBuffer(String fileAdd) throws IOException {
 		this.asciiControl = new AsciiBasicControl(fileAdd);
+		this.property = this.asciiControl.getProperty();
+		this.cellSize = Double.parseDouble(this.property.get("cellSize"));
+		this.noData = this.property.get("noData");
+	}
+	
+	public AsciiBuffer(String[][] ascii) {
+		this.asciiControl = new AsciiBasicControl(ascii);
 		this.property = this.asciiControl.getProperty();
 		this.cellSize = Double.parseDouble(this.property.get("cellSize"));
 		this.noData = this.property.get("noData");

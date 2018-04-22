@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
@@ -85,9 +86,7 @@ public class AtFileReader {
 	// <get csv file>
 	// <____________________________________________________________>
 	public String[][] getCsv() {
-		ArrayList<String[]> tempt = new ArrayList<String[]>();
-		this.fileContain.stream().forEach(line -> tempt.add(line.split(",")));
-		return tempt.parallelStream().toArray(String[][]::new);
+		return this.fileContain.stream().map(e -> e.split(",")).collect(Collectors.toList()).parallelStream().toArray(String[][]::new);
 	}
 
 	public String[][] getCsv(int start, int end) {
@@ -107,9 +106,7 @@ public class AtFileReader {
 	// <get split file by using significant text>
 	// <__________________________________________________________>
 	public String[][] getContent(String split) {
-		ArrayList<String[]> tempt = new ArrayList<String[]>();
-		this.fileContain.stream().forEach(line -> tempt.add(line.split(split)));
-		return tempt.parallelStream().toArray(String[][]::new);
+		return this.fileContain.stream().map(e -> e.split(split)).collect(Collectors.toList()).parallelStream().toArray(String[][]::new);
 	}
 
 	public String[][] getContent(String split, int start, int end) {
@@ -121,9 +118,7 @@ public class AtFileReader {
 	// <get split file by space>
 	// <_______________________________________________>
 	public String[][] getStr() {
-		ArrayList<String[]> tempt = new ArrayList<String[]>();
-		this.fileContain.stream().forEach(line -> tempt.add(line.split(" +")));
-		return tempt.parallelStream().toArray(String[][]::new);
+		return this.fileContain.stream().map(e -> e.split(" +")).collect(Collectors.toList()).parallelStream().toArray(String[][]::new);
 	}
 
 	public String[][] getStr(int start, int end) {

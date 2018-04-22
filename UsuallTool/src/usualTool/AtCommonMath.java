@@ -2,6 +2,7 @@ package usualTool;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -16,7 +17,7 @@ public class AtCommonMath {
 		this.ds = new DescriptiveStatistics(valueList);
 	}
 
-	public AtCommonMath(ArrayList<Double> valueList) {
+	public AtCommonMath(List<Double> valueList) {
 		this.list = valueList.stream().mapToDouble(Double::doubleValue).toArray();
 		this.ds = new DescriptiveStatistics(valueList.stream().mapToDouble(Double::doubleValue).toArray());
 	}
