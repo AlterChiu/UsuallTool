@@ -11,6 +11,9 @@ public class AsciiBuffer {
 	private double cellSize;
 	private String noData = "null";
 
+//	<====================================>
+//	<                               CONSTRUCTOR                                 >
+//	<====================================>
 	public AsciiBuffer(String fileAdd) throws IOException {
 		this.asciiControl = new AsciiBasicControl(fileAdd);
 		this.property = this.asciiControl.getProperty();
@@ -18,19 +21,34 @@ public class AsciiBuffer {
 		this.noData = this.property.get("noData");
 	}
 	
-	public AsciiBuffer(String[][] ascii) {
+	public AsciiBuffer(String[][] ascii) throws IOException {
 		this.asciiControl = new AsciiBasicControl(ascii);
 		this.property = this.asciiControl.getProperty();
 		this.cellSize = Double.parseDouble(this.property.get("cellSize"));
 		this.noData = this.property.get("noData");
 	}
-
+//=============================================
+	
+	
+	
+	
+//	<======================>
+//	<                      setting                     >
+//	<======================>
 	public AsciiBuffer setPoint(double x, double y) {
 		this.bufferCenter.add(new Double[] { x, y });
 		return this;
 	}
+//	==============================================
 
-	public String[][] getSelectBufferAscii(double buffer) {
+	
+	
+	
+	
+//	<========================>
+//	<                           FUNCTION              >
+//	<========================>
+	public String[][] getSelectBufferAscii(double buffer) throws IOException {
 		ArrayList<String[][]> selectedAscii = new ArrayList<String[][]>();
 		for (Double[] position : bufferCenter) {
 			double minX = position[0] - buffer;
@@ -57,8 +75,16 @@ public class AsciiBuffer {
 		}
 		return temptOut;
 	}
-
-	public String[][] getSelecBufferAscii(int bufferGrid) {
+	private double getDistance(double[] point1, Double[] point2) {
+		return Math.sqrt(Math.pow(point1[0] - point2[0], 2.) + Math.pow(point1[1] - point2[1], 2));
+	}
+	
+	
+	
+	
+	
+	
+	public String[][] getSelecBufferAscii(int bufferGrid) throws IOException {
 		ArrayList<String[][]> selectedAscii = new ArrayList<String[][]>();
 		for (Double[] position : bufferCenter) {
 			double minX = position[0] - this.cellSize * bufferGrid;
@@ -75,8 +101,6 @@ public class AsciiBuffer {
 		return temptOut;
 	}
 
-	private double getDistance(double[] point1, Double[] point2) {
-		return Math.sqrt(Math.pow(point1[0] - point2[0], 2.) + Math.pow(point1[1] - point2[1], 2));
-	}
+	
 
 }

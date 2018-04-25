@@ -39,7 +39,7 @@ public class AsciiMerge {
 //	<===================>
 //	<        this is the construct       >
 //	<===================>
-	public AsciiMerge(String[][] ascii1, String[][] ascii2) {
+	public AsciiMerge(String[][] ascii1, String[][] ascii2) throws IOException {
 		this.firstAsciiContent = ascii1;
 		this.secondAsciiContent = ascii2;
 
@@ -54,8 +54,8 @@ public class AsciiMerge {
 		AsciiBasicControl ascii1Basic =  new AsciiBasicControl(ascii1);
 		AsciiBasicControl ascii2Basic =  new AsciiBasicControl(ascii2);
 		
-		this.firstAsciiContent = ascii1Basic.cutFirstColumn().getAsciiFile();
-		this.secondAsciiContent = ascii2Basic.cutFirstColumn().getAsciiFile();
+		this.firstAsciiContent = ascii1Basic.getAsciiFile();
+		this.secondAsciiContent = ascii2Basic.getAsciiFile();
 		
 		this.firstProperty = ascii1Basic.getProperty();
 		this.secondProperty = ascii2Basic.getProperty();
@@ -68,7 +68,7 @@ public class AsciiMerge {
 		AsciiBasicControl ascii1Basic =  new AsciiBasicControl(ascii1);
 		AsciiBasicControl ascii2Basic =  new AsciiBasicControl(ascii2);
 		
-		this.firstAsciiContent = ascii1Basic.cutFirstColumn().getAsciiFile();
+		this.firstAsciiContent = ascii1Basic.getAsciiFile();
 		this.secondAsciiContent = ascii2Basic.getAsciiFile();
 		
 		this.firstProperty = ascii1Basic.getProperty();
@@ -83,7 +83,7 @@ public class AsciiMerge {
 		AsciiBasicControl ascii2Basic =  new AsciiBasicControl(ascii2);
 		
 		this.firstAsciiContent = ascii1Basic.getAsciiFile();
-		this.secondAsciiContent = ascii2Basic.cutFirstColumn().getAsciiFile();
+		this.secondAsciiContent = ascii2Basic.getAsciiFile();
 		
 		this.firstProperty = ascii1Basic.getProperty();
 		this.secondProperty = ascii2Basic.getProperty();
@@ -96,7 +96,7 @@ public class AsciiMerge {
 //	<=====================>
 //	<  setting the out ascii property  >
 //	<=====================>
-	private void setOutPutAsciiProperty() {
+	private void setOutPutAsciiProperty() throws IOException {
 		this.cellSize = Double.parseDouble(this.firstProperty.get("cellSize"));
 		this.noData = this.firstProperty.get("noData");
 		this.secondAsciiContent = new AsciiBasicControl(this.secondAsciiContent)

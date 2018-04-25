@@ -12,7 +12,7 @@ public class AsciiDifference {
 	private int combine;
 	private double differenceTotal;
 	
-	public AsciiDifference(String[][] original , String[][] target){
+	public AsciiDifference(String[][] original , String[][] target) throws IOException{
 		this.originalAscii = new AsciiBasicControl(original);
 		this.targetAscii  = new AsciiBasicControl(target);
 		

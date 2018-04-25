@@ -30,7 +30,7 @@ public class AsciiIntersect {
 	// <===============================>
 	// <this is the constructor and the geoJson setting>
 	// <===============================>
-	public AsciiIntersect(String[][] asciiFile) {
+	public AsciiIntersect(String[][] asciiFile) throws IOException {
 		this.asciiFile = asciiFile;
 		this.ascii = new AsciiBasicControl(this.asciiFile);
 		this.property = this.ascii.getProperty();
@@ -38,7 +38,7 @@ public class AsciiIntersect {
 	}
 
 	public AsciiIntersect(String fileAdd) throws IOException {
-		this.asciiFile = new AsciiBasicControl(fileAdd).cutFirstColumn().getAsciiFile();
+		this.asciiFile = new AsciiBasicControl(fileAdd).getAsciiFile();
 		this.ascii = new AsciiBasicControl(this.asciiFile);
 		this.property = this.ascii.getProperty();
 		this.asciiGrid = this.ascii.getAsciiGrid();
@@ -60,7 +60,7 @@ public class AsciiIntersect {
 //	<===================== >
 //	<Series Ascii intersect to geoJson>
 //	<===================== >
-	public AsciiIntersect(ArrayList<String[][]> asciiFile, JsonObject json) {
+	public AsciiIntersect(ArrayList<String[][]> asciiFile, JsonObject json) throws IOException {
 		this.seriesJsonObject = json;
 
 		for (int order = 0; order < asciiFile.size(); order++) {
@@ -74,7 +74,7 @@ public class AsciiIntersect {
 	}
 
 	public AsciiIntersect(ArrayList<String[][]> asciiFile, String jsonFileAdd)
-			throws JsonIOException, JsonSyntaxException, FileNotFoundException {
+			throws JsonIOException, JsonSyntaxException, IOException {
 		this.seriesJsonObject = this.geoJson = new JsonParser().parse(new FileReader(jsonFileAdd)).getAsJsonObject();
 
 		for (int order = 0; order < asciiFile.size(); order++) {

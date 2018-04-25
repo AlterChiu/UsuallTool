@@ -19,8 +19,10 @@ public class XYZToAscii {
 	private ArrayList<Double> yList = new ArrayList<Double>();
 	private TreeMap<String, String> valueList = new TreeMap<String, String>();
 	private String[][] asciiGrid;
+	private int row;
+	private int column;
 	private double cellSize = 1.0;
-	private String noData = "-999.999";
+	private String noData = "-99";
 
 	public XYZToAscii(String fileAdd) throws IOException {
 		this.xyzContent = new ArrayList<String[]>(Arrays.asList(new AtFileReader(fileAdd).getStr()));
@@ -56,21 +58,25 @@ public class XYZToAscii {
 	private void setGrid() {
 		double startX = Double.parseDouble(this.property.get("bottomX"));
 		double startY = Double.parseDouble(this.property.get("topY"));
-
-		for (int row = 0; row < this.asciiGrid.length; row++) {
+		
+		ArrayList<String[]> outArray = new ArrayList<String[]>();
+		for (int row = 0; row < this.row; row++) {
 			String temptY = new BigDecimal(startY - this.cellSize * row).setScale(3, BigDecimal.ROUND_HALF_UP)
 					.toString();
-			for (int column = 0; column < this.asciiGrid[0].length; column++) {
+			for (int column = 0; column < this.column; column++) {
+				ArrayList<String> tempArray = new ArrayList<String>();
 				String temptX = new BigDecimal(startX + this.cellSize * column).setScale(3, BigDecimal.ROUND_HALF_UP)
 						.toString();
 				String temptPosition = temptX + "_" + temptY;
 				if (this.valueList.containsKey(temptPosition)) {
-					this.asciiGrid[row][column] = this.valueList.get(temptPosition);
+					tempArray.add(this.valueList.get(temptPosition));
 				} else {
-					this.asciiGrid[row][column] = this.noData;
+					tempArray.add(this.noData);
 				}
+				outArray.add(tempArray.parallelStream().toArray(String[]::new));
 			}
 		}
+		this.asciiGrid = outArray.parallelStream().toArray(String[][]::new);
 	}
 
 	private void setProperty() {
@@ -81,14 +87,18 @@ public class XYZToAscii {
 			this.yList.add(Double.parseDouble(y));
 			this.valueList.put(x + "_" + y, line[2]);
 		});
+		this.xyzContent.clear();
+		
 
 		AtCommonMath xStastic = new AtCommonMath(this.xList);
 		double bottomX = xStastic.getMin();
 		double topX = xStastic.getMax();
+		this.xList.clear();
 
 		AtCommonMath yStastic = new AtCommonMath(this.yList);
 		double bottomY = yStastic.getMin();
 		double topY = yStastic.getMax();
+		this.yList.clear();
 
 		int row = new BigDecimal((topY - bottomY) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
 		int column = new BigDecimal((topX - bottomX) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
@@ -104,7 +114,8 @@ public class XYZToAscii {
 		property.put("column", column + "");
 		property.put("row", row + "");
 
-		this.asciiGrid = new String[row][column];
+		this.row = row;
+		this.column = column;
 	}
 
 	public XYZToAscii setCellSize(double cellSize) {

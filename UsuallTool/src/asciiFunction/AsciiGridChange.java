@@ -15,14 +15,14 @@ public class AsciiGridChange {
 	private TreeMap<String, String> originalProperty;
 
 	public AsciiGridChange(String asciiFile) throws IOException {
-		AsciiBasicControl temptAscii = new AsciiBasicControl(asciiFile).cutFirstColumn();
+		AsciiBasicControl temptAscii = new AsciiBasicControl(asciiFile);
 		this.asciiContent = temptAscii.getAsciiFile();
 		this.asciiGrid = temptAscii.getAsciiGrid();
 		this.originalProperty = temptAscii.getProperty();
 	}
 
 	public AsciiGridChange(String[][] asciiContent) throws IOException {
-		AsciiBasicControl temptAscii = new AsciiBasicControl(asciiContent).cutFirstColumn();
+		AsciiBasicControl temptAscii = new AsciiBasicControl(asciiContent);
 		this.asciiContent = temptAscii.getAsciiFile();
 		this.asciiGrid = temptAscii.getAsciiGrid();
 		this.originalProperty = temptAscii.getProperty();
@@ -102,9 +102,9 @@ public class AsciiGridChange {
 			ArrayList<String[]> targetGrid = new ArrayList<String[]>();
 
 			// the original ascii grid
-			for (int row = 0; row < targetRow*gridSize; row = row + gridSize) {
+			for (int row = 0; row < targetRow * gridSize; row = row + gridSize) {
 				ArrayList<String> targetLine = new ArrayList<String>();
-				for (int column = 0; column < targetColumn*gridSize; column = column + gridSize) {
+				for (int column = 0; column < targetColumn * gridSize; column = column + gridSize) {
 
 					// change the original grid to the target grid by mean value
 					// if there is more than half of the each changed grid mount are equals to the
@@ -114,25 +114,26 @@ public class AsciiGridChange {
 					for (int gridRow = 0; gridRow < gridSize; gridRow++) {
 						for (int gridColumn = 0; gridColumn < gridSize; gridColumn++) {
 							if (!this.asciiGrid[row + gridRow][column + gridColumn]
-									.equals(this.originalProperty.get("noData"))) {
+									.equals(this.originalProperty.get("noData"))
+									&& !this.asciiGrid[row + gridRow][column + gridColumn].equals("-99")) {
 								temptGrid.add(Double.parseDouble(this.asciiGrid[row + gridRow][column + gridColumn]));
 							}
 						}
 					}
-//					if (temptGrid.size() > limit) {
-//						targetLine.add(new AtCommonMath(temptGrid).getMean() + "");
-//					} else {
-//						targetLine.add(this.originalProperty.get("noData"));
-//					}
-					if(temptGrid.size() != gridSize*gridSize) {
+					// if (temptGrid.size() > limit) {
+					// targetLine.add(new AtCommonMath(temptGrid).getMean() + "");
+					// } else {
+					// targetLine.add(this.originalProperty.get("noData"));
+					// }
+					if (temptGrid.size() != gridSize * gridSize) {
 						targetLine.add(this.originalProperty.get("noData"));
-					}else {
+					} else {
 						targetLine.add(new AtCommonMath(temptGrid).getMean() + "");
 					}
-					
+
 				}
 				targetGrid.add(targetLine.parallelStream().toArray(String[]::new));
-				
+
 			}
 			return targetGrid.parallelStream().toArray(String[][]::new);
 		} else {

@@ -18,10 +18,11 @@ public class AsciiBasicControl {
 	// <==============>
 	// < constructor function>
 	// <==============>
-	public AsciiBasicControl(String[][] asciiContent) {
+	public AsciiBasicControl(String[][] asciiContent) throws IOException {
 		this.asciiContent = asciiContent;
 		this.property = this.getProperty();
 		this.asciiGrid = this.getAsciiGrid();
+		cutFirstColumn();
 	}
 
 	public AsciiBasicControl(String fileAdd) throws IOException {
@@ -29,12 +30,13 @@ public class AsciiBasicControl {
 		this.asciiContent = new AtFileReader(fileAdd).getStr();
 		this.property = this.getProperty();
 		this.asciiGrid = this.getAsciiGrid();
+		cutFirstColumn();
 	}
 
 	// <=========================>
 	// < using while ascii file start by a space >
 	// <=========================>
-	public AsciiBasicControl cutFirstColumn() throws IOException {
+	private AsciiBasicControl cutFirstColumn() throws IOException {
 		// function for the open file
 
 		if (this.fileAdd != null) {

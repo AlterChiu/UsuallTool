@@ -17,13 +17,13 @@ public class AsciiToJson {
 	private TreeMap<String, String> asciiProperty;
 
 	public AsciiToJson(String[][] asciiFile) throws IOException {
-		AsciiBasicControl ascii = new AsciiBasicControl(asciiFile).cutFirstColumn();
+		AsciiBasicControl ascii = new AsciiBasicControl(asciiFile);
 		this.asciiContent = ascii.getAsciiGrid();
 		this.asciiProperty = ascii.getProperty();
 	}
 
 	public AsciiToJson(String fileAdd) throws IOException {
-		AsciiBasicControl ascii = new AsciiBasicControl(fileAdd).cutFirstColumn();
+		AsciiBasicControl ascii = new AsciiBasicControl(fileAdd);
 		this.asciiContent = ascii.getAsciiGrid();
 		this.asciiProperty = ascii.getProperty();
 	}
