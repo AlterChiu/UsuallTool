@@ -211,7 +211,7 @@ public class AsciiBasicControl {
 		int row = new BigDecimal((startY - y) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
 		int column = new BigDecimal((x - startX) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
 
-		return new double[] { startX + column * cellSize, startY - row * cellSize };
+		return new double[] { startX + (column + 0.5) * cellSize, startY - (row + 0.5) * cellSize };
 	}
 
 	// <===========================>

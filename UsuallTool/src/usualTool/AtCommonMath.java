@@ -170,4 +170,9 @@ public class AtCommonMath {
 		}
 		return temptFarest;
 	}
+	
+	final void clear() {
+		this.list = null;
+		this.ds.clear();
+	}
 }

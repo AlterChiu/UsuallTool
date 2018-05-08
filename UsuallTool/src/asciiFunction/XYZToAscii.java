@@ -56,6 +56,7 @@ public class XYZToAscii {
 	}
 
 	private void setGrid() {
+		System.out.println("setGrid");
 		double startX = Double.parseDouble(this.property.get("bottomX"));
 		double startY = Double.parseDouble(this.property.get("topY"));
 		
@@ -80,6 +81,7 @@ public class XYZToAscii {
 	}
 
 	private void setProperty() {
+		
 		this.xyzContent.forEach(line -> {
 			String x = new BigDecimal(line[0]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
 			String y = new BigDecimal(line[1]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
@@ -90,6 +92,7 @@ public class XYZToAscii {
 		this.xyzContent.clear();
 		
 
+		System.out.println("set boundary");
 		AtCommonMath xStastic = new AtCommonMath(this.xList);
 		double bottomX = xStastic.getMin();
 		double topX = xStastic.getMax();
@@ -103,6 +106,7 @@ public class XYZToAscii {
 		int row = new BigDecimal((topY - bottomY) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
 		int column = new BigDecimal((topX - bottomX) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
 
+		System.out.println("setProperty");
 		property.put("bottomX", bottomX + "");
 		property.put("topX", topX + "");
 		property.put("bottomY", bottomY + "");

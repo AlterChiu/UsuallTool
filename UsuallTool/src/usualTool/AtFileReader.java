@@ -162,5 +162,9 @@ public class AtFileReader {
         JsonElement jsonElement = parser.parse(new FileReader(fileAdd));
         return  jsonElement.getAsJsonObject();
 	}
+	
+	final void clear() {
+		this.fileContain.clear();
+	}
 
 }
