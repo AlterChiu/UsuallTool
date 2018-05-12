@@ -21,7 +21,6 @@ public class FileFunction {
 				myFilePath.mkdir();
 			}
 		} catch (Exception e) {
-			System.out.println("new Folder error");
 			e.printStackTrace();
 		}
 	}
@@ -43,9 +42,7 @@ public class FileFunction {
 			resultFile.close();
 
 		} catch (Exception e) {
-			System.out.println("new File Error");
 			e.printStackTrace();
-
 		}
 
 	}
@@ -59,9 +56,7 @@ public class FileFunction {
 			myDelFile.delete();
 
 		} catch (Exception e) {
-			System.out.println("delete file error");
 			e.printStackTrace();
-
 		}
 
 	}
@@ -74,9 +69,7 @@ public class FileFunction {
 			java.io.File myFilePath = new java.io.File(filePath);
 			myFilePath.delete();
 		} catch (Exception e) {
-			System.out.println("delete folder error");
 			e.printStackTrace();
-
 		}
 
 	}
@@ -124,9 +117,7 @@ public class FileFunction {
 				inStream.close();
 			}
 		} catch (Exception e) {
-			System.out.println("copy file error");
 			e.printStackTrace();
-
 		}
 
 	}
@@ -163,21 +154,12 @@ public class FileFunction {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("");
 			e.printStackTrace();
-
 		}
 
 	}
 
-	/**
-	 * �����ɨ���w�ؿ�
-	 * 
-	 * @param oldPath
-	 *            String�p�Gc:/fqf.txt
-	 * @param newPath
-	 *            String�p�Gd:/fqf.txt
-	 */
+
 	public void moveFile(String oldPath, String newPath) {
 		copyFile(oldPath, newPath);
 		delFile(oldPath);
@@ -185,14 +167,6 @@ public class FileFunction {
 
 
 
-	/**
-	 * �����ɨ���w�ؿ�
-	 * 
-	 * @param oldPath
-	 *            String�p�Gc:/fqf.txt
-	 * @param newPath
-	 *            String�p�Gd:/fqf.txt
-	 */
 	public void moveFolder(String oldPath, String newPath) {
 		copyFolder(oldPath, newPath);
 		delFolder(oldPath);

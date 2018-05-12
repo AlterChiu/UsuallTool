@@ -22,6 +22,7 @@ import asciiFunction.AsciiBuffer;
 import asciiFunction.AsciiGridChange;
 import asciiFunction.AsciiMerge;
 import asciiFunction.XYZToAscii;
+import gdal.GeoJsonToShp;
 import nl.wldelft.util.timeseries.TimeSeriesArray;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
@@ -31,18 +32,13 @@ public class testAtCommon {
 
 	public static void main(String[] args) throws OperationNotSupportedException, IOException, DocumentException {
 		// TODO Auto-generated method stub
+		String destinate = "S:\\HomeWork\\QpesumsAnalysis\\SHP\\01ROM\\01ROM_grid.shp";
+		String source = "S:\\HomeWork\\QpesumsAnalysis\\SHP\\01ROM\\01ROM_grid.geojson";
 		
-		StringBuilder sb = new StringBuilder();
-		for(int index = 1 ; index<=72 ; index++) {
-			sb.append("SP");
-			sb.append(String.format("%03d", index) + " ");
-			sb.append("decimal(15) , ");
-		}
-		
-		System.out.println(sb.toString());
-		
-		
-		
+		GeoJsonToShp geo = new GeoJsonToShp();
+		geo.setGeoJson(source);
+		geo.setShpFile(destinate);
+		geo.Start();
 
 	}
 

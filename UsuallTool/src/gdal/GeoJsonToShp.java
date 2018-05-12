@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import usualTool.FileFunction;
+
 public class GeoJsonToShp {
-	private String cordinate = "crs84";
+	private String cordinate = "WGS84";
 	private String geoFileAdd = "";
 	private String shpFileAdd = "";
 	
@@ -21,14 +23,29 @@ public class GeoJsonToShp {
 	}
 	
 	public void Start() throws IOException {
+		FileFunction ff = new FileFunction();
+		String delFileName = this.shpFileAdd.substring(0, shpFileAdd.length()-3);
+		ff.delFile(delFileName + "dbf");
+		ff.delFile(delFileName + "prj");
+		ff.delFile(delFileName + "shp");
+		ff.delFile(delFileName + "shx");
+		
+		
+		
 		List<String> command = new ArrayList<String>();
+		command.add("cmd.exe");
+		command.add("/c");
+		command.add("start");
+		command.add("/wait");
+		command.add("/B");
 		command.add("ogr2ogr");
 		command.add("-f");
-		command.add("GeoJSON");
-		command.add("-t_srs");
+		command.add("ESRI Shapefile");
+		command.add("-a_srs");
 		command.add(this.cordinate);
 		command.add(this.shpFileAdd);
 		command.add(this.geoFileAdd);
+		
 		
 		ProcessBuilder builder = new ProcessBuilder();
 		builder.directory(new File(GdalGlobal.gdalBinFolder));
@@ -41,12 +58,12 @@ public class GeoJsonToShp {
 	
 	
 	public GeoJsonToShp setCordinateToTWD121() {
-		this.cordinate = "EPSG:3826";
+		this.cordinate = "EPSG:3824";
 		return this;
 	}
 	
 	public GeoJsonToShp setCordinateToWGS84() {
-		this.cordinate = "crs84";
+		this.cordinate = "WGS84";
 		return this;
 	}
 	
