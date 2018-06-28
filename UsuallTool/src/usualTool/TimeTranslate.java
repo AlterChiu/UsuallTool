@@ -38,16 +38,43 @@ public class TimeTranslate {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
 		return dateFormat.parse(time).getTime();
 	}
+	
+	public String addMonth(String time , String format) throws ParseException {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+		long milliTime = this.StringToLong(time, format);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(milliTime);
+		calendar.add(Calendar.MONTH, 1);
+		return dateFormat.format(calendar.getTime());	
+	}
+	public String addMonth(String time , String format , int month) throws ParseException {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+		long milliTime = this.StringToLong(time, format);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(milliTime);
+		calendar.add(Calendar.MONTH, month);
+		return dateFormat.format(calendar.getTime());	
+	}
+	public String addYear(String time , String format) throws ParseException {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+		long milliTime = this.StringToLong(time, format);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(milliTime);
+		calendar.add(Calendar.YEAR, 1);
+		return dateFormat.format(calendar.getTime());	
+	}
+	public String addYear(String time , String format , int year) throws ParseException {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+		long milliTime = this.StringToLong(time, format);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(milliTime);
+		calendar.add(Calendar.YEAR, year);
+		return dateFormat.format(calendar.getTime());	
+	}
 
 	public String getDate(String time , String format){
 		SimpleDateFormat sdf = new SimpleDateFormat(format);
 		return sdf.format(time);
-	}
-	
-	public String[] getFormate() {
-		String[] content = { "dd-MM-yy", "MM-dd-yy", "yy-MM-dd", "yyyy-MM-dd_HH", "yyyy-MM-dd_HH:mm:ss",
-				"yyyy-MM-dd HH:mm:ss", "yyyyMMddHHmmss", "yyyy/MM/dd a HH:mm:ss", "yyyy-MM-dd a HH:mm:ss" };
-		return content;
 	}
 
 }

@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.TreeMap;
 
-import usualTool.AtFileReader;
+import usualTool.AtFileWriter;
 
 public class AsciiMerge {
 	private TreeMap<String, String> firstProperty;
@@ -282,5 +281,9 @@ public class AsciiMerge {
 		temptTree.put("noData", this.noData);
 
 		return temptTree;
+	}
+	
+	public void saveMergeAscii(String fileAdd) throws IOException {
+		new AtFileWriter(this.getMergedAscii() , fileAdd).textWriter("    ");
 	}
 }

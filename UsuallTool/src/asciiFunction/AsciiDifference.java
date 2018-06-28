@@ -1,9 +1,6 @@
 package asciiFunction;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class AsciiDifference {
 	private AsciiBasicControl originalAscii;

@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.TreeMap;
 
 import usualTool.AtCommonMath;
@@ -64,8 +62,8 @@ public class XYZToAscii {
 		for (int row = 0; row < this.row; row++) {
 			String temptY = new BigDecimal(startY - this.cellSize * row).setScale(3, BigDecimal.ROUND_HALF_UP)
 					.toString();
+			ArrayList<String> tempArray = new ArrayList<String>();
 			for (int column = 0; column < this.column; column++) {
-				ArrayList<String> tempArray = new ArrayList<String>();
 				String temptX = new BigDecimal(startX + this.cellSize * column).setScale(3, BigDecimal.ROUND_HALF_UP)
 						.toString();
 				String temptPosition = temptX + "_" + temptY;
@@ -74,8 +72,8 @@ public class XYZToAscii {
 				} else {
 					tempArray.add(this.noData);
 				}
-				outArray.add(tempArray.parallelStream().toArray(String[]::new));
 			}
+			outArray.add(tempArray.parallelStream().toArray(String[]::new));
 		}
 		this.asciiGrid = outArray.parallelStream().toArray(String[][]::new);
 	}

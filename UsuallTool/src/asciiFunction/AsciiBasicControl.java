@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.TreeMap;
 
 import usualTool.AtCommonMath;
@@ -20,17 +21,18 @@ public class AsciiBasicControl {
 	// <==============>
 	public AsciiBasicControl(String[][] asciiContent) throws IOException {
 		this.asciiContent = asciiContent;
+		cutFirstColumn();
 		this.property = this.getProperty();
 		this.asciiGrid = this.getAsciiGrid();
-		cutFirstColumn();
+		
 	}
 
 	public AsciiBasicControl(String fileAdd) throws IOException {
 		this.fileAdd = fileAdd;
 		this.asciiContent = new AtFileReader(fileAdd).getStr();
+		cutFirstColumn();
 		this.property = this.getProperty();
 		this.asciiGrid = this.getAsciiGrid();
-		cutFirstColumn();
 	}
 
 	// <=========================>
@@ -38,35 +40,12 @@ public class AsciiBasicControl {
 	// <=========================>
 	private AsciiBasicControl cutFirstColumn() throws IOException {
 		// function for the open file
-
-		if (this.fileAdd != null) {
-			ArrayList<String[]> temptArray = new ArrayList<String[]>();
-			String[] temptContent = new AtFileReader(this.fileAdd).getContain();
-			for (int line = 0; line < 6; line++) {
-				temptArray.add(temptContent[line].split(" +"));
+		if(this.asciiContent[6][0].equals("")) {
+			for(int row = 6 ; row< this.asciiContent.length;row++) {
+				List<String> temptList = new ArrayList<String>(Arrays.asList(this.asciiContent[row]));
+				temptList.remove(1);
+				this.asciiContent[row] = temptList.parallelStream().toArray(String[]::new);
 			}
-			for (int line = 6; line < temptContent.length; line++) {
-				temptArray.add(temptContent[line].trim().split(" +"));
-			}
-			this.asciiContent = temptArray.parallelStream().toArray(String[][]::new);
-
-			// function for the reading array
-		} else {
-			ArrayList<String[]> asciiArray = new ArrayList<String[]>(Arrays.asList(this.asciiContent));
-			ArrayList<String[]> temptArray = new ArrayList<String[]>();
-
-			for (int line = 0; line < asciiArray.size(); line++) {
-				if (line < 6) {
-					temptArray.add(asciiArray.get(line));
-				} else {
-					ArrayList<String> temptLine = new ArrayList<String>(Arrays.asList(asciiArray.get(line)));
-					if (temptLine.get(0).trim().equals("")) {
-						temptLine.remove(0);
-					}
-					temptArray.add(temptLine.parallelStream().toArray(String[]::new));
-				}
-			}
-			this.asciiContent = temptArray.parallelStream().toArray(String[][]::new);
 		}
 		return this;
 	}
@@ -138,6 +117,14 @@ public class AsciiBasicControl {
 			return "error location";
 		}
 	}
+	
+	public String getValue(int column, int row) {
+		try {
+			return this.asciiGrid[row][column];
+		}catch(Exception e) {
+			return "error location";
+		}
+	}
 
 	public AsciiBasicControl setValue(double x, double y, double value) {
 		int[] position = this.getPosition(x, y);
@@ -196,7 +183,7 @@ public class AsciiBasicControl {
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
 
 		double x = new BigDecimal(startX + column * cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
+				.doubleValue(); 
 		double y = new BigDecimal(startY - row * cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
 				.doubleValue();
 
@@ -299,16 +286,16 @@ public class AsciiBasicControl {
 	public String[][] getClipAsciiFile(int minX, int minY, int maxX, int maxY) {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
 
-		int startLine = maxY + 6;
+		int startLine = minY;
 
-		int endLine = minY + 6;
+		int endLine = maxY;
 
 		int startColumn = minX;
 
 		int endColumn = maxX;
 
-		int outRow = endLine - startLine;
-		int outColumn = endColumn - startColumn;
+		int outRow = endLine - startLine + 1 ;
+		int outColumn = endColumn - startColumn + 1;
 		double[] outllCenter = this.getCoordinate(startColumn, endLine);
 		String xllCenter = new BigDecimal(outllCenter[0]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
 		String yllCenter = new BigDecimal(outllCenter[1]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
@@ -320,14 +307,13 @@ public class AsciiBasicControl {
 		asciiGrid.add(new String[] { "cellsize", this.property.get("cellSize") });
 		asciiGrid.add(new String[] { "nodata_value", this.property.get("noData") });
 
-		for (int line = startLine; line <= endLine; line--) {
+		for (int line = startLine; line <= endLine; line++) {
 			ArrayList<String> temptLine = new ArrayList<String>();
 			for (int column = startColumn; column <= endColumn; column++) {
-				temptLine.add(this.asciiContent[line][column]);
+				temptLine.add(getValue(column , line));
 			}
 			asciiGrid.add(temptLine.parallelStream().toArray(String[]::new));
 		}
-
 		return asciiGrid.parallelStream().toArray(String[][]::new);
 	}
 	// <============================================================================>
