@@ -67,7 +67,7 @@ public class AsciiSplit {
 		// <===========================STARIGHT===============================>
 		if (this.splitModel.equals("straight")) {
 			int columnSize = Integer.parseInt(this.asciiProperty.get("column"));
-			int splitGridNum = columnSize / cutLine;
+			int splitGridNum = new BigDecimal(columnSize / cutLine).setScale(0, BigDecimal.ROUND_UP).intValue();
 
 			// <Get the node have to split>
 			// _____________________________________________________________________________
@@ -79,9 +79,10 @@ public class AsciiSplit {
 
 			// <get the list of split asciiFile>
 			// ______________________________________________________________________________
-			for (int i = 1; i < splitNode.size(); i++) {
+			for (int i = 1; i < splitNode.size() - 1; i++) {
 				outList.add(getSplitAsciiByGridPosition(splitNode.get(i - 1), splitNode.get(i)));
 			}
+			outList.add(getSplitAsciiByGridPosition(columnSize, columnSize - splitGridNum));
 
 			// <===========================HORIZONTAL==================================>
 
@@ -127,7 +128,7 @@ public class AsciiSplit {
 
 			// < get each split asciiFile property >
 			// __________________________________________________________________________________________________
-			String ncols = end-start + "";
+			String ncols = end - start + "";
 			String nrows = this.asciiProperty.get("row");
 			String xllCorner = new BigDecimal(Double.parseDouble(this.asciiProperty.get("bottomX"))
 					+ start * Double.parseDouble(this.asciiProperty.get("cellSize")))
