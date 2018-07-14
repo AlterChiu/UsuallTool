@@ -2,33 +2,40 @@ package testFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
-import org.apache.commons.math3.distribution.NormalDistribution;
+import javax.naming.OperationNotSupportedException;
 
-import asciiFunction.AsciiBasicControl;
 import usualTool.AtFileWriter;
-import usualTool.FileFunction;
 
 public class testAtCommon {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, OperationNotSupportedException {
 		// TODO Auto-generated method stub
+
+		String fileAdd = "S:\\Users\\alter\\Desktop\\Output\\";
+		ArrayList<String> paths = new ArrayList<String>();
+		int line = 0 ;
 		
-		String fileAdd = new File(".").getAbsolutePath();
-		double x = 0.;
-		double y = 0.;
-		try {
-			fileAdd = args[0];
-			x = Double.parseDouble(args[1]);
-			y = Double.parseDouble(args[2]);
-		}catch(Exception e) {
-			System.out.println("error variable = asciiFile , x , y");
+		for(String folderName : new File(fileAdd).list()) {
+			String years[] = new File(fileAdd + folderName).list();
+			
+			for(String year : years) {
+				String events[] = new File(fileAdd + folderName + "\\" + year).list();
+				
+				for(String event : events) {
+					paths.add("set paths[" + line + "] = \"" + fileAdd + folderName + "\\" + year + "\\" + event + "\\\"");
+					line++;
+				}
+				
+			}
 		}
-		
-		AsciiBasicControl ascii = new AsciiBasicControl(fileAdd);
-		System.out.println(ascii.getValue(x, y));
-		
+		new AtFileWriter(paths.parallelStream().toArray(String[]::new) , fileAdd + "paths.txt").textWriter("");
 	}
 }

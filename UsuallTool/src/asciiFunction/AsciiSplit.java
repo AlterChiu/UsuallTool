@@ -3,179 +3,117 @@ package asciiFunction;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 public class AsciiSplit {
-	private String[][] asciiContent;
 	private TreeMap<String, String> asciiProperty;
-	private String splitModel = "horizontal";
+	private AsciiBasicControl asciiControl;
+	private int splitNum;
+	private List<Integer> xMaxList;
+	private List<Integer> xMinList;
+	private List<Integer> yMaxList;
+	private List<Integer> yMinList;
+	private List<String[][]> outList = new ArrayList<String[][]>();
+	private String splitModel = "column";
 
 	// <===============> <=============================== >
 	// < this is the construtor > <START point from LeftTop>
 	// <===============> <================================>
 	public AsciiSplit(String[][] asciiContent) throws IOException {
-		AsciiBasicControl temptAscii = new AsciiBasicControl(asciiContent);
-		this.asciiProperty = temptAscii.getProperty();
-		this.asciiContent = temptAscii.getAsciiGrid();
+		this.asciiControl = new AsciiBasicControl(asciiContent);
+		this.asciiProperty = asciiControl.getProperty();
 	}
 
 	public AsciiSplit(String fileAdd) throws IOException {
-		AsciiBasicControl temptAscii = new AsciiBasicControl(fileAdd);
-		this.asciiProperty = temptAscii.getProperty();
-		this.asciiContent = temptAscii.getAsciiGrid();
+		this.asciiControl = new AsciiBasicControl(fileAdd);
+		this.asciiProperty = asciiControl.getProperty();
 	}
 
-	// <==================================>
-	// < split the asciiFile by the coordinate of the asciiFIle >
-	// <==================================>
-	public String[][] getSplitAsciiByCordinate(double start, double end) {
-		// < these variances here are taken global>
-		int startIndex;
-		int endIndex;
-		double cellSzie = Double.parseDouble(this.asciiProperty.get("cellSize"));
-
-		// <===========================STRAIGHT===============================>
-		if (this.splitModel.equals("straight")) {
-			double startPoint = Double.parseDouble(this.asciiProperty.get("bottomX"));
-			// get the cell position in the ascii content
-
-			startIndex = (new BigDecimal((start - startPoint) / cellSzie).setScale(0, BigDecimal.ROUND_HALF_UP)
-					.intValue());
-			endIndex = (new BigDecimal((end - startPoint) / cellSzie).setScale(0, BigDecimal.ROUND_HALF_UP).intValue());
-
-			return getSplitAsciiByGridPosition(startIndex, endIndex);
-
-			// <============================HORIZONTAL=================================>
-		} else {
-			// get the cell position in the ascii content
-			double startPoint = Double.parseDouble(this.asciiProperty.get("topY"));
-
-			startIndex = (new BigDecimal((start - startPoint) / cellSzie).setScale(0, BigDecimal.ROUND_HALF_UP)
-					.intValue());
-			endIndex = (new BigDecimal((end - startPoint) / cellSzie).setScale(0, BigDecimal.ROUND_HALF_UP).intValue());
-
-			return getSplitAsciiByGridPosition(startIndex, endIndex);
-		}
+	public AsciiSplit(AsciiBasicControl ascii) {
+		this.asciiControl = ascii;
+		this.asciiProperty = asciiControl.getProperty();
 	}
-
 	// <=============================>
 	// < split the asciiFile to equal size respectively >
 	// <=============================>
-	public ArrayList<String[][]> getSplitAsciiByEqualCut(int cutLine) {
-		ArrayList<String[][]> outList = new ArrayList<String[][]>();
 
-		// <===========================STARIGHT===============================>
-		if (this.splitModel.equals("straight")) {
-			int columnSize = Integer.parseInt(this.asciiProperty.get("column"));
-			int splitGridNum = new BigDecimal(columnSize / cutLine).setScale(0, BigDecimal.ROUND_UP).intValue();
+	private List<Integer[]> getSplitNode() {
+		List<Integer[]> outList = new ArrayList<Integer[]>();
+		int totalLength = Integer.parseInt(this.asciiProperty.get(this.splitModel))-1;
+		int splitGridNum = new BigDecimal(totalLength / splitNum).setScale(0, BigDecimal.ROUND_UP).intValue();
 
-			// <Get the node have to split>
-			// _____________________________________________________________________________
-			ArrayList<Integer> splitNode = new ArrayList<Integer>();
-			for (int i = 0; i < cutLine; i++) {
-				splitNode.add(i * splitGridNum);
-			}
-			splitNode.add(columnSize);
-
-			// <get the list of split asciiFile>
-			// ______________________________________________________________________________
-			for (int i = 1; i < splitNode.size() - 1; i++) {
-				outList.add(getSplitAsciiByGridPosition(splitNode.get(i - 1), splitNode.get(i)));
-			}
-			outList.add(getSplitAsciiByGridPosition(columnSize, columnSize - splitGridNum));
-
-			// <===========================HORIZONTAL==================================>
-
-		} else {
-			int rowSize = Integer.parseInt(this.asciiProperty.get("row"));
-			int splitGridNum = rowSize / cutLine;
-
-			// <Get the node have to split>
-			// _____________________________________________________________________________
-			ArrayList<Integer> splitNode = new ArrayList<Integer>();
-			for (int i = 0; i < cutLine; i++) {
-				splitNode.add(i * splitGridNum);
-			}
-			splitNode.add(rowSize);
-
-			// <get the list of split asciiFile>
-			// ______________________________________________________________________________
-			for (int i = 1; i < splitNode.size(); i++) {
-				outList.add(getSplitAsciiByGridPosition(splitNode.get(i - 1), splitNode.get(i)));
-			}
+		// <Get the node have to split>
+		// _____________________________________________________________________________
+		ArrayList<Integer> splitNode = new ArrayList<Integer>();
+		for (int i = 0; i < splitNum; i++) {
+			splitNode.add(i * splitGridNum);
 		}
+		splitNode.add(totalLength);
+
+		// get the split node in equal size , and the last one is determine by the
+		// boundary
+		for (int index = 1; index < splitNode.size() - 1; index++) {
+			outList.add(new Integer[] { splitNode.get(index - 1), splitNode.get(index) });
+		}
+		outList.add(new Integer[] { totalLength - splitGridNum  , totalLength});
+
 		return outList;
 	}
 
-	// <=============================>
-	// < split the asciiFile by the position of grid >
-	// <=============================>
+	//<==================================================>
+	//<                                 Set the clip boundary from zero to max                         >
+	//<==================================================>
+	private void setBoundary() {
+		xMaxList = new ArrayList<Integer>();
+		xMinList = new ArrayList<Integer>();
+		yMaxList = new ArrayList<Integer>();
+		yMinList = new ArrayList<Integer>();
 
-	public String[][] getSplitAsciiByGridPosition(int start, int end) {
-		ArrayList<String[]> temptAscii = new ArrayList<String[]>();
-
-		// <===========================STRAIGHT=============================>
-		if (this.splitModel.equals("straight")) {
-			// < get the split asciiFile content >
-			// _________________________________________________________________________________________________
-			for (int line = 0; line < this.asciiContent.length; line++) {
-				ArrayList<String> temptLine = new ArrayList<String>();
-				for (int column = start; column < end; column++) {
-					temptLine.add(this.asciiContent[line][column]);
-				}
-				temptAscii.add(temptLine.parallelStream().toArray(String[]::new));
-			}
-
-			// < get each split asciiFile property >
-			// __________________________________________________________________________________________________
-			String ncols = end - start + "";
-			String nrows = this.asciiProperty.get("row");
-			String xllCorner = new BigDecimal(Double.parseDouble(this.asciiProperty.get("bottomX"))
-					+ start * Double.parseDouble(this.asciiProperty.get("cellSize")))
-							.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString();
-			String yllCorner = this.asciiProperty.get("bottomY");
-			String cellSize = this.asciiProperty.get("cellSize");
-			String nodata_value = this.asciiProperty.get("noData");
-
-			temptAscii.add(0, new String[] { "nodata_value", nodata_value });
-			temptAscii.add(0, new String[] { "cellsize", cellSize });
-			temptAscii.add(0, new String[] { "yllcenter", yllCorner });
-			temptAscii.add(0, new String[] { "xllcenter", xllCorner });
-			temptAscii.add(0, new String[] { "nrows", nrows });
-			temptAscii.add(0, new String[] { "ncols", ncols });
-
-			// <=========================HORIZONTAL==============================>
-		} else {
-			// < get the split asciiFile content >
-			// ____________________________________________________________________________________________________
-			for (int line = start; line < end; line++) {
-				ArrayList<String> temptLine = new ArrayList<String>();
-				for (int column = 0; column < this.asciiContent[0].length; column++) {
-					temptLine.add(this.asciiContent[line][column]);
-				}
-				temptAscii.add(temptLine.parallelStream().toArray(String[]::new));
-			}
-
-			// < get each split asciiFile property >
-			// ____________________________________________________________________________________________________
-			String ncols = this.asciiProperty.get("column");
-			String nrows = end - start + "";
-			String yllCorner = new BigDecimal(Double.parseDouble(this.asciiProperty.get("topY"))
-					- (end - 1) * Double.parseDouble(this.asciiProperty.get("cellSize")))
-							.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString();
-			String xllCorner = this.asciiProperty.get("bottomX");
-			String cellSize = this.asciiProperty.get("cellSize");
-			String nodata_value = this.asciiProperty.get("noData");
-
-			temptAscii.add(0, new String[] { "nodata_value", nodata_value });
-			temptAscii.add(0, new String[] { "cellsize", cellSize });
-			temptAscii.add(0, new String[] { "yllcenter", yllCorner });
-			temptAscii.add(0, new String[] { "xllcenter", xllCorner });
-			temptAscii.add(0, new String[] { "nrows", nrows });
-			temptAscii.add(0, new String[] { "ncols", ncols });
+		for (int index = 0; index < this.splitNum; index++) {
+			xMaxList.add(Integer.parseInt(this.asciiProperty.get("column"))-1);
+			xMinList.add(0);
+			yMaxList.add(Integer.parseInt(this.asciiProperty.get("row"))-1);
+			yMinList.add(0);
 		}
+	}
 
-		return temptAscii.parallelStream().toArray(String[][]::new);
+	private void clear() {
+		xMaxList.clear();
+		xMinList.clear();
+		yMaxList.clear();
+		yMinList.clear();
+	}
+	
+	//<======================================================>
+	private void setStraightBoundary() {
+		List<Integer[]> splitNode = getSplitNode();
+		this.xMaxList.clear();
+		this.xMinList.clear();
+
+		for (Integer[] coulmnBoundary : splitNode) {
+			this.xMinList.add(coulmnBoundary[0]);
+			this.xMaxList.add(coulmnBoundary[1]);
+		}
+	}
+
+	private void setHorizontalBoundary() {
+		List<Integer[]> splitNode = getSplitNode();
+		this.yMaxList.clear();
+		this.yMinList.clear();
+
+		for (Integer[] rowBoundary : splitNode) {
+			this.yMinList.add(rowBoundary[0]);
+			this.yMaxList.add(rowBoundary[1]);
+		}
+	}
+
+	private void clipBoundary() {
+		outList.clear();
+		for (int index = 0; index < this.xMinList.size(); index++) {
+			outList.add(this.asciiControl.getClipAsciiFile(this.xMinList.get(index), this.yMinList.get(index),
+					this.xMaxList.get(index), this.yMaxList.get(index)));
+		}
 	}
 
 	// <------------------------------->
@@ -183,15 +121,26 @@ public class AsciiSplit {
 	// <------------------------------->
 
 	// output will be two asciiFile up and down
-	public AsciiSplit straightSplit() {
-		this.splitModel = "straight";
-		return this;
+	public List<String[][]> straightSplit(int splitNum) {
+		this.splitModel = "column";
+		this.splitNum = splitNum;
+		setBoundary();
+		setStraightBoundary();
+		clipBoundary();
+		clear();
+		return this.outList;
 	}
 
 	// output will be two asciiFile left and right
-	public AsciiSplit horizontalSplit() {
-		this.splitModel = "horizontal";
-		return this;
+	public List<String[][]> horizontalSplit(int splitNum) {
+		this.splitModel = "row";
+		this.splitNum = splitNum;
+		setBoundary();
+		setHorizontalBoundary();
+		clipBoundary();
+		clear();
+		return this.outList;
+		
 	}
 
 }

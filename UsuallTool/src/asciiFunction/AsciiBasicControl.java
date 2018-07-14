@@ -43,7 +43,7 @@ public class AsciiBasicControl {
 		if(this.asciiContent[6][0].equals("")) {
 			for(int row = 6 ; row< this.asciiContent.length;row++) {
 				List<String> temptList = new ArrayList<String>(Arrays.asList(this.asciiContent[row]));
-				temptList.remove(1);
+				temptList.remove(0);
 				this.asciiContent[row] = temptList.parallelStream().toArray(String[]::new);
 			}
 		}
