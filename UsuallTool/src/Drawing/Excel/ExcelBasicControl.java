@@ -1,18 +1,23 @@
 package Drawing.Excel;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Chart;
 import org.apache.poi.ss.usermodel.ClientAnchor;
 import org.apache.poi.ss.usermodel.Drawing;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.usermodel.charts.AxisCrosses;
-import org.apache.poi.ss.usermodel.charts.AxisPosition;
 import org.apache.poi.ss.usermodel.charts.ChartAxis;
 import org.apache.poi.ss.usermodel.charts.ChartDataSource;
 import org.apache.poi.ss.usermodel.charts.DataSources;
@@ -25,33 +30,61 @@ import org.openxmlformats.schemas.drawingml.x2006.chart.CTBoolean;
 import org.openxmlformats.schemas.drawingml.x2006.chart.CTLineSer;
 import org.openxmlformats.schemas.drawingml.x2006.chart.CTPlotArea;
 
-public class ExcelDrawing {
+public class ExcelBasicControl {
 	private Workbook workBook;
 	private Sheet currentSheet;
+	private Row createRow;
+	private Cell createCell;
 
-	public ExcelDrawing() {
+	public ExcelBasicControl() {
 		this.workBook = new XSSFWorkbook();
 		this.workBook.createSheet("alterTempNew");
 		selectSheet("alterTempNew");
+	}
+
+	public ExcelBasicControl(String excelFileAdd)
+			throws EncryptedDocumentException, InvalidFormatException, IOException {
+		this.workBook = WorkbookFactory.create(new File(excelFileAdd));
+		this.currentSheet = this.workBook.getSheetAt(0);
 	}
 
 	// <==================================>
 	// < Set the value in current Cell >
 	// <==================================>
 	public void setValue(int row, int column, String value) {
-		SetCellValue.setSheet(this.currentSheet);
-		SetCellValue.setValue(row, column, value);
+		setValueWork(row, column);
+		createCell.setCellValue(value);
 	}
 
 	public void setValue(int row, int column, double value) {
-		SetCellValue.setSheet(this.currentSheet);
-		SetCellValue.setValue(row, column, value);
+		setValueWork(row, column);
+		createCell.setCellValue(value);
 	}
 
 	public void setValue(int row, int column, Date value) {
-		SetCellValue.setSheet(this.currentSheet);
-		SetCellValue.setValue(row, column, value);
+		setValueWork(row, column);
+		createCell.setCellValue(value);
 	}
+
+	private void setValueWork(int row, int column) {
+		createRow = this.currentSheet.getRow(row);
+		if (createRow == null) {
+			createRow = this.currentSheet.createRow(row);
+		}
+
+		createCell = createRow.getCell(column);
+		if (createCell == null) {
+			createCell = createRow.createCell(column);
+		}
+	}
+
+	
+	
+	public Workbook getWorkBook() {
+		return this.workBook;
+	}
+	
+	
 	// <===================================>
 
 	// <====================================>
@@ -78,14 +111,39 @@ public class ExcelDrawing {
 			newSheet(sheet);
 			this.currentSheet = this.workBook.getSheet(sheet);
 		}
-
 	}
+
+	public List<String> getSheetList() {
+		List<String> sheetList = new ArrayList<String>();
+		for (int index = 0; index < this.workBook.getNumberOfSheets(); index++) {
+			sheetList.add(this.workBook.getSheetName(index));
+		}
+		return sheetList;
+	}
+
+	public String[][] getSheetContent() {
+		List<String[]> content = new ArrayList<String[]>();
+		for (int row = this.currentSheet.getLastRowNum(); row < this.currentSheet.getLastRowNum(); row++) {
+			List<String> rowValues = new ArrayList<String>();
+			Row currentRow = this.currentSheet.getRow(row);
+			for (int column = currentRow.getFirstCellNum(); column < currentRow.getLastCellNum(); column++) {
+				rowValues.add(currentRow.getCell(column).getStringCellValue());
+			}
+			content.add(rowValues.parallelStream().toArray(String[]::new));
+		}
+		return content.parallelStream().toArray(String[][]::new);
+	}
+	
+	public Sheet getCurrentSheet() {
+		return this.currentSheet;
+	}
+
 	// <======================================>
 
 	public void Output(String path) throws IOException {
 		FileOutputStream fileOut = new FileOutputStream(path);
-        this.workBook.write(fileOut);
-        fileOut.close();
+		this.workBook.write(fileOut);
+		fileOut.close();
 	}
 
 	public void chartCreater(ChartImplemetns chartProperty) {
@@ -123,7 +181,8 @@ public class ExcelDrawing {
 			dataSeires.addSeries(seriesXRange, seriesValueList.get(index))
 					.setTitle(chartProperty.getSeriesName().get(index));
 		}
-
+		chart.plot(dataSeires, bottomAxis,leftAxis);
+		
 		// if want to smooth
 		if (chartProperty.getSmooth()) {
 			XSSFChart xssfChart = (XSSFChart) chart;

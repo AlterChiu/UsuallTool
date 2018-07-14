@@ -12,30 +12,42 @@ import java.util.TreeMap;
 
 import javax.naming.OperationNotSupportedException;
 
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+
+import Drawing.Excel.ChartImplemetns;
+import Drawing.Excel.ExcelBasicControl;
+import usualTool.AtExcelReader;
+import usualTool.AtFileReader;
 import usualTool.AtFileWriter;
 
 public class testAtCommon {
 
-	public static void main(String[] args) throws IOException, OperationNotSupportedException {
+	public static void main(String[] args)
+			throws IOException, OperationNotSupportedException, EncryptedDocumentException, InvalidFormatException {
 		// TODO Auto-generated method stub
+		String fileAdd = "S:\\Users\\alter\\Desktop\\冠智\\outExcel.xlsx";
 
-		String fileAdd = "S:\\Users\\alter\\Desktop\\Output\\";
-		ArrayList<String> paths = new ArrayList<String>();
-		int line = 0 ;
+		ExcelBasicControl excel = new ExcelBasicControl(fileAdd);
+		Workbook workBook  = excel.getWorkBook();
 		
-		for(String folderName : new File(fileAdd).list()) {
-			String years[] = new File(fileAdd + folderName).list();
-			
-			for(String year : years) {
-				String events[] = new File(fileAdd + folderName + "\\" + year).list();
+		for (String sheet : excel.getSheetList()) {
+			excel.selectSheet(sheet);
+			String[][] content = new AtExcelReader(workBook).getContent(sheet);
+
+			for (int location = 1; location < content.length; location++) {
+				ChartImplemetns chart = new ChartImplemetns();
+				chart.setChartSize(8, 8);
+				chart.setStartPoint((location-1)*8, 10);
+				chart.setXBarValue(0, 1, 0, 8);
+				chart.setYValueList(location, 1, location, 8, content[location][0]);
+				chart.setSelectedSheet(sheet);
 				
-				for(String event : events) {
-					paths.add("set paths[" + line + "] = \"" + fileAdd + folderName + "\\" + year + "\\" + event + "\\\"");
-					line++;
-				}
-				
+				excel.chartCreater(chart);
 			}
 		}
-		new AtFileWriter(paths.parallelStream().toArray(String[]::new) , fileAdd + "paths.txt").textWriter("");
+		excel.Output("S:\\Users\\alter\\Desktop\\冠智\\outExcel_T.xlsx");
 	}
 }

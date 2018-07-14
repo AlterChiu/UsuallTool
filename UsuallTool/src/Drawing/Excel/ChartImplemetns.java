@@ -44,11 +44,11 @@ public class ChartImplemetns {
 	}
 
 	public void setXBarValue(int rowMin, int columnMin, int rowMax, int columnMax) {
-		xBarRange = new int[] { rowMin, columnMin, rowMax, columnMax };
+		xBarRange = new int[] { rowMin, rowMax, columnMin, columnMax };
 	}
 
 	public void setYValueList(int rowMin, int columnMin, int rowMax, int columnMax, String seiresName) {
-		yBarRange.add(new Integer[] { rowMin, columnMin, rowMax, columnMax });
+		yBarRange.add(new Integer[] { rowMin, rowMax, columnMin, columnMax });
 		seriesName.add(seiresName);
 	}
 
