@@ -38,14 +38,21 @@ public class testAtCommon {
 			String[][] content = new AtExcelReader(workBook).getContent(sheet);
 
 			for (int location = 1; location < content.length; location++) {
-				ChartImplemetns chart = new ChartImplemetns();
-				chart.setChartSize(8, 8);
-				chart.setStartPoint((location-1)*8, 10);
-				chart.setXBarValue(0, 1, 0, 8);
-				chart.setYValueList(location, 1, location, 8, content[location][0]);
-				chart.setSelectedSheet(sheet);
+				ChartImplemetns chartTimes = new ChartImplemetns();
+				chartTimes.setChartSize(8, 8);
+				chartTimes.setStartPoint((location-1)*8, 10);
+				chartTimes.setXBarValue(0, 1, 0, 8);
+				chartTimes.setYValueList(location, 1, location, 8, content[location][0]);
+				chartTimes.setSelectedSheet(sheet);
+				excel.chartCreater(chartTimes);
 				
-				excel.chartCreater(chart);
+				ChartImplemetns chartSum = new ChartImplemetns();
+				chartSum.setChartSize(8, 8);
+				chartSum.setStartPoint((location-1)*8, 19);
+				chartSum.setXBarValue(0, 1, 0, 8);
+				chartSum.setYValueList(location, 10, location, 17, content[location][0]);
+				chartSum.setSelectedSheet(sheet);
+				excel.chartCreater(chartSum);
 			}
 		}
 		excel.Output("S:\\Users\\alter\\Desktop\\冠智\\outExcel_T.xlsx");
