@@ -7,23 +7,18 @@ import java.util.List;
 
 import usualTool.FileFunction;
 
-public class GeoJsonToShp {
+public class DBFToGeoJson {
 	private String cordinate = "WGS84";
 	private String geoFileAdd = "";
-	private String shpFileAdd = "";
+	private String dbfFileAdd = "";
 
-	public GeoJsonToShp(String geoFileAdd, String shpFileAdd) {
+	public DBFToGeoJson(String dbfFileAdd, String geoFileAdd) {
 		this.geoFileAdd = geoFileAdd;
-		this.shpFileAdd = shpFileAdd;
+		this.dbfFileAdd = dbfFileAdd;
 	}
 
 	public void Start() throws IOException {
-		FileFunction ff = new FileFunction();
-		String delFileName = this.shpFileAdd.substring(0, shpFileAdd.length() - 3);
-		ff.delFile(delFileName + "dbf");
-		ff.delFile(delFileName + "prj");
-		ff.delFile(delFileName + "shp");
-		ff.delFile(delFileName + "shx");
+		new FileFunction().delFile(this.geoFileAdd);
 
 		List<String> command = new ArrayList<String>();
 		command.add("cmd.exe");
@@ -33,11 +28,11 @@ public class GeoJsonToShp {
 		command.add("/B");
 		command.add("ogr2ogr");
 		command.add("-f");
-		command.add("ESRI Shapefile");
-		command.add("-a_srs");
+		command.add("GeoJSON");
+		command.add("-s_srs");
 		command.add(this.cordinate);
-		command.add(this.shpFileAdd);
 		command.add(this.geoFileAdd);
+		command.add(this.dbfFileAdd);
 
 		ProcessBuilder builder = new ProcessBuilder();
 		builder.directory(new File(GdalGlobal.gdalBinFolder));
@@ -51,14 +46,13 @@ public class GeoJsonToShp {
 		}
 	}
 
-	public GeoJsonToShp setCordinateToTWD121() {
+	public DBFToGeoJson setCordinateToTWD121() {
 		this.cordinate = "EPSG:3824";
 		return this;
 	}
 
-	public GeoJsonToShp setCordinateToWGS84() {
+	public DBFToGeoJson setCordinateToWGS84() {
 		this.cordinate = "WGS84";
 		return this;
 	}
-
 }

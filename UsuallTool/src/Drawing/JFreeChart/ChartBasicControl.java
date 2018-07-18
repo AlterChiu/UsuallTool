@@ -1,10 +1,13 @@
 package Drawing.JFreeChart;
 
 import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.block.BlockBorder;
@@ -16,6 +19,8 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.TextAnchor;
+
+import usualTool.AtCommonMath;
 
 public class ChartBasicControl extends ChartImplement {
 	private XYLineAndShapeRenderer renderer;
@@ -47,17 +52,17 @@ public class ChartBasicControl extends ChartImplement {
 		for (int index = 0; index < xList.size(); index++) {
 			this.seriesDatas.add(xList.get(index), yList.get(index), labelList.get(index));
 		}
-		this.seriesDatas.endSeries(seriesDatas.getSeriesCount() - 1);
+		this.seriesDatas.endSeries(seriesDatas.getSeriesCount());
 	}
 
-	private void drawing() {
+	public void drawing(String saveLocation) throws IOException {
 		JFreeChart chart = ChartFactory.createXYLineChart(chartImplement.getChartTitle(), chartImplement.getXBarTitle(),
 				chartImplement.getYBarTitle(), seriesDatas, PlotOrientation.VERTICAL, true, true, false);
 		XYPlot plot = plotSetting(chart.getXYPlot());
 
 		chart.getLegend().setFrame(BlockBorder.NONE);
 		chart.setTitle(new TextTitle(chartImplement.getChartTitle(), chartImplement.getChartFont()));
-
+		ChartUtilities.saveChartAsJPEG(new File(saveLocation), chart, chartImplement.width(), chartImplement.height());
 	}
 
 	private XYPlot plotSetting(XYPlot plot) {
@@ -67,14 +72,13 @@ public class ChartBasicControl extends ChartImplement {
 		domainAxis.setTickLabelFont(this.chartImplement.getXBarLabelFont());
 		domainAxis.setTickLabelPaint(this.chartImplement.getXBarColor());
 		domainAxis.setVisible(true);
-		// domainAxis.setRange(0);
+		//
 
 		// Y Axis
 		ValueAxis rangeAxis = plot.getRangeAxis();
 		rangeAxis.setLabelFont(this.chartImplement.getYBarTitleFont());
 		rangeAxis.setTickLabelFont(this.chartImplement.getYBarLabelFont());
 		rangeAxis.setLabelPaint(this.chartImplement.getYBarColor());
-		rangeAxis.setRange(-0.5, 0.5);
 
 		// save render
 		plot.setRenderer(renderer);
@@ -85,6 +89,41 @@ public class ChartBasicControl extends ChartImplement {
 		// the scalar line of chart base (column)
 		plot.setDomainGridlinesVisible(chartImplement.getYGridLineVisible());
 		plot.setDomainGridlinePaint(Color.black);
+
+		// auto range
+		if (this.chartImplement.getAutoXRange()) {
+			List<Double> datasetXmax = new ArrayList<Double>();
+			List<Double> datasetXmin = new ArrayList<Double>();
+
+			for (DataSetSetting dataset : seriesSettings) {
+				datasetXmax.add(dataset.getXmax());
+				datasetXmin.add(dataset.getXmin());
+			}
+			double xMax = new AtCommonMath(datasetXmax).getMax();
+			double xMin = new AtCommonMath(datasetXmin).getMin();
+			double xspace = (xMax - xMin) / datasetXmax.size();
+
+			domainAxis.setRange(xMin - xspace, xMax + xspace);
+		} else {
+			domainAxis.setRange(this.chartImplement.getXBarRange()[0], this.chartImplement.getXBarRange()[1]);
+		}
+
+		if (this.chartImplement.getAutoYRange()) {
+			List<Double> datasetYmax = new ArrayList<Double>();
+			List<Double> datasetYmin = new ArrayList<Double>();
+
+			for (DataSetSetting dataset : seriesSettings) {
+				datasetYmax.add(dataset.getYmax());
+				datasetYmin.add(dataset.getYmin());
+			}
+			double yMax = new AtCommonMath(datasetYmax).getMax();
+			double yMin = new AtCommonMath(datasetYmin).getMin();
+			double yspace = (yMax - yMin) / datasetYmin.size();
+
+			rangeAxis.setRange(yMin - yspace, yMax + yspace);
+		} else {
+			rangeAxis.setRange(this.chartImplement.getYBarRange()[0], this.chartImplement.getYBarRange()[1]);
+		}
 
 		return plot;
 	}

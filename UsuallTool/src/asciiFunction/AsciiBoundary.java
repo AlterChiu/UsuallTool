@@ -3,26 +3,23 @@ package asciiFunction;
 import java.io.IOException;
 import java.util.TreeMap;
 
-public class AsciiIntercept {
+public class AsciiBoundary {
 	private AsciiBasicControl ascii;
 	private TreeMap<String, String> property;
-	private String[][] asciiGrid;
 
 	private double interceptMinX;
 	private double interceptMaxX;
 	private double interceptMinY;
 	private double interceptMaxY;
 
-	public AsciiIntercept(String fileAdd) throws IOException {
+	public AsciiBoundary(String fileAdd) throws IOException {
 		this.ascii = new AsciiBasicControl(fileAdd);
 		this.property = ascii.getProperty();
-		this.asciiGrid = ascii.getAsciiGrid();
 	}
 
-	public AsciiIntercept(String[][] asciiFile) throws IOException {
+	public AsciiBoundary(String[][] asciiFile) throws IOException {
 		this.ascii = new AsciiBasicControl(asciiFile);
 		this.property = ascii.getProperty();
-		this.asciiGrid = ascii.getAsciiGrid();
 	}
 
 	// <=========================>

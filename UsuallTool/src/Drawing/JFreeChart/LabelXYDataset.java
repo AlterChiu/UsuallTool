@@ -50,6 +50,8 @@ public class LabelXYDataset extends AbstractXYDataset {
 		String[] name = {"Observation","Forecast","timeLine"};
 		return name[series];
 	}
+	
+	
 
 	@Override
 	public int getItemCount(int series) {

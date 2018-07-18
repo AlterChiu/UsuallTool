@@ -17,44 +17,27 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import Drawing.Excel.ChartImplemetns;
 import Drawing.Excel.ExcelBasicControl;
+import Drawing.JFreeChart.ChartBasicControl;
+import Drawing.JFreeChart.ChartImplement;
+import Drawing.JFreeChart.DataSetSetting;
+import gdal.GeoJsonToShp;
+import sun.reflect.generics.tree.Tree;
 import usualTool.AtExcelReader;
 import usualTool.AtFileReader;
 import usualTool.AtFileWriter;
+import usualTool.FileFunction;
 
 public class testAtCommon {
 
-	public static void main(String[] args)
-			throws IOException, OperationNotSupportedException, EncryptedDocumentException, InvalidFormatException {
-		// TODO Auto-generated method stub
-		String fileAdd = "S:\\Users\\alter\\Desktop\\冠智\\outExcel.xlsx";
+	private static TreeMap<String, String> timesTree = new TreeMap<String, String>();
 
-		ExcelBasicControl excel = new ExcelBasicControl(fileAdd);
-		Workbook workBook  = excel.getWorkBook();
-		
-		for (String sheet : excel.getSheetList()) {
-			excel.selectSheet(sheet);
-			String[][] content = new AtExcelReader(workBook).getContent(sheet);
+	public static void main(String[] args) {
+		// TODO Auto-generated method stu
 
-			for (int location = 1; location < content.length; location++) {
-				ChartImplemetns chartTimes = new ChartImplemetns();
-				chartTimes.setChartSize(8, 8);
-				chartTimes.setStartPoint((location-1)*8, 10);
-				chartTimes.setXBarValue(0, 1, 0, 8);
-				chartTimes.setYValueList(location, 1, location, 8, content[location][0]);
-				chartTimes.setSelectedSheet(sheet);
-				excel.chartCreater(chartTimes);
-				
-				ChartImplemetns chartSum = new ChartImplemetns();
-				chartSum.setChartSize(8, 8);
-				chartSum.setStartPoint((location-1)*8, 19);
-				chartSum.setXBarValue(0, 1, 0, 8);
-				chartSum.setYValueList(location, 10, location, 17, content[location][0]);
-				chartSum.setSelectedSheet(sheet);
-				excel.chartCreater(chartSum);
-			}
-		}
-		excel.Output("S:\\Users\\alter\\Desktop\\冠智\\outExcel_T.xlsx");
 	}
 }

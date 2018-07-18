@@ -12,11 +12,12 @@ public class ChartImplement {
 	private Font xBarLabelFont = new Font("宋體", Font.BOLD, 12);
 	private Font yBarTitleFont = new Font("宋體", Font.BOLD, 20);
 	private Font yBarLabelFont = new Font("宋體", Font.BOLD, 12);
-	private Font chartTitleFont = new Font("Serif", java.awt.Font.BOLD, 18);
+	private Font chartTitleFont = new Font("Serif", Font.BOLD, 18);
 
-	private int[] xBarRange = new int[] { 0, 1 };
-	private int[] yBarRange = new int[] { 0, 1 };
-	private Boolean autoRange = true;
+	private double[] xBarRange = new double[] { 0, 1 };
+	private double[] yBarRange = new double[] { 0, 1 };
+	private Boolean autoXRange = true;
+	private Boolean autoYRange = true;
 
 	private Color labelColor = Color.BLACK;
 	private Color xBarColor = Color.BLACK;
@@ -37,6 +38,7 @@ public class ChartImplement {
 	public void setWide(int wide) {
 		this.outPutWide = wide;
 	}
+
 	public void setHeight(int height) {
 		this.outPutHeight = height;
 	}
@@ -119,6 +121,22 @@ public class ChartImplement {
 	public void setOutLineUse(Boolean bool) {
 		this.setOutLine = bool;
 	}
+
+	public void setXRange(double min, double max) {
+		this.xBarRange = new double[] { min, max };
+	}
+
+	public void setYRange(double min, double max) {
+		this.yBarRange = new double[] { min, max };
+	}
+
+	public void setAutoXRange(Boolean bool) {
+		this.autoXRange = bool;
+	}
+
+	public void setAutoYRange(Boolean bool) {
+		this.autoYRange = bool;
+	}
 	// <=============================================>
 
 	// <=========================================>
@@ -157,16 +175,20 @@ public class ChartImplement {
 		return this.chartTitleFont;
 	}
 
-	protected int[] getXBarRange() {
+	protected double[] getXBarRange() {
 		return this.xBarRange;
 	}
 
-	protected int[] getYBarRange() {
+	protected double[] getYBarRange() {
 		return this.yBarRange;
 	}
 
-	protected Boolean getAutoRange() {
-		return this.autoRange;
+	protected Boolean getAutoXRange() {
+		return this.autoXRange;
+	}
+
+	protected Boolean getAutoYRange() {
+		return this.autoYRange;
 	}
 
 	protected Boolean getXGridLineVisible() {
@@ -196,10 +218,11 @@ public class ChartImplement {
 	protected Boolean getOutLinevisible() {
 		return this.setOutLine;
 	}
-	
+
 	protected int width() {
 		return this.outPutWide;
 	}
+
 	protected int height() {
 		return this.outPutHeight;
 	}

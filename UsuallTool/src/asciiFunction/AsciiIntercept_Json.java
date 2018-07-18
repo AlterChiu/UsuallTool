@@ -2,97 +2,50 @@ package asciiFunction;
 
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 
 import usualTool.AtCommonMath;
+import usualTool.AtFileReader;
 
-
-public class AsciiIntersect {
-	private String[][] asciiFile;
+public class AsciiIntercept_Json {
 	private AsciiBasicControl ascii;
 	private JsonObject geoJson;
 	private TreeMap<String, String> property;
-	private String[][] asciiGrid;
-	private JsonObject seriesJsonObject;
+	private List<AsciiBasicControl> asciiFileList = new ArrayList<AsciiBasicControl>();;
 
 	// <===============================>
 	// <this is the constructor and the geoJson setting>
 	// <===============================>
-	public AsciiIntersect(String[][] asciiFile) throws IOException {
-		this.asciiFile = asciiFile;
-		this.ascii = new AsciiBasicControl(this.asciiFile);
-		this.property = this.ascii.getProperty();
-		this.asciiGrid = this.ascii.getAsciiGrid();
+	public AsciiIntercept_Json(JsonObject geojson) throws IOException {
+		this.geoJson = geojson;
 	}
 
-	public AsciiIntersect(String fileAdd) throws IOException {
-		this.asciiFile = new AsciiBasicControl(fileAdd).getAsciiFile();
-		this.ascii = new AsciiBasicControl(this.asciiFile);
-		this.property = this.ascii.getProperty();
-		this.asciiGrid = this.ascii.getAsciiGrid();
+	public AsciiIntercept_Json(String jsonAdd) throws IOException {
+		this.geoJson = new AtFileReader(jsonAdd).getJsonObject();
 	}
-
-	public AsciiIntersect settingGeoJson(JsonObject geoJson) {
-		this.geoJson = geoJson;
-		return this;
-	}
-
-	public AsciiIntersect settingGeoJson(String fileAdd)
-			throws JsonIOException, JsonSyntaxException, FileNotFoundException {
-		this.geoJson = new JsonParser().parse(new FileReader(fileAdd)).getAsJsonObject();
-		return this;
-	}
-	
-	
-	
-//	<===================== >
-//	<Series Ascii intersect to geoJson>
-//	<===================== >
-	public AsciiIntersect(ArrayList<String[][]> asciiFile, JsonObject json) throws IOException {
-		this.seriesJsonObject = json;
-
-		for (int order = 0; order < asciiFile.size(); order++) {
-			this.asciiFile = asciiFile.get(order);
-			this.ascii = new AsciiBasicControl(this.asciiFile);
-			this.property = this.ascii.getProperty();
-			this.asciiGrid = this.ascii.getAsciiGrid();
-
-			this.seriesJsonObject = getIntersectGeoJson(order, this.seriesJsonObject);
-		}
-	}
-
-	public AsciiIntersect(ArrayList<String[][]> asciiFile, String jsonFileAdd)
-			throws JsonIOException, JsonSyntaxException, IOException {
-		this.seriesJsonObject = this.geoJson = new JsonParser().parse(new FileReader(jsonFileAdd)).getAsJsonObject();
-
-		for (int order = 0; order < asciiFile.size(); order++) {
-			this.asciiFile = asciiFile.get(order);
-			this.ascii = new AsciiBasicControl(this.asciiFile);
-			this.property = this.ascii.getProperty();
-			this.asciiGrid = this.ascii.getAsciiGrid();
-
-			this.seriesJsonObject = getIntersectGeoJson(order, this.seriesJsonObject);
-		}
-	}
-
 
 	// <===================================================== >
-	// <get the meanValue and mount of grid that inside the each features of  geoJson >
+	// <get the meanValue and mount of grid that inside the each features of geoJson
+	// >
 	// <===================================================== >
-	public JsonObject getIntersectGeoJson() {
-		JsonArray features = this.geoJson.get("features").getAsJsonArray();
+	public JsonObject getIntersectGeoJson(AsciiBasicControl ascii) {
+		// setting ascii
+		this.ascii = ascii;
+		this.property = ascii.getProperty();
 
+		// clone the geoJson
+		JsonObject outJson = new Gson().fromJson(this.geoJson, JsonObject.class);
+		JsonArray features = outJson.get("features").getAsJsonArray();
+
+		// get each features
 		for (JsonElement feature : features) {
 			JsonObject featureProperty = feature.getAsJsonObject().get("properties").getAsJsonObject();
 
@@ -113,16 +66,85 @@ public class AsciiIntersect {
 			}
 
 		}
-		return this.geoJson;
+		return outJson;
 	}
-	
 
-	
-	
-	
-	
-//	<for series function>
-//	<_________________________________________________>
+	public List<String[][]> getInterceptAscii(AsciiBasicControl ascii) {
+		// setting ascii
+		this.ascii = ascii;
+		this.property = ascii.getProperty();
+		List<String[][]> outAsciiList = new ArrayList<String[][]>();
+
+		// get each features
+		for (JsonElement feature : this.geoJson.get("features").getAsJsonArray()) {
+
+			// get the each polygons in json file
+			JsonArray coordinateList = feature.getAsJsonObject().get("geometry").getAsJsonObject().get("coordinates")
+					.getAsJsonArray().get(0).getAsJsonArray().get(0).getAsJsonArray();
+
+			// make the polygons to path object
+			Path2D temptPath = getJsonPolygon(coordinateList);
+			Rectangle2D temptBound = temptPath.getBounds2D();
+			double maxY = temptBound.getMaxY();
+			double maxX = temptBound.getMaxX();
+			double minX = temptBound.getMinX();
+			double minY = temptBound.getMinY();
+
+			outAsciiList.add(ascii.getClipAsciiFile(minX, minY, maxX, maxY));
+
+		}
+		return outAsciiList;
+	}
+
+	// <====================================>
+	// <Get the series Ascii file clip by the GeoJson>
+	// <====================================>
+	public List<List<String[][]>> getSeriesInterceptAscii(List<AsciiBasicControl> asciiList) {
+		List<List<String[][]>> outList = new ArrayList<List<String[][]>>();
+		for (JsonElement feature : this.geoJson.get("features").getAsJsonArray()) {
+
+			// get the each polygons in json file
+			JsonArray coordinateList = feature.getAsJsonObject().get("geometry").getAsJsonObject().get("coordinates")
+					.getAsJsonArray().get(0).getAsJsonArray().get(0).getAsJsonArray();
+
+			// make the polygons to path object
+			Path2D temptPath = getJsonPolygon(coordinateList);
+			Rectangle2D temptBound = temptPath.getBounds2D();
+			double maxY = temptBound.getMaxY();
+			double maxX = temptBound.getMaxX();
+			double minX = temptBound.getMinX();
+			double minY = temptBound.getMinY();
+
+			// get each ascii
+			List<String[][]> featureAscii = new ArrayList<String[][]>();
+			for (AsciiBasicControl temptAscii : asciiList) {
+
+				// setting the ascii
+				this.ascii = temptAscii;
+				this.property = temptAscii.getProperty();
+				featureAscii.add(temptAscii.getClipAsciiFile(minX, minY, maxX, maxY));
+			}
+			outList.add(featureAscii);
+		}
+		return outList;
+	}
+
+	// <=============================================>
+	// <Get the series Json>
+	// <=============================================>
+	public JsonObject getSeriesInterceptJsonObject() {
+		JsonObject outJson = new Gson().fromJson(this.geoJson, JsonObject.class);
+		for (int order = 0; order < asciiFileList.size(); order++) {
+			this.ascii = asciiFileList.get(order);
+			this.property = this.ascii.getProperty();
+
+			outJson = getIntersectGeoJson(order, outJson);
+		}
+		return outJson;
+	}
+
+	// <for series function>
+	// <_________________________________________________>
 	private JsonObject getIntersectGeoJson(int order, JsonObject jsonObject) {
 		JsonArray features = jsonObject.get("features").getAsJsonArray();
 
@@ -160,24 +182,9 @@ public class AsciiIntersect {
 		return jsonObject;
 	}
 
-	
-	public JsonObject getSeriesJsonObject(){
-		return this.seriesJsonObject;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-//	<=====================>
-//	<PRIVATE CACULATE FUNCTION>
-//	<=====================>
-	
-	
+	// <=====================>
+	// <PRIVATE CACULATE FUNCTION>
+	// <=====================>
 
 	// <drawing the 2d polygon>
 	// <_______________________________________________________________________________________>
@@ -195,9 +202,6 @@ public class AsciiIntersect {
 		return temptPath;
 	}
 
-	
-	
-	
 	// <=================================>
 	// <get the value inside the each features of geoJson >
 	// <=================================>
@@ -214,6 +218,7 @@ public class AsciiIntersect {
 		// getting the boundary of the asciiGrid by its position
 		// to make sure the coordinate is fitting to the asciiGrid
 		// <___________________________________________________________________________________________________>
+		String[][] content = this.ascii.getAsciiGrid();
 		double startX = Double.parseDouble(this.property.get("bottomX"));
 		double startY = Double.parseDouble(this.property.get("topY"));
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
@@ -242,10 +247,11 @@ public class AsciiIntersect {
 				// point inside the polygon
 				if (polygon.contains(temptCoordinateX, temptCoordinateY)) {
 					try {
-						String temptValue = this.asciiGrid[line][column];
+						String temptValue = content[line][column];
 
 						// value don't equals to the noDate value
-						if (!temptValue.equals(cellSizeString) && Double.parseDouble(temptValue)>=globalAscii.floodedDepth) {
+						if (!temptValue.equals(cellSizeString)
+								&& Double.parseDouble(temptValue) >= globalAscii.floodedDepth) {
 							temptArray.add(Double.parseDouble(temptValue));
 						}
 					} catch (Exception e) {
