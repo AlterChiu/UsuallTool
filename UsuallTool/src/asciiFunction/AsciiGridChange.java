@@ -27,6 +27,12 @@ public class AsciiGridChange {
 		this.asciiGrid = temptAscii.getAsciiGrid();
 		this.originalProperty = temptAscii.getProperty();
 	}
+	
+	public AsciiGridChange(AsciiBasicControl temptAscii) {
+		this.asciiContent = temptAscii.getAsciiFile();
+		this.asciiGrid = temptAscii.getAsciiGrid();
+		this.originalProperty = temptAscii.getProperty();
+	}
 
 	// <======================>
 	// <get the target ascii file property >

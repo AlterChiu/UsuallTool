@@ -1,5 +1,6 @@
 package asciiFunction;
 
+import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import usualTool.AtFileReader;
 
 public class AsciiBasicControl {
 	private String[][] asciiContent = null;
-	private String fileAdd = null;
 	private TreeMap<String, String> property;
 	private String[][] asciiGrid;
 
@@ -24,11 +24,10 @@ public class AsciiBasicControl {
 		cutFirstColumn();
 		this.property = this.getProperty();
 		this.asciiGrid = this.getAsciiGrid();
-		
+
 	}
 
 	public AsciiBasicControl(String fileAdd) throws IOException {
-		this.fileAdd = fileAdd;
 		this.asciiContent = new AtFileReader(fileAdd).getStr();
 		cutFirstColumn();
 		this.property = this.getProperty();
@@ -40,8 +39,8 @@ public class AsciiBasicControl {
 	// <=========================>
 	private AsciiBasicControl cutFirstColumn() throws IOException {
 		// function for the open file
-		if(this.asciiContent[6][0].equals("")) {
-			for(int row = 6 ; row< this.asciiContent.length;row++) {
+		if (this.asciiContent[6][0].equals("")) {
+			for (int row = 6; row < this.asciiContent.length; row++) {
 				List<String> temptList = new ArrayList<String>(Arrays.asList(this.asciiContent[row]));
 				temptList.remove(0);
 				this.asciiContent[row] = temptList.parallelStream().toArray(String[]::new);
@@ -117,24 +116,13 @@ public class AsciiBasicControl {
 			return "error location";
 		}
 	}
-	
+
 	public String getValue(int column, int row) {
 		try {
 			return this.asciiGrid[row][column];
-		}catch(Exception e) {
+		} catch (Exception e) {
 			return "error location";
 		}
-	}
-
-	public AsciiBasicControl setValue(double x, double y, double value) {
-		int[] position = this.getPosition(x, y);
-		String stringValue = new BigDecimal(value).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
-		try {
-			this.asciiContent[position[1] + 6][position[0]] = stringValue;
-			this.asciiGrid[position[1]][position[0]] = stringValue;
-		} catch (Exception e) {
-		}
-		return this;
 	}
 
 	public AsciiBasicControl setValue(double x, double y, String value) {
@@ -147,26 +135,15 @@ public class AsciiBasicControl {
 		return this;
 	}
 
-	public AsciiBasicControl setValue(int x, int y, double value) {
-		String stringValue = new BigDecimal(value).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
-		try {
-			this.asciiContent[y + 6][x] = stringValue;
-			this.asciiGrid[y][x] = stringValue;
-		} catch (Exception e) {
-
-		}
-		return this;
-	}
-
 	public AsciiBasicControl setValue(int x, int y, String value) {
 		this.asciiContent[y + 6][x] = value;
 		this.asciiGrid[y][x] = value;
 		return this;
 	}
 
-	// <===============================>
+	// <=================================================>
 	// < get the position by giving coordinate of ascii > < x , y ><column , row>
-	// <================================>
+	// <=================================================>
 	public int[] getPosition(double x, double y) {
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
 		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
@@ -183,7 +160,7 @@ public class AsciiBasicControl {
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
 
 		double x = new BigDecimal(startX + column * cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
-				.doubleValue(); 
+				.doubleValue();
 		double y = new BigDecimal(startY - row * cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
 				.doubleValue();
 
@@ -205,8 +182,8 @@ public class AsciiBasicControl {
 	// < get the ASCII GRID >
 	// <===========================>
 
-	// <-----------------getting the asciiContent---------------------------->
-	// <===============================================================>
+	// <getting the asciiContent>
+	// <____________________________________________________________________________________________________________>
 	public String[][] getAsciiFile() {
 		return this.asciiContent;
 	}
@@ -294,7 +271,7 @@ public class AsciiBasicControl {
 
 		int endColumn = maxX;
 
-		int outRow = endLine - startLine + 1 ;
+		int outRow = endLine - startLine + 1;
 		int outColumn = endColumn - startColumn + 1;
 		double[] outllCenter = this.getCoordinate(startColumn, endLine);
 		String xllCenter = new BigDecimal(outllCenter[0]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
@@ -310,48 +287,102 @@ public class AsciiBasicControl {
 		for (int line = startLine; line <= endLine; line++) {
 			ArrayList<String> temptLine = new ArrayList<String>();
 			for (int column = startColumn; column <= endColumn; column++) {
-				temptLine.add(getValue(column , line));
+				temptLine.add(getValue(column, line));
 			}
 			asciiGrid.add(temptLine.parallelStream().toArray(String[]::new));
 		}
 		return asciiGrid.parallelStream().toArray(String[][]::new);
 	}
+
 	// <============================================================================>
+	// <get asciiGrid by setting the position => displace>
+	// <___________________________________________________________________________>
+	public String[][] getFillBoundary(double maxX, double minX, double minY, double maxY, double cellSize) {
+		List<String[]> outList = new ArrayList<String[]>();
+		int totalRow = new BigDecimal((maxY - minY) / cellSize + 0.001).setScale(0, BigDecimal.ROUND_DOWN).intValue();
+		int totalColumn = new BigDecimal((maxX - minX) / cellSize + 0.001).setScale(0, BigDecimal.ROUND_DOWN)
+				.intValue();
 
-	// <=========================>
-	// <getting the specifics value in asciiFile>
-	// <===========================>
+		outList.add(new String[] { "ncols", totalRow + "" });
+		outList.add(new String[] { "nrows", totalColumn + "" });
+		outList.add(new String[] { "xllcenter", minX + (0.5 * cellSize) + "" });
+		outList.add(new String[] { "yllcenter", minY + (0.5 * cellSize) + "" });
+		outList.add(new String[] { "cellsize", cellSize + "" });
+		outList.add(new String[] { "nodata_value", this.property.get("noData") });
 
-	// <get the max value in asciiFile>
-	// <__________________________________________________________________>
-	public double getMaxValue() {
-		String noData = this.asciiContent[5][1];
-		double max = -999;
-		for (int line = 6; line < this.asciiContent.length; line++) {
-			for (int column = 0; column < this.asciiContent[line].length; column++) {
-				if (!this.asciiContent[line][column].equals(noData)) {
-					if (max < Double.parseDouble(this.asciiContent[line][column])) {
-						max = Double.parseDouble(this.asciiContent[line][column]);
+		for (int row = 0; row < totalRow; row++) {
+			List<String> rowContent = new ArrayList<String>();
+			for (int column = 0; column < totalColumn; column++) {
+				// get the position in the original ascii of the boundary
+				int originalStartPoint[] = this.getPosition(
+						new BigDecimal(minX + column * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue(),
+						new BigDecimal(maxY - row * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
+				int originalEndPoint[] = this.getPosition(
+						new BigDecimal(minX + (column + 1) * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP)
+								.doubleValue(),
+						new BigDecimal(maxY - (row + 1) * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP)
+								.doubleValue());
+				int totalTimes = (originalEndPoint[0] - originalStartPoint[0])
+						* (originalEndPoint[1] - originalStartPoint[1]);
+				int selectimes = 0;
+
+				// get the selected boundary in path2D
+				Path2D temptPath = new Path2D.Double();
+				temptPath.moveTo(minX + column * cellSize, maxY - row * cellSize);
+				temptPath.lineTo(minX + (column + 1) * cellSize, maxY - row * cellSize);
+				temptPath.lineTo(minX + (column + 1) * cellSize, maxY - (row + 1) * cellSize);
+				temptPath.lineTo(minX + column * cellSize, maxY - (row + 1) * cellSize);
+				temptPath.closePath();
+
+				// get the original ascii cell value in boundary
+				List<Double> cellValueList = new ArrayList<Double>();
+				for (int targetRow = originalStartPoint[1]; targetRow <= originalEndPoint[1]; targetRow++) {
+					for (int targetColumn = originalStartPoint[0]; targetColumn <= originalEndPoint[0]; targetColumn++) {
+						double cordinate[] = this.getCoordinate(targetColumn, targetRow);
+						if (!this.asciiGrid[targetRow][targetColumn].equals(this.property.get("noData"))
+								&& temptPath.contains(cordinate[0], cordinate[1])) {
+							try {
+								cellValueList.add(Double.parseDouble(this.asciiGrid[targetRow][targetColumn]));
+								selectimes++;
+							} catch (Exception e) {
+							}
+						}
 					}
 				}
+
+				// get the mean value of the selected cell
+				// if the selected times lower than half of total cells size
+				// set the value to null
+				if (selectimes > 0.5 * totalTimes) {
+					rowContent.add(new AtCommonMath(cellValueList).getMean() + "");
+				} else {
+					rowContent.add(this.property.get("noData"));
+				}
 			}
+			outList.add(rowContent.parallelStream().toArray(String[]::new));
 		}
-		return new BigDecimal(max).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return outList.parallelStream().toArray(String[][]::new);
 	}
-
-	public double getMinValue() {
-		String noData = this.asciiContent[5][1];
-		double min = 999;
-		for (int line = 6; line < this.asciiContent.length; line++) {
-			for (int column = 0; column < this.asciiContent[line].length; column++) {
-				if (!this.asciiContent[line][column].equals(noData)) {
-					if (min > Double.parseDouble(this.asciiContent[line][column])) {
-						min = Double.parseDouble(this.asciiContent[line][column]);
-					}
-				}
-			}
+	
+	//<get the boundary is inside or not>
+	//<____________________________________________________________________________>
+	public Boolean isContain(double maxX, double minX, double minY, double maxY) {
+		double boundaryMaxX = Double.parseDouble(this.property.get("topX"));
+		double boundaryMaxY = Double.parseDouble(this.property.get("topY"));
+		double boundaryMinX = Double.parseDouble(this.property.get("bottomX"));
+		double boundaryMinY = Double.parseDouble(this.property.get("bottomY"));
+		
+		if(boundaryMaxX < minX) {
+			return false;
+		}else if(boundaryMaxY < minY) {
+			return false;
+		}else if(boundaryMinX >maxX) {
+			return false;
+		}else if(boundaryMinY >maxY) {
+			return false;
+		}else {
+			return true;
 		}
-		return new BigDecimal(min).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	// <=================>
