@@ -25,6 +25,11 @@ public class AtFileReader {
 	private ArrayList<String> fileContain = new ArrayList<String>();
 	private String fileAdd = null;
 	private BufferedReader br;
+	public static String ANSI = "Cp1252";
+	public static String Unicode = "Unicode";
+	public static String UTF8 = "UTF-8";
+	public static String BIG5 = "big5";
+	public static String ASCII = "ASCII";
 
 	// <==============>
 	// <here is the construtor>
@@ -51,19 +56,13 @@ public class AtFileReader {
 	}
 
 	public AtFileReader(String fileAdd, String encode) throws IOException {
-		FileInputStream fis = new FileInputStream(new File(fileAdd));
-		byte[] lineb = new byte[500];
-
-		int readLine = 0;
-		StringBuffer sb = new StringBuffer("");
-		while (fis.read(lineb) > 0) {
-			String utf8 = new String(lineb, encode);
-			sb.append(utf8);
+		this.br = new BufferedReader(new InputStreamReader(new FileInputStream(fileAdd) , encode));
+		this.fileAdd = fileAdd;
+		String tempt;
+		while ((tempt = br.readLine()) != null) {
+			this.fileContain.add(tempt);
 		}
-
-		this.fileContain = new ArrayList<String>(Arrays.asList(sb.toString().split("\n")));
-
-		fis.close();
+		br.close();
 	}
 
 	// <get the file by line -> buufered reader>

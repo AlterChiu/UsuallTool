@@ -22,6 +22,11 @@ public class AsciiBoundary {
 		this.ascii = new AsciiBasicControl(asciiFile);
 		this.property = ascii.getProperty();
 	}
+	
+	public AsciiBoundary(AsciiBasicControl ascii) {
+		this.ascii = ascii;
+		this.property = ascii.getProperty();
+	}
 
 	// <=========================>
 	// <start from the left top of the asciiGrid>

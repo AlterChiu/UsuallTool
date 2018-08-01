@@ -22,7 +22,7 @@ public class AsciiBasicControl {
 	public AsciiBasicControl(String[][] asciiContent) throws IOException {
 		this.asciiContent = asciiContent;
 		cutFirstColumn();
-		this.property = this.getProperty();
+		setProperty();
 		this.asciiGrid = this.getAsciiGrid();
 
 	}
@@ -30,7 +30,7 @@ public class AsciiBasicControl {
 	public AsciiBasicControl(String fileAdd) throws IOException {
 		this.asciiContent = new AtFileReader(fileAdd).getStr();
 		cutFirstColumn();
-		this.property = this.getProperty();
+		setProperty();
 		this.asciiGrid = this.getAsciiGrid();
 	}
 
@@ -52,7 +52,7 @@ public class AsciiBasicControl {
 	// <==================>
 	// < get the read asciiFile property>
 	// <==================>
-	public TreeMap<String, String> getProperty() {
+	private void setProperty() {
 		TreeMap<String, String> temptTree = new TreeMap<String, String>();
 		double cellSize = new BigDecimal(this.asciiContent[4][1]).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
 				.doubleValue();
@@ -84,9 +84,19 @@ public class AsciiBasicControl {
 						+ cellSize * (Integer.parseInt(temptTree.get("row")) - 1))
 								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
 
-		return temptTree;
+		this.property = temptTree;
 	}
 
+	// <================>
+	// <get the property>
+	// <================>
+	public TreeMap<String, String> getProperty() {
+		return this.property;
+	}
+
+	// <=================>
+	// <get the property in text>
+	// <=================>
 	public String[][] getPropertyText() {
 		ArrayList<String[]> temptTree = new ArrayList<String[]>();
 
@@ -363,25 +373,38 @@ public class AsciiBasicControl {
 		}
 		return outList.parallelStream().toArray(String[][]::new);
 	}
-	
-	//<get the boundary is inside or not>
-	//<____________________________________________________________________________>
+
+	// <get the boundary is inside or not>
+	// <____________________________________________________________________________>
 	public Boolean isContain(double maxX, double minX, double minY, double maxY) {
 		double boundaryMaxX = Double.parseDouble(this.property.get("topX"));
 		double boundaryMaxY = Double.parseDouble(this.property.get("topY"));
 		double boundaryMinX = Double.parseDouble(this.property.get("bottomX"));
 		double boundaryMinY = Double.parseDouble(this.property.get("bottomY"));
-		
-		if(boundaryMaxX < minX) {
+
+		if (boundaryMaxX < minX) {
 			return false;
-		}else if(boundaryMaxY < minY) {
+		} else if (boundaryMaxY < minY) {
 			return false;
-		}else if(boundaryMinX >maxX) {
+		} else if (boundaryMinX > maxX) {
 			return false;
-		}else if(boundaryMinY >maxY) {
+		} else if (boundaryMinY > maxY) {
 			return false;
-		}else {
+		} else {
 			return true;
+		}
+	}
+
+	public Boolean isContain(double x, double y) {
+		double boundaryMaxX = Double.parseDouble(this.property.get("topX"));
+		double boundaryMaxY = Double.parseDouble(this.property.get("topY"));
+		double boundaryMinX = Double.parseDouble(this.property.get("bottomX"));
+		double boundaryMinY = Double.parseDouble(this.property.get("bottomY"));
+
+		if (x <= boundaryMaxX && x >= boundaryMinX && y <= boundaryMaxY && y >= boundaryMinY) {
+			return true;
+		} else {
+			return false;
 		}
 	}
 
