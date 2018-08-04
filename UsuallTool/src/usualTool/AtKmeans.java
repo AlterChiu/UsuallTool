@@ -40,7 +40,7 @@ public class AtKmeans {
 		RandomMaker random = new RandomMaker();
 		startPoint.clear();
 		while (this.startPoint.size() < this.classNum) {
-			this.startPoint.add(new Double[] { random.RandomDouble(this.minX, this.minY),
+			this.startPoint.add(new Double[] { random.RandomDouble(this.minX, this.maxX),
 					random.RandomDouble(this.minY, this.maxY) });
 		}
 	}
