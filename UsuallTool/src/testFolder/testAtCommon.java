@@ -38,6 +38,7 @@ import usualTool.AtExcelReader;
 import usualTool.AtFileReader;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
+import usualTool.RandomMaker;
 import usualTool.TimeTranslate;
 
 public class testAtCommon {
@@ -46,12 +47,10 @@ public class testAtCommon {
 
 	public static void main(String[] args) throws IOException, ParseException {
 		// TODO Auto-generated method stu
-		String chinese[] = new String[] {""};
-		String content[] = new AtFileReader("C:\\Sobek213\\Active12.lit\\5\\NETWORK.NTW",AtFileReader.ANSI).getContain();
-		String fileAdd = "S:\\Users\\alter\\Desktop\\新增資料夾\\";
-		
-		new AtFileWriter(content , fileAdd + "ANSI.txt").setEncoding(AtFileWriter.ANSI).textWriter("");
-	
-		
+		RandomMaker random = new RandomMaker();
+		for(int i = 0 ; i<5;i++) {
+			System.out.println(random.RandomDouble(0, 1));
+		}
+
 	}
 }

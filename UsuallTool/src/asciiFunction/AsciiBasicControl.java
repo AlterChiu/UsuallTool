@@ -377,10 +377,15 @@ public class AsciiBasicControl {
 	// <get the boundary is inside or not>
 	// <____________________________________________________________________________>
 	public Boolean isContain(double maxX, double minX, double minY, double maxY) {
-		double boundaryMaxX = Double.parseDouble(this.property.get("topX"));
-		double boundaryMaxY = Double.parseDouble(this.property.get("topY"));
-		double boundaryMinX = Double.parseDouble(this.property.get("bottomX"));
-		double boundaryMinY = Double.parseDouble(this.property.get("bottomY"));
+		double cellSize = Double.parseDouble(this.property.get("cellSize"));
+		double boundaryMaxX = new BigDecimal(Double.parseDouble(this.property.get("topX")) + cellSize * 0.5)
+				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double boundaryMaxY = new BigDecimal(Double.parseDouble(this.property.get("topY")) + cellSize * 0.5)
+				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double boundaryMinX = new BigDecimal(Double.parseDouble(this.property.get("bottomX")) - cellSize * 0.5)
+				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double boundaryMinY = new BigDecimal(Double.parseDouble(this.property.get("bottomY")) - cellSize * 0.5)
+				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
 
 		if (boundaryMaxX < minX) {
 			return false;
@@ -396,11 +401,15 @@ public class AsciiBasicControl {
 	}
 
 	public Boolean isContain(double x, double y) {
-		double boundaryMaxX = Double.parseDouble(this.property.get("topX"));
-		double boundaryMaxY = Double.parseDouble(this.property.get("topY"));
-		double boundaryMinX = Double.parseDouble(this.property.get("bottomX"));
-		double boundaryMinY = Double.parseDouble(this.property.get("bottomY"));
-
+		double cellSize = Double.parseDouble(this.property.get("cellSize"));
+		double boundaryMaxX = new BigDecimal(Double.parseDouble(this.property.get("topX")) + cellSize * 0.5)
+				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double boundaryMaxY = new BigDecimal(Double.parseDouble(this.property.get("topY")) + cellSize * 0.5)
+				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double boundaryMinX = new BigDecimal(Double.parseDouble(this.property.get("bottomX")) - cellSize * 0.5)
+				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double boundaryMinY = new BigDecimal(Double.parseDouble(this.property.get("bottomY")) - cellSize * 0.5)
+				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
 		if (x <= boundaryMaxX && x >= boundaryMinX && y <= boundaryMaxY && y >= boundaryMinY) {
 			return true;
 		} else {

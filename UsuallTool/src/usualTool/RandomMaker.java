@@ -25,13 +25,13 @@ public class RandomMaker {
 		return temptI;
 	}
 
-	public String RandomDoubleFormate(double start, int end, int pre) {
+	public String RandomDoubleFormate(double start, double end, int pre) {
 		// (##.##)
 		double temptI = start + (end - start) * ran.nextDouble();
 		return new BigDecimal(temptI+"").setScale(pre).toString();
 	}
 
-	public double RandomDouble(double start, int end) {	
+	public double RandomDouble(double start, double end) {	
 		double temptI = start + (end - start) * ran.nextDouble();
 		return temptI;
 	}
