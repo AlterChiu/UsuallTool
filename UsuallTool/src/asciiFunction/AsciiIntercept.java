@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class AsciiBoundary {
+public class AsciiIntercept {
 	private AsciiBasicControl ascii;
 	private TreeMap<String, String> property;
 
@@ -13,17 +13,17 @@ public class AsciiBoundary {
 	private double interceptMinY;
 	private double interceptMaxY;
 
-	public AsciiBoundary(String fileAdd) throws IOException {
+	public AsciiIntercept(String fileAdd) throws IOException {
 		this.ascii = new AsciiBasicControl(fileAdd);
 		this.property = ascii.getProperty();
 	}
 
-	public AsciiBoundary(String[][] asciiFile) throws IOException {
+	public AsciiIntercept(String[][] asciiFile) throws IOException {
 		this.ascii = new AsciiBasicControl(asciiFile);
 		this.property = ascii.getProperty();
 	}
 	
-	public AsciiBoundary(AsciiBasicControl ascii) {
+	public AsciiIntercept(AsciiBasicControl ascii) {
 		this.ascii = ascii;
 		this.property = ascii.getProperty();
 	}

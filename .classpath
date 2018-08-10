@@ -15,5 +15,6 @@
 	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/xmlbeans.jar"/>
 	<classpathentry kind="lib" path="C:/code/JAVA library/出圖用/jfreechart-1.0.19/jfreechart-1.0.19-demo.jar"/>
 	<classpathentry kind="lib" path="C:/code/JAVA library/chilkat.jar"/>
+	<classpathentry kind="lib" path="C:/code/JAVA library/DataBaseController.jar"/>
 	<classpathentry kind="output" path="UsuallTool/bin"/>
 </classpath>
