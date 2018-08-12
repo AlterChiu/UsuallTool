@@ -55,45 +55,15 @@ public class testAtCommon {
 
 	public static void main(String[] args) throws IOException, ParseException, OperationNotSupportedException {
 		// TODO Auto-generated method
-		// String fileAdd =
-		// "S:\\Users\\alter\\Desktop\\EMIC_SobekDAT\\Tainan\\Result\\0618\\";
-		// String folderList[] = new File(fileAdd).list();
-		//
-		// String[][] outAscii = new AsciiBasicControl(fileAdd + folderList[0] +
-		// "\\dm1dmaxd0.asc").getAsciiFile();
-		//
-		// for (int index = 1; index < folderList.length; index++) {
-		// outAscii = new AsciiMerge(outAscii, fileAdd + folderList[index] +
-		// "\\dm1dmaxd0.asc").getMergedAscii();
-		// }
-		// new AtFileWriter(outAscii, fileAdd + "mergeMaxd0.asc").textWriter(" ");
+		AsciiBasicControl delicateAscii = new AsciiBasicControl("S:\\HomeWork\\mapReduce\\OriginalDEM\\ZoneU1_20m.asc");
 
-		String fileAdd = "S:\\Users\\alter\\Desktop\\EMIC_SobekDAT\\0618\\";
-		String[] folderList = new File(fileAdd).list();
+		String[][] content = delicateAscii.getAsciiGrid();
 
-		for (String folder : folderList) {
-			List<AsciiBasicControl> asciiList = new ArrayList<AsciiBasicControl>();
-			for (int index = 1; index <= 49; index++) {
-				asciiList.add(
-						new AsciiBasicControl(fileAdd + folder + "\\dm1d" + String.format("%04d", index) + ".asc"));
+		for (int row = 0; row < content.length; row++) {
+			for (int column = 0; column < content[0].length; column++) {
+				System.out.print(content[row][column]);
 			}
-
-			AsciiBasicControl ascii = new AsciiBasicControl(
-					fileAdd + folder + "\\dm1d" + String.format("%04d", 0) + ".asc");
-			String[][] content = ascii.getAsciiGrid();
-
-			for (int row = 0; row < content.length; row++) {
-				for (int column = 0; column < content[0].length; column++) {
-
-					List<Double> valueList = new ArrayList<Double>();
-					for (AsciiBasicControl temptAscii : asciiList) {
-						valueList.add(Double.parseDouble(temptAscii.getValue(column, row)));
-					}
-					ascii.setValue(column, row, new AtCommonMath(valueList).getMax() + "");
-				}
-			}
-
-			new AtFileWriter(ascii.getAsciiFile(), fileAdd + folder + "\\dm1dmaxd0.asc").textWriter("   ");
+			System.out.println();
 		}
 
 	}

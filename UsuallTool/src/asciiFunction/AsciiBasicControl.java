@@ -123,7 +123,7 @@ public class AsciiBasicControl {
 		try {
 			return this.asciiGrid[row][column];
 		} catch (Exception e) {
-			return "error location";
+			return this.property.get("noData");
 		}
 	}
 
@@ -131,7 +131,7 @@ public class AsciiBasicControl {
 		try {
 			return this.asciiGrid[row][column];
 		} catch (Exception e) {
-			return "error location";
+			return this.property.get("noData");
 		}
 	}
 
@@ -232,75 +232,33 @@ public class AsciiBasicControl {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
 		double cellSize = Double.parseDouble(property.get("cellSize"));
 
-		int startLine = new BigDecimal((Double.parseDouble(property.get("topY")) - maxY) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_DOWN).intValue() + 6;
+		minX = minX + 0.5 * cellSize;
+		minY = minY + 0.5 * cellSize;
+		maxX = maxX - 0.5 * cellSize;
+		maxY = maxY - 0.5 * cellSize;
 
-		int endLine = new BigDecimal((Double.parseDouble(property.get("topY")) - minY) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_DOWN).intValue() + 6;
+		int[] bottomPosition = this.getPosition(minX, minY);
+		int[] topPosition = this.getPosition(maxX, maxY);
 
-		int startColumn = new BigDecimal((minX - Double.parseDouble(property.get("bottomX"))) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_DOWN).intValue();
-
-		int endColumn = new BigDecimal((maxX - Double.parseDouble(property.get("bottomX"))) / cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_DOWN).intValue();
-
-		int outRow = endLine - startLine;
-		int outColumn = endColumn - startColumn;
-		double[] outllCenter = this.getCoordinate(startColumn, endLine);
+		double[] outllCenter = this.getCoordinate(bottomPosition[0], bottomPosition[1]);
 		String xllCenter = new BigDecimal(outllCenter[0]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
 		String yllCenter = new BigDecimal(outllCenter[1]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
 
-		asciiGrid.add(new String[] { "ncols", outColumn + "" });
-		asciiGrid.add(new String[] { "nrows", outRow + "" });
+		asciiGrid.add(new String[] { "ncols", topPosition[0] - bottomPosition[0] + 1 + "" });
+		asciiGrid.add(new String[] { "nrows", -topPosition[1] + bottomPosition[1] + 1 + "" });
 		asciiGrid.add(new String[] { "xllcenter", xllCenter + "" });
 		asciiGrid.add(new String[] { "yllcenter", yllCenter + "" });
 		asciiGrid.add(new String[] { "cellsize", property.get("cellSize") });
 		asciiGrid.add(new String[] { "nodata_value", property.get("noData") });
 
-		for (int line = startLine; line < endLine; line++) {
+		for (int line = topPosition[1]; line <= bottomPosition[1]; line++) {
 			ArrayList<String> temptLine = new ArrayList<String>();
-			for (int column = startColumn; column < endColumn; column++) {
-				temptLine.add(this.asciiContent[line][column]);
+			for (int column = bottomPosition[0]; column <= topPosition[0]; column++) {
+				temptLine.add(this.asciiGrid[line][column]);
 			}
 			asciiGrid.add(temptLine.parallelStream().toArray(String[]::new));
 		}
 
-		return asciiGrid.parallelStream().toArray(String[][]::new);
-	}
-
-	// <get asciiGrid by setting the position>
-	// <___________________________________________________________________________>
-	public String[][] getClipAsciiFile(int minX, int minY, int maxX, int maxY) {
-		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
-
-		int startLine = minY;
-
-		int endLine = maxY;
-
-		int startColumn = minX;
-
-		int endColumn = maxX;
-
-		int outRow = endLine - startLine + 1;
-		int outColumn = endColumn - startColumn + 1;
-		double[] outllCenter = this.getCoordinate(startColumn, endLine);
-		String xllCenter = new BigDecimal(outllCenter[0]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
-		String yllCenter = new BigDecimal(outllCenter[1]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
-
-		asciiGrid.add(new String[] { "ncols", outColumn + "" });
-		asciiGrid.add(new String[] { "nrows", outRow + "" });
-		asciiGrid.add(new String[] { "xllcenter", xllCenter + "" });
-		asciiGrid.add(new String[] { "yllcenter", yllCenter + "" });
-		asciiGrid.add(new String[] { "cellsize", this.property.get("cellSize") });
-		asciiGrid.add(new String[] { "nodata_value", this.property.get("noData") });
-
-		for (int line = startLine; line <= endLine; line++) {
-			ArrayList<String> temptLine = new ArrayList<String>();
-			for (int column = startColumn; column <= endColumn; column++) {
-				temptLine.add(getValue(column, line));
-			}
-			asciiGrid.add(temptLine.parallelStream().toArray(String[]::new));
-		}
 		return asciiGrid.parallelStream().toArray(String[][]::new);
 	}
 
