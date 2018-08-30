@@ -23,54 +23,21 @@ public class FileFunction {
 		}
 	}
 
-	public void delFile(String filePathAndName) {
-		try {
-			String filePath = filePathAndName;
-			filePath = filePath.toString();
-			java.io.File myDelFile = new java.io.File(filePath);
-			myDelFile.delete();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void delFolder(String folderPath) {
-		try {
-			delAllFile(folderPath);
-			String filePath = folderPath;
-			filePath = filePath.toString();
-			java.io.File myFilePath = new java.io.File(filePath);
-			myFilePath.delete();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	public void delAllFile(String path) {
+	public void delete(String path) {
 		File file = new File(path);
-		if (!file.exists()) {
-			return;
+		try {
+			for (File childFile : file.listFiles()) {
+				if (childFile.isDirectory()) {
+					delete(childFile.getAbsolutePath());
+				} else {
+					childFile.delete();
+				}
+			}
+		} catch (Exception e) {
 		}
-		if (!file.isDirectory()) {
-			return;
-		}
-		String[] tempList = file.list();
-		File temp = null;
-		for (int i = 0; i < tempList.length; i++) {
-			if (path.endsWith(File.separator)) {
-				temp = new File(path + tempList[i]);
-			} else {
-				temp = new File(path + File.separator + tempList[i]);
-			}
-			if (temp.isFile()) {
-				temp.delete();
-			}
-			if (temp.isDirectory()) {
-				delAllFile(path + "/" + tempList[i]);
-				delFolder(path + "/" + tempList[i]);
-			}
+		try {
+			file.delete();
+		} catch (Exception e) {
 		}
 	}
 
@@ -100,12 +67,12 @@ public class FileFunction {
 
 	public void moveFile(String oldPath, String newPath) {
 		copyFile(oldPath, newPath);
-		delFile(oldPath);
+		delete(oldPath);
 	}
 
 	public void moveFolder(String oldPath, String newPath) {
 		copyFolder(oldPath, newPath);
-		delFolder(oldPath);
+		delete(oldPath);
 	}
 
 	public void reNameFile(String oldPath, String newPath) {

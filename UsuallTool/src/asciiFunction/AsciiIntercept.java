@@ -22,7 +22,7 @@ public class AsciiIntercept {
 		this.ascii = new AsciiBasicControl(asciiFile);
 		this.property = ascii.getProperty();
 	}
-	
+
 	public AsciiIntercept(AsciiBasicControl ascii) {
 		this.ascii = ascii;
 		this.property = ascii.getProperty();
@@ -78,41 +78,11 @@ public class AsciiIntercept {
 	}
 
 	private void getInterceptBoundary(double minX, double maxX, double minY, double maxY) {
-		double temptMinX = Double.parseDouble(this.property.get("bottomX"));
-		double temptMaxX = Double.parseDouble(this.property.get("topX"));
-		double temptMaxY = Double.parseDouble(this.property.get("topY"));
-		double temptMinY = Double.parseDouble(this.property.get("bottomY"));
-
-		if (temptMinX > minX) {
-			this.interceptMinX = temptMinX;
-		} else {
-			this.interceptMinX = minX;
-		}
-
-		if (temptMinY > minY) {
-			this.interceptMinY = temptMinY;
-		} else {
-			this.interceptMinY = minY;
-		}
-
-		if (temptMaxX < maxX) {
-			this.interceptMaxX = temptMaxX;
-		} else {
-			this.interceptMaxX = maxX;
-		}
-
-		if (temptMaxY < maxY) {
-			this.interceptMaxY = temptMaxY;
-		} else {
-			this.interceptMaxY = maxY;
-		}
-	}
-
-	private void getMergeBoundary(double minX, double maxX, double minY, double maxY) {
-		double temptMinX = Double.parseDouble(this.property.get("bottomX"));
-		double temptMaxX = Double.parseDouble(this.property.get("topX"));
-		double temptMaxY = Double.parseDouble(this.property.get("topY"));
-		double temptMinY = Double.parseDouble(this.property.get("bottomY"));
+		double cellSize = Double.parseDouble(this.property.get("cellSize"));
+		double temptMinX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
+		double temptMaxX = Double.parseDouble(this.property.get("topX")) + 0.5 * cellSize;
+		double temptMaxY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
+		double temptMinY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * cellSize;
 
 		if (temptMinX > minX) {
 			this.interceptMinX = temptMinX;

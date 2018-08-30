@@ -334,7 +334,7 @@ public class AsciiBasicControl {
 
 	// <get the boundary is inside or not>
 	// <____________________________________________________________________________>
-	public Boolean isContain(double maxX, double minX, double minY, double maxY) {
+	public Boolean isContain(double maxX, double minX, double maxY, double minY) {
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
 		double boundaryMaxX = new BigDecimal(Double.parseDouble(this.property.get("topX")) + cellSize * 0.5)
 				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();

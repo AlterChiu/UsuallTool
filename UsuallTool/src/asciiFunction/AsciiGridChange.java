@@ -104,7 +104,6 @@ public class AsciiGridChange {
 		if (gridSize >= 2) {
 			int targetColumn = Integer.parseInt(this.originalProperty.get("column")) / gridSize;
 			int targetRow = Integer.parseInt(this.originalProperty.get("row")) / gridSize;
-			int limit = (gridSize * gridSize) / 2;
 			ArrayList<String[]> targetGrid = new ArrayList<String[]>();
 
 			// the original ascii grid

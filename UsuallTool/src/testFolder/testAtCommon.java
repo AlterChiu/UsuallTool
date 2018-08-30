@@ -2,49 +2,17 @@ package testFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
-import javax.naming.OperationNotSupportedException;
-
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import Drawing.Excel.ChartImplemetns;
-import Drawing.Excel.ExcelBasicControl;
-import Drawing.JFreeChart.ChartBasicControl;
-import Drawing.JFreeChart.ChartImplement;
-import Drawing.JFreeChart.DataSetSetting;
-import FEWS.PIXml.AtPiXmlReader;
-import FEWS.Rinfall.BUI.BuiTranslate;
-import asciiFunction.AsciiBasicControl;
-import asciiFunction.AsciiGridChange;
-import asciiFunction.AsciiMerge;
-import asciiFunction.XYZToAscii;
-import gdal.DBFToGeoJson;
-import gdal.GeoJsonToShp;
-import nl.wldelft.util.timeseries.TimeSeriesArray;
-import sun.reflect.generics.tree.Tree;
-import usualTool.AtCommonMath;
+import Netcdf.NetCDFReader;
+import ucar.ma2.InvalidRangeException;
 import usualTool.AtDeterminant;
-import usualTool.AtExcelReader;
 import usualTool.AtFileReader;
 import usualTool.AtFileWriter;
-import usualTool.AtKmeans;
 import usualTool.FileFunction;
-import usualTool.RandomMaker;
 import usualTool.TimeTranslate;
 
 public class testAtCommon {
@@ -52,18 +20,25 @@ public class testAtCommon {
 	private static TreeMap<String, String> timesTree = new TreeMap<String, String>();
 	private static AtDeterminant deter = new AtDeterminant();
 	private static TimeTranslate tt = new TimeTranslate();
+	private static FileFunction ff = new FileFunction();
 
-	public static void main(String[] args) throws IOException, ParseException, OperationNotSupportedException {
+	public static void main(String[] args) throws IOException, InvalidRangeException {
 		// TODO Auto-generated method
-		AsciiBasicControl delicateAscii = new AsciiBasicControl("S:\\HomeWork\\mapReduce\\OriginalDEM\\ZoneU1_20m.asc");
 
-		String[][] content = delicateAscii.getAsciiGrid();
+		String fileAdd = "S:\\HomeWork\\EMIC_2018\\";
+		for (String fileName : new File(fileAdd).list()) {
+			if (fileName.contains(".csv")) {
+				String content[][] = new AtFileReader(fileAdd + fileName).getCsv();
 
-		for (int row = 0; row < content.length; row++) {
-			for (int column = 0; column < content[0].length; column++) {
-				System.out.print(content[row][column]);
+				List<String[]> outList = new ArrayList<String[]>();
+
+				for (String line[] : content) {
+					if (!line[1].startsWith("2")) {
+						outList.add(line);
+					}
+				}
+				new AtFileWriter(outList.parallelStream().toArray(String[][]::new), fileAdd + fileName).csvWriter();
 			}
-			System.out.println();
 		}
 
 	}
@@ -127,7 +102,7 @@ public class testAtCommon {
 	//
 	// for (int index = 0; index < caseBoundary.size(); index++) {
 	// if (caseBoundary.get(index).contains("TBLE")) {
-	// for (int temptIndex = boundaryValues.size() - 1; temptIndex >= 0;
+	// for (int temptIndex = boundaryValues.size() - 1; temptIndex >44= 0;
 	// temptIndex--) {
 	// caseBoundary.add(index + 1, boundaryValues.get(temptIndex));
 	// }

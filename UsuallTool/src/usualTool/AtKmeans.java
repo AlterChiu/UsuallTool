@@ -36,6 +36,11 @@ public class AtKmeans {
 		setStartPoint();
 	}
 
+	// get the start point
+	public List<Double[]> getStartPoint() {
+		return this.startPoint;
+	}
+
 	public void setStartPoint() {
 		RandomMaker random = new RandomMaker();
 		startPoint.clear();
@@ -50,28 +55,29 @@ public class AtKmeans {
 		Boolean convergence = true;
 
 		while (convergence) {
-			double startPointDisplace = 0;
-			List<Double[]> renewStartPoint = classfier();
+			// if there is error while start point is null
+			// reset the start point
+			try {
+				double startPointDisplace = 0;
+				List<Double[]> renewStartPoint = classfier();
 
-			// check the displacement of the startpoint
-			for (int index = 0; index < this.startPoint.size(); index++) {
-				startPointDisplace = startPointDisplace
-						+ getDis(this.startPoint.get(index), renewStartPoint.get(index));
-			}
+				// check the displacement of the startpoint
+				for (int index = 0; index < this.startPoint.size(); index++) {
+					startPointDisplace = startPointDisplace
+							+ getDis(this.startPoint.get(index), renewStartPoint.get(index));
+				}
 
-			// to setup the precious of the displacement
-			if (startPointDisplace < 1) {
-				convergence = false;
-			} else {
-				this.startPoint = renewStartPoint;
+				// to setup the precious of the displacement
+				if (startPointDisplace < 1) {
+					convergence = false;
+				} else {
+					this.startPoint = renewStartPoint;
+				}
+			} catch (Exception e) {
+				setStartPoint();
 			}
 		}
 		return this.classData;
-	}
-
-	// get the start point
-	public List<Double[]> getStartPoint() {
-		return this.startPoint;
 	}
 
 	private List<Double[]> classfier() {
