@@ -18,7 +18,7 @@ public class DBFToGeoJson {
 	}
 
 	public void Start() throws IOException {
-		new FileFunction().delFile(this.geoFileAdd);
+		new FileFunction().delete(this.geoFileAdd);
 
 		List<String> command = new ArrayList<String>();
 		command.add("cmd.exe");

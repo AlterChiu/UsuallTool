@@ -13,6 +13,12 @@ public class AtKmeans {
 	private double maxY;
 	private double minY;
 
+	/**
+	 * 
+	 * 
+	 * @param analysisData
+	 * @param classNum
+	 */
 	public AtKmeans(List<Double[]> analysisData, int classNum) {
 		this.analysisData = analysisData;
 		this.classNum = classNum;
@@ -36,11 +42,20 @@ public class AtKmeans {
 		setStartPoint();
 	}
 
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	// get the start point
 	public List<Double[]> getStartPoint() {
 		return this.startPoint;
 	}
 
+	/**
+	 * 
+	 * 
+	 */
 	public void setStartPoint() {
 		RandomMaker random = new RandomMaker();
 		startPoint.clear();
@@ -50,6 +65,24 @@ public class AtKmeans {
 		}
 	}
 
+	public void setStartPoint(List<Double> xList, List<Double> yList) {
+		RandomMaker random = new RandomMaker();
+		startPoint.clear();
+		for (int index = 0; index < this.classNum; index++) {
+			try {
+				this.startPoint.add(new Double[] { xList.get(index), yList.get(index) });
+			} catch (Exception e) {
+				this.startPoint.add(new Double[] { random.RandomDouble(this.minX, this.maxX),
+						random.RandomDouble(this.minY, this.maxY) });
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
 	// get the final result of kmeans
 	public List<List<Double[]>> getClassifier() {
 		Boolean convergence = true;
@@ -80,6 +113,12 @@ public class AtKmeans {
 		return this.classData;
 	}
 
+	/**
+	 * 
+	 * 
+	 * 
+	 * @return
+	 */
 	private List<Double[]> classfier() {
 		// initialize the saveList
 		this.classData.clear();
@@ -113,6 +152,13 @@ public class AtKmeans {
 		return renewStartPoint;
 	}
 
+	/**
+	 * 
+	 * 
+	 * 
+	 * @param values
+	 * @return
+	 */
 	// get the mean point of the class, for renew the startPoint
 	public Double[] getClassMeanPosint(List<Double[]> values) {
 		List<Double> xList = new ArrayList<Double>();
@@ -124,6 +170,14 @@ public class AtKmeans {
 		return new Double[] { new AtCommonMath(xList).getMean(), new AtCommonMath(yList).getMean() };
 	}
 
+	/**
+	 * 
+	 * 
+	 * 
+	 * @param point1
+	 * @param point2
+	 * @return
+	 */
 	private double getDis(Double[] point1, Double[] point2) {
 		return Math.pow(Math.pow(point1[0] - point2[0], 2) + Math.pow(point1[1] - point2[1], 2), 0.5);
 	}

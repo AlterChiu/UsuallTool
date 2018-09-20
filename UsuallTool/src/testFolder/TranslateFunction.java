@@ -41,7 +41,7 @@ public class TranslateFunction {
 		return new double[] {x , y};
 	}
 	
-	private static double[] Cal_TWD97_To_lonlat(double x, double y)
+	public static double[] Cal_TWD97_To_lonlat(double x, double y)
 	  {
 	    x -= dx;
 	    y -= dy;

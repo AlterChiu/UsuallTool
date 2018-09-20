@@ -1,121 +1,103 @@
 package testFolder;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
+import javax.naming.OperationNotSupportedException;
+
+import FEWS.Rinfall.BUI.BuiTranslate;
 import Netcdf.NetCDFReader;
+import asciiFunction.AsciiBasicControl;
+import asciiFunction.AsciiMerge;
+import asciiFunction.XYZToAscii;
+import gdal.DBFToGeoJson;
 import ucar.ma2.InvalidRangeException;
 import usualTool.AtDeterminant;
 import usualTool.AtFileReader;
 import usualTool.AtFileWriter;
+import usualTool.AtKmeans;
 import usualTool.FileFunction;
 import usualTool.TimeTranslate;
 
 public class testAtCommon {
 
-	private static TreeMap<String, String> timesTree = new TreeMap<String, String>();
-	private static AtDeterminant deter = new AtDeterminant();
-	private static TimeTranslate tt = new TimeTranslate();
-	private static FileFunction ff = new FileFunction();
-
-	public static void main(String[] args) throws IOException, InvalidRangeException {
+	public static void main(String[] args)
+			throws IOException, InvalidRangeException, OperationNotSupportedException, ParseException {
 		// TODO Auto-generated method
+		// TimeTranslate tt = new TimeTranslate();
+		// FileFunction ff = new FileFunction();
+		//
+		// String fileAdd = "E:\\HomeWork\\EMIC_2018\\Kaohsiung\\";
+		//// String zoneFolder[] = new String[] { "Z1U1", "Z1U2", "Z2", "Z3", "Z4",
+		// "Z5", "Z6", "Z7" };
+		// String zoneFolder[] = new String[] { "Z1", "Z2", "Z3", "Z4" };
+		//
+		// for (String event : new File(fileAdd + "Z4\\merge\\").list()) {
+		// String[][] temptAscii = new AsciiBasicControl(fileAdd + "Z4\\merge\\" +
+		// event).getAsciiFile();
+		//
+		// for (int index = 0; index < zoneFolder.length - 1; index++) {
+		// temptAscii = new AsciiMerge(fileAdd + "Z4\\merge\\" + event,
+		// fileAdd + zoneFolder[index] + "\\merge\\" + event).getMergedAscii();
+		// }
+		//
+		// new AtFileWriter(temptAscii, fileAdd + "merge\\" + event).textWriter(" ");
+		// }
+		//
+		// // String temptFolder = fileAdd + "Z3\\";
+		// //
+		// // for (String event : new File(temptFolder).list()) {
+		// // try {
+		// // Double.parseDouble(event);
+		// // String eventFolder = temptFolder + event + "\\";
+		// //
+		// // for (int index = 0; index <= 72; index++) {
+		// // String filePath = eventFolder + "dm1d" + String.format("%04d", index) +
+		// // ".asc";
+		// // ff.copyFile(filePath, temptFolder + "merge\\"
+		// // + tt.milliToDate(tt.StringToLong(event, "yyyyMMddHH") + 3600000 * index,
+		// // "yyyyMMddHH")
+		// // + ".asc");
+		// // }
+		// //
+		// // } catch (Exception e) {
+		// // e.printStackTrace();
+		// // }
+		// // }
 
-		String fileAdd = "S:\\HomeWork\\EMIC_2018\\";
-		for (String fileName : new File(fileAdd).list()) {
-			if (fileName.contains(".csv")) {
-				String content[][] = new AtFileReader(fileAdd + fileName).getCsv();
+		String fileAdd = "E:\\HomeWork\\mapReduce\\RainfallData\\200y_12_6_TN_PD.BUI";
+		String content[][] = new AtFileReader(fileAdd).getStr();
 
-				List<String[]> outList = new ArrayList<String[]>();
+		for (int column = 0; column < content[2910].length; column++) {
+			double start = Double.parseDouble(content[2910][column]);
+			double high = Double.parseDouble(content[2915][column]);
+			double end = Double.parseDouble(content[2921][column]);
 
-				for (String line[] : content) {
-					if (!line[1].startsWith("2")) {
-						outList.add(line);
-					}
-				}
-				new AtFileWriter(outList.parallelStream().toArray(String[][]::new), fileAdd + fileName).csvWriter();
+			int eventStart = 2910;
+			double levelUp = (high - start) / 2;
+			double levelDown = (end - high) / 9;
+			for (int line = 0; line < 3; line++) {
+				content[eventStart + line][column] = new BigDecimal(start + levelUp * line)
+						.setScale(2, BigDecimal.ROUND_HALF_UP).toString();
+			}
+			for (int line = 3; line < 12; line++) {
+				content[eventStart + line][column] = new BigDecimal(high + levelDown * (line - 2))
+						.setScale(2, BigDecimal.ROUND_HALF_UP).toString();
 			}
 		}
+		
+		new AtFileWriter(content ,  "E:\\HomeWork\\mapReduce\\RainfallData\\200y_12_3_TN_PD.BUI").textWriter(" ");
 
 	}
-
-	// <====================================================================>
-
-	// private static void getMaxD0() {
-	// String fileAdd =
-	// "S:\\Users\\alter\\Desktop\\EMIC_SobekDAT\\Tainan\\Result\\0618\\";
-	// String[] folderList = new File(fileAdd).list();
-	//
-	// for (String folder : folderList) {
-	// List<AsciiBasicControl> asciiList = new ArrayList<AsciiBasicControl>();
-	// for (int index = 1; index <= 49; index++) {
-	// asciiList.add(
-	// new AsciiBasicControl(fileAdd + folder + "\\dm1d" + String.format("%04d",
-	// index) + ".asc"));
-	// }
-	//
-	// AsciiBasicControl ascii = new AsciiBasicControl(
-	// fileAdd + folder + "\\dm1d" + String.format("%04d", 0) + ".asc");
-	// String[][] content = ascii.getAsciiGrid();
-	//
-	// for (int row = 0; row < content.length; row++) {
-	// for (int column = 0; column < content[0].length; column++) {
-	//
-	// List<Double> valueList = new ArrayList<Double>();
-	// for (AsciiBasicControl temptAscii : asciiList) {
-	// valueList.add(Double.parseDouble(temptAscii.getValue(column, row)));
-	// }
-	// ascii.setValue(column, row, new AtCommonMath(valueList).getMax() + "");
-	// }
-	// }
-	//
-	// new AtFileWriter(ascii.getAsciiFile(), fileAdd + folder +
-	// "\\dm1dmaxd0.asc").textWriter(" ");
-	// }
-	//
-	// }
-
-	// <=========================================================================================>
-
-	// private static void getBoundary() throws IOException {
-	// List<String> boundaryValues = new ArrayList<String>(Arrays
-	// .asList(new
-	// AtFileReader("S:\\Users\\alter\\Desktop\\EMIC_SobekDAT\\Kao\\Boundary.DAT").getContain()));
-	// String moduleFolder =
-	// "S:\\Users\\alter\\Desktop\\EMIC_SobekDAT\\Kao\\module\\";
-	//
-	// for (int zone = 1; zone <= 4; zone++) {
-	// String litFile = moduleFolder + "Zone" + zone + "\\KAO40Z0" + zone +
-	// ".lit\\";
-	// String caseList[] = new File(litFile).list();
-	//
-	// for (String caseFile : caseList) {
-	// try {
-	// Double.parseDouble(caseFile);
-	// List<String> caseBoundary = new ArrayList<String>(Arrays
-	// .asList(new AtFileReader(litFile + caseFile +
-	// "\\BOUNDARY.DAT").getContainWithOut("<")));
-	//
-	// for (int index = 0; index < caseBoundary.size(); index++) {
-	// if (caseBoundary.get(index).contains("TBLE")) {
-	// for (int temptIndex = boundaryValues.size() - 1; temptIndex >44= 0;
-	// temptIndex--) {
-	// caseBoundary.add(index + 1, boundaryValues.get(temptIndex));
-	// }
-	// }
-	// }
-	// new AtFileWriter(caseBoundary.parallelStream().toArray(String[]::new),
-	// "S:\\Users\\alter\\Desktop\\EMIC_SobekDAT\\Kao\\Boundary\\Z" + zone +
-	// "_BOUNDARY.DAT")
-	// .textWriter("");
-	// ;
-	// } catch (Exception e) {
-	// }
-	// }
-	// }
-	// }
 }

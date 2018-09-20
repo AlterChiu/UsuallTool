@@ -20,10 +20,10 @@ public class GeoJsonToShp {
 	public void Start() throws IOException {
 		FileFunction ff = new FileFunction();
 		String delFileName = this.shpFileAdd.substring(0, shpFileAdd.length() - 3);
-		ff.delFile(delFileName + "dbf");
-		ff.delFile(delFileName + "prj");
-		ff.delFile(delFileName + "shp");
-		ff.delFile(delFileName + "shx");
+		ff.delete(delFileName + "dbf");
+		ff.delete(delFileName + "prj");
+		ff.delete(delFileName + "shp");
+		ff.delete(delFileName + "shx");
 
 		List<String> command = new ArrayList<String>();
 		command.add("cmd.exe");

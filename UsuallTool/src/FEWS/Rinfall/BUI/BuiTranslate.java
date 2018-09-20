@@ -11,10 +11,8 @@ import java.util.TreeMap;
 import javax.naming.OperationNotSupportedException;
 
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
 
 import FEWS.PIXml.AtPiXmlReader;
 import nl.wldelft.util.timeseries.TimeSeriesArray;
@@ -170,7 +168,7 @@ public class BuiTranslate implements TimeInterface {
 		return outArray.parallelStream().toArray(String[]::new);
 	}
 
-	public Document getPiXMLRainfall() throws IOException, ParseException {
+	public String getPiXMLRainfall() throws IOException, ParseException {
 		AtFileReader buiFIle = new AtFileReader(this.fileAdd);
 		String[] content = buiFIle.getContainWithOut("*");
 		String noMeaningString = content[0];
@@ -210,7 +208,8 @@ public class BuiTranslate implements TimeInterface {
 		timeSeries.addAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 		timeSeries.addAttribute("xsi:schemaLocation",
 				"http://www.wldelft.nl/fews/PI http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd");
-		timeSeries.addAttribute("version", "1.2");
+		timeSeries.addAttribute("version", "1.23");
+		timeSeries.addAttribute("xmlns:fs", "http://www.wldelft.nl/fews/fs");
 		timeSeries.addElement("timeZone").addText("8.0");
 
 		for (int order = 0; order < stationId.size(); order++) {
@@ -218,14 +217,14 @@ public class BuiTranslate implements TimeInterface {
 			Element header = series.addElement("header");
 			header.addElement("type").addText("accumulative");
 			header.addElement("locationId").addText(stationId.get(order));
-			header.addElement("parameterId").addText("Rainfall");
+			header.addElement("parameterId").addText("P.obs");
 			header.addElement("timeStep").addAttribute("unit", "second").addAttribute("multiplier",
 					this.timeStepMultiplier + "");
 			header.addElement("startDate").addAttribute("date", TimeInterface.milliToDate(this.startDate, "yyyy-MM-dd"))
 					.addAttribute("time", TimeInterface.milliToDate(this.startDate, "HH:mm:ss"));
 			header.addElement("endDate").addAttribute("date", TimeInterface.milliToDate(this.endDate, "yyyy-MM-dd"))
 					.addAttribute("time", TimeInterface.milliToDate(this.endDate, "HH:mm:ss"));
-			header.addElement("missValue").addText("-999.99");
+			header.addElement("missVal").addText("-999.99");
 			header.addElement("stationName").addText(stationId.get(order));
 			header.addElement("units").addText("mm");
 			header.addElement("creationDate").addText("2017-01-01");
@@ -244,6 +243,6 @@ public class BuiTranslate implements TimeInterface {
 			}
 		}
 
-		return doc;
+		return doc.asXML();
 	}
 }
