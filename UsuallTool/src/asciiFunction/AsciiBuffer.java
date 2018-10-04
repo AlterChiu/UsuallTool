@@ -11,43 +11,36 @@ public class AsciiBuffer {
 	private double cellSize;
 	private String noData = "null";
 
-//	<====================================>
-//	<                               CONSTRUCTOR                                 >
-//	<====================================>
+	// <====================================>
+	// < CONSTRUCTOR >
+	// <====================================>
 	public AsciiBuffer(String fileAdd) throws IOException {
 		this.asciiControl = new AsciiBasicControl(fileAdd);
 		this.property = this.asciiControl.getProperty();
 		this.cellSize = Double.parseDouble(this.property.get("cellSize"));
 		this.noData = this.property.get("noData");
 	}
-	
+
 	public AsciiBuffer(String[][] ascii) throws IOException {
 		this.asciiControl = new AsciiBasicControl(ascii);
 		this.property = this.asciiControl.getProperty();
 		this.cellSize = Double.parseDouble(this.property.get("cellSize"));
 		this.noData = this.property.get("noData");
 	}
-//=============================================
-	
-	
-	
-	
-//	<======================>
-//	<                      setting                     >
-//	<======================>
+	// =============================================
+
+	// <======================>
+	// < setting >
+	// <======================>
 	public AsciiBuffer setPoint(double x, double y) {
 		this.bufferCenter.add(new Double[] { x, y });
 		return this;
 	}
-//	==============================================
+	// ==============================================
 
-	
-	
-	
-	
-//	<========================>
-//	<                           FUNCTION              >
-//	<========================>
+	// <========================>
+	// < FUNCTION >
+	// <========================>
 	public String[][] getSelectBufferAscii(double buffer) throws IOException {
 		ArrayList<String[][]> selectedAscii = new ArrayList<String[][]>();
 		for (Double[] position : bufferCenter) {
@@ -71,19 +64,15 @@ public class AsciiBuffer {
 		}
 		String[][] temptOut = selectedAscii.get(0);
 		for (int index = 1; index < selectedAscii.size(); index++) {
-			temptOut = new AsciiMerge(temptOut, selectedAscii.get(index)).getMergedAscii();
+			temptOut = new AsciiMerge(temptOut, selectedAscii.get(index)).getMergeAsciiArray();
 		}
 		return temptOut;
 	}
+
 	private double getDistance(double[] point1, Double[] point2) {
 		return Math.sqrt(Math.pow(point1[0] - point2[0], 2.) + Math.pow(point1[1] - point2[1], 2));
 	}
-	
-	
-	
-	
-	
-	
+
 	public String[][] getSelecBufferAscii(int bufferGrid) throws IOException {
 		ArrayList<String[][]> selectedAscii = new ArrayList<String[][]>();
 		for (Double[] position : bufferCenter) {
@@ -96,11 +85,9 @@ public class AsciiBuffer {
 		}
 		String[][] temptOut = selectedAscii.get(0);
 		for (int index = 1; index < selectedAscii.size(); index++) {
-			temptOut = new AsciiMerge(temptOut, selectedAscii.get(index)).getMergedAscii();
+			temptOut = new AsciiMerge(temptOut, selectedAscii.get(index)).getMergeAsciiArray();
 		}
 		return temptOut;
 	}
-
-	
 
 }

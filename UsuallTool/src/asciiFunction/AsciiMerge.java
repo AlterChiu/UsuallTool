@@ -1,289 +1,222 @@
 package asciiFunction;
 
+import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
+import usualTool.AtCommonMath;
 import usualTool.AtFileWriter;
 
 public class AsciiMerge {
-	private TreeMap<String, String> firstProperty;
-	private TreeMap<String, String> secondProperty;
-
+	private List<AsciiBasicControl> asciiList;
+	private Map<String, Double> boundaryMap;
 	private double cellSize;
-	private String noData = "-999.00000";
+	private String outNullValue;
 
-	private double firstTopX;
-	private double firstTopY;
-	private double firstBottomX;
-	private double firstBottomY;
-
-	private double secondTopX;
-	private double secondTopY;
-	private double secondBottomX;
-	private double secondBottomY;
-
-	private String[][] firstAsciiContent;
-	private String[][] secondAsciiContent;
-	private String[][] outAsciiContent;
-
-	private double outTopX;
-	private double outTopY;
-	private double outBottomX;
-	private double outBottomY;
-
-	
-//	<===================>
-//	<        this is the construct       >
-//	<===================>
-	public AsciiMerge(String[][] ascii1, String[][] ascii2) throws IOException {
-		this.firstAsciiContent = ascii1;
-		this.secondAsciiContent = ascii2;
-
-		this.firstProperty = new AsciiBasicControl(ascii1).getProperty();
-		this.secondProperty = new AsciiBasicControl(ascii2).getProperty();
-		setOutPutAsciiProperty();
-		setOutPutAsciiContent();
-		mergeAscii();
+	// <===================>
+	// < this is the construct >
+	// <===================>
+	// <==========================================>
+	public AsciiMerge(String file1, String file2) throws IOException {
+		this.asciiList = new ArrayList<AsciiBasicControl>();
+		this.asciiList.add(new AsciiBasicControl(file1));
+		this.asciiList.add(new AsciiBasicControl(file2));
+		this.cellSize = Double.parseDouble(this.asciiList.get(0).getProperty().get("cellSize"));
+		this.outNullValue = this.asciiList.get(0).getProperty().get("noData");
 	}
 	
-	public AsciiMerge(String ascii1, String ascii2) throws IOException {
-		AsciiBasicControl ascii1Basic =  new AsciiBasicControl(ascii1);
-		AsciiBasicControl ascii2Basic =  new AsciiBasicControl(ascii2);
-		
-		this.firstAsciiContent = ascii1Basic.getAsciiFile();
-		this.secondAsciiContent = ascii2Basic.getAsciiFile();
-		
-		this.firstProperty = ascii1Basic.getProperty();
-		this.secondProperty = ascii2Basic.getProperty();
-		setOutPutAsciiProperty();
-		setOutPutAsciiContent();
-		mergeAscii();
+	public AsciiMerge(String[][] file1, String[][] file2) throws IOException {
+		this.asciiList = new ArrayList<AsciiBasicControl>();
+		this.asciiList.add(new AsciiBasicControl(file1));
+		this.asciiList.add(new AsciiBasicControl(file2));
+		this.cellSize = Double.parseDouble(this.asciiList.get(0).getProperty().get("cellSize"));
+		this.outNullValue = this.asciiList.get(0).getProperty().get("noData");
 	}
 	
-	public AsciiMerge(String ascii1 , String[][] ascii2) throws IOException {
-		AsciiBasicControl ascii1Basic =  new AsciiBasicControl(ascii1);
-		AsciiBasicControl ascii2Basic =  new AsciiBasicControl(ascii2);
-		
-		this.firstAsciiContent = ascii1Basic.getAsciiFile();
-		this.secondAsciiContent = ascii2Basic.getAsciiFile();
-		
-		this.firstProperty = ascii1Basic.getProperty();
-		this.secondProperty = ascii2Basic.getProperty();
-		setOutPutAsciiProperty();
-		setOutPutAsciiContent();
-		mergeAscii();
+	public AsciiMerge(String file1, String[][] file2) throws IOException {
+		this.asciiList = new ArrayList<AsciiBasicControl>();
+		this.asciiList.add(new AsciiBasicControl(file1));
+		this.asciiList.add(new AsciiBasicControl(file2));
+		this.cellSize = Double.parseDouble(this.asciiList.get(0).getProperty().get("cellSize"));
+		this.outNullValue = this.asciiList.get(0).getProperty().get("noData");
 	}
 	
-	public AsciiMerge(String[][] ascii1 , String ascii2) throws IOException {
-		AsciiBasicControl ascii1Basic =  new AsciiBasicControl(ascii1);
-		AsciiBasicControl ascii2Basic =  new AsciiBasicControl(ascii2);
-		
-		this.firstAsciiContent = ascii1Basic.getAsciiFile();
-		this.secondAsciiContent = ascii2Basic.getAsciiFile();
-		
-		this.firstProperty = ascii1Basic.getProperty();
-		this.secondProperty = ascii2Basic.getProperty();
-		setOutPutAsciiProperty();
-		setOutPutAsciiContent();
-		mergeAscii();
-	}
-	
-	
-//	<=====================>
-//	<  setting the out ascii property  >
-//	<=====================>
-	private void setOutPutAsciiProperty() throws IOException {
-		this.cellSize = Double.parseDouble(this.firstProperty.get("cellSize"));
-		this.noData = this.firstProperty.get("noData");
-		this.secondAsciiContent = new AsciiBasicControl(this.secondAsciiContent)
-				.changeNoDataValue(this.firstProperty.get("noData")).getAsciiFile();
-
-		// initial the corner point of the ascii file
-		this.firstBottomX = Double.parseDouble(this.firstProperty.get("bottomX"));
-		this.firstBottomY = Double.parseDouble(this.firstProperty.get("bottomY"));
-		this.firstTopX = Double.parseDouble(this.firstProperty.get("topX"));
-		this.firstTopY = Double.parseDouble(this.firstProperty.get("topY"));
-
-		this.secondBottomX = Double.parseDouble(this.secondProperty.get("bottomX"));
-		this.secondBottomY = Double.parseDouble(this.secondProperty.get("bottomY"));
-		this.secondTopX = Double.parseDouble(this.secondProperty.get("topX"));
-		this.secondTopY = Double.parseDouble(this.secondProperty.get("topY"));
-		
-		// TopX
-		if (this.firstTopX >= this.secondTopX) {
-			this.outTopX = this.firstTopX;
-		} else {
-			this.outTopX = this.secondTopX;
-		}
-		// TopY
-		if (this.firstTopY >= this.secondTopY) {
-			this.outTopY = this.firstTopY;
-		} else {
-			this.outTopY = this.secondTopY;
-		}
-		// BottomX
-		if (this.firstBottomX <= this.secondBottomX) {
-			this.outBottomX = this.firstBottomX;
-		} else {
-			this.outBottomX = this.secondBottomX;
-		}
-		// BottomY
-		if (this.firstBottomY <= this.secondBottomY) {
-			this.outBottomY = this.firstBottomY;
-		} else {
-			this.outBottomY = this.secondBottomY;
-		}
+	public AsciiMerge(String[][] file1, String file2) throws IOException {
+		this.asciiList = new ArrayList<AsciiBasicControl>();
+		this.asciiList.add(new AsciiBasicControl(file1));
+		this.asciiList.add(new AsciiBasicControl(file2));
+		this.cellSize = Double.parseDouble(this.asciiList.get(0).getProperty().get("cellSize"));
+		this.outNullValue = this.asciiList.get(0).getProperty().get("noData");
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-//	<====================>
-//	< merge ascii for the first time >
-//	<====================>
-	private void mergeAscii() {
-		// start from the left top point
-		double temptRow = this.outTopY;
-		double temptColumn = this.outBottomX;
+	public AsciiMerge(AsciiBasicControl ascii1, AsciiBasicControl ascii2) {
+		this.asciiList = new ArrayList<AsciiBasicControl>();
+		this.asciiList.add(ascii1);
+		this.asciiList.add(ascii2);
+		this.cellSize = Double.parseDouble(this.asciiList.get(0).getProperty().get("cellSize"));
+		this.outNullValue = this.asciiList.get(0).getProperty().get("noData");
+	}
 
-		// the first time to begin the out ascii content
-		for (int row = 0; row < this.outAsciiContent.length; row++) {
-			// reset the read point location
-			temptRow = this.outTopY - row * this.cellSize;
+	public AsciiMerge(List<AsciiBasicControl> asciiList) {
+		this.asciiList = asciiList;
+		this.cellSize = Double.parseDouble(this.asciiList.get(0).getProperty().get("cellSize"));
+		this.outNullValue = this.asciiList.get(0).getProperty().get("noData");
+	}
 
-			for (int column = 0; column < this.outAsciiContent[row].length; column++) {
-				temptColumn = this.outBottomX + column * this.cellSize;
-				// line read the outAscii content
-				if (this.outAsciiContent[row][column] == null) {
-					if (Math.abs(temptColumn - this.firstBottomX) < 0.0001
-							&& Math.abs(temptRow - this.firstTopY) < 0.0001) {
-						// if the location right now is equals to the first
-						// start point, insert the first ascii content
-						for (int insertRow = 0; insertRow < this.firstAsciiContent.length; insertRow++) {
-							for (int insertColumn = 0; insertColumn < this.firstAsciiContent[insertRow].length; insertColumn++) {
-								this.outAsciiContent[row + insertRow][column
-										+ insertColumn] = this.firstAsciiContent[insertRow][insertColumn];
-							}
-						}
-					} else {
-						this.outAsciiContent[row][column] = this.noData;
-					}
-				}
-			}
-		}
+	public void addAscii(String fileAdd) throws IOException {
+		this.asciiList.add(new AsciiBasicControl(fileAdd));
+	}
 
-		// insert the second ascii file to the out ascii content
-		temptRow = this.outTopY;
+	public void addAscii(AsciiBasicControl ascii) {
+		this.asciiList.add(ascii);
+	}
 
-		// the first time to begin the out ascii content
-		for (int row = 0; row < this.outAsciiContent.length; row++) {
-			// reset the read point location
-			temptRow =  this.outTopY - row * this.cellSize;
+	public void setCellSize(double cellSize) {
+		this.cellSize = new BigDecimal(cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+	}
 
-			for (int column = 0; column < this.outAsciiContent[row].length; column++) {
-				temptColumn = this.outBottomX + column * this.cellSize;
-				// line read the outAscii content
-				if (Math.abs(temptColumn - this.secondBottomX) < 0.0001
-						&& Math.abs(temptRow - this.secondTopY) < 0.0001) {
-					// if the location right now is equals to the first start
-					// point, insert the first ascii content
-					for (int insertRow = 0; insertRow < this.secondAsciiContent.length; insertRow++) {
-						for (int insertColumn = 0; insertColumn < this.secondAsciiContent[insertRow].length; insertColumn++) {
-							if(!this.secondAsciiContent[insertRow][insertColumn].equals(this.noData)){
-							this.outAsciiContent[row + insertRow][column
-									+ insertColumn] = this.secondAsciiContent[insertRow][insertColumn];
+	public void setNullValue(String outNullValue) {
+		this.outNullValue = outNullValue;
+	}
+	// <=========================================>
+
+	public List<String[]> saveMergeAscii(String saveAdd) throws IOException {
+		List<String[]> temptList = this.getMergeAscii();
+		new AtFileWriter(temptList.parallelStream().toArray(String[][]::new), saveAdd).textWriter("    ");
+		return temptList;
+	}
+
+	public String[][] getMergeAsciiArray() {
+		return this.getMergeAscii().parallelStream().toArray(String[][]::new);
+	}
+
+	public List<String[]> getMergeAscii() {
+		getMergeBoundary();
+		resetBoundary();
+		List<String[]> asciiGrid = setGridValue();
+
+		asciiGrid.add(0, new String[] { "nodata_value", this.outNullValue });
+		asciiGrid.add(0, new String[] { "cellSize", this.cellSize + "" });
+		asciiGrid.add(0, new String[] { "yllCenter", this.boundaryMap.get("bottomY") + "" });
+		asciiGrid.add(0, new String[] { "xllCenter", this.boundaryMap.get("bottomX") + "" });
+		asciiGrid.add(0, new String[] { "nrows", this.boundaryMap.get("row") + "" });
+		asciiGrid.add(0, new String[] { "ncols", this.boundaryMap.get("column") + "" });
+		return asciiGrid;
+	}
+
+	private List<String[]> setGridValue() {
+		// outList
+		List<String[]> outList = new ArrayList<String[]>();
+
+		// get the total grid
+		for (int row = 0; row < this.boundaryMap.get("row"); row++) {
+			List<String> temptRow = new ArrayList<String>();
+
+			for (int column = 0; column < this.boundaryMap.get("column"); column++) {
+				List<Double> valueList = new ArrayList<Double>();
+				double temptX = this.boundaryMap.get("minX") + this.cellSize * column;
+				double temptY = this.boundaryMap.get("maxY") + this.cellSize * row;
+
+				// get the grid boundary
+				Path2D gridPath = new Path2D.Double();
+				gridPath.moveTo(temptX, temptY);
+				gridPath.lineTo(temptX + this.cellSize, temptY);
+				gridPath.lineTo(temptX + this.cellSize, temptY - this.cellSize);
+				gridPath.lineTo(temptX, temptY - this.cellSize);
+
+				// check for each asciiList
+				for (AsciiBasicControl ascii : this.asciiList) {
+					String nullValue = ascii.getProperty().get("noData");
+					int leftTop[] = ascii.getPosition(temptX, temptY);
+					int rightDown[] = ascii.getPosition(temptX + this.cellSize, temptY - this.cellSize);
+
+					// get the boundary of the ascii by the grida path
+					for (int asciiRow = leftTop[1]; asciiRow >= rightDown[1]; asciiRow--) {
+						for (int asciiColumn = leftTop[0]; asciiColumn <= rightDown[1]; asciiColumn++) {
+							double asciiCoordinate[] = ascii.getCoordinate(asciiColumn, asciiRow);
+							String temptValue = ascii.getValue(asciiColumn, asciiRow);
+
+							if (gridPath.contains(asciiCoordinate[0], asciiCoordinate[1])
+									&& !temptValue.equals(nullValue)) {
+								valueList.add(Double.parseDouble(temptValue));
 							}
 						}
 					}
 				}
+				temptRow.add(new AtCommonMath(valueList).getMean() + "");
+			}
+			outList.add(temptRow.parallelStream().toArray(String[]::new));
+		}
+		return outList;
+	}
+
+	private void resetBoundary() {
+		double minX = new BigDecimal(this.boundaryMap.get("minX")).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double maxX = new BigDecimal(this.boundaryMap.get("maxX")).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double minY = new BigDecimal(this.boundaryMap.get("minY")).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double maxY = new BigDecimal(this.boundaryMap.get("maxY")).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+
+		int column = new BigDecimal((maxX - minX) / cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).intValue();
+		int row = new BigDecimal((maxY - minY) / cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).intValue();
+		maxX = minX + column * cellSize;
+		maxY = minY + row * cellSize;
+
+		this.boundaryMap.put("minX", minX);
+		this.boundaryMap.put("maxX", maxX);
+		this.boundaryMap.put("minY", minY);
+		this.boundaryMap.put("maxY", maxY);
+		this.boundaryMap.put("row", row + 0.);
+		this.boundaryMap.put("column", column + 0.);
+		this.boundaryMap.put("bottomX",
+				new BigDecimal(minX + 0.5 * this.cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
+		this.boundaryMap.put("bottomY",
+				new BigDecimal(minY + 0.5 * this.cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
+		this.boundaryMap.put("bottomX",
+				new BigDecimal(maxX - 0.5 * this.cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
+		this.boundaryMap.put("bottomX",
+				new BigDecimal(maxY - 0.5 * this.cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
+	}
+
+	private void getMergeBoundary() {
+		this.boundaryMap = new TreeMap<String, Double>();
+		Map<String, String> asciiProperty = this.asciiList.get(0).getProperty();
+		double minX = Double.parseDouble(asciiProperty.get("bottomX")) - 0.5 * cellSize;
+		double minY = Double.parseDouble(asciiProperty.get("bottomY")) - 0.5 * cellSize;
+		double maxX = Double.parseDouble(asciiProperty.get("topX")) + 0.5 * cellSize;
+		double maxY = Double.parseDouble(asciiProperty.get("topY")) + 0.5 * cellSize;
+
+		for (int index = 1; index < this.asciiList.size(); index++) {
+			Map<String, String> temptProeprty = this.asciiList.get(1).getProperty();
+			double temptCellSize = Double.parseDouble(temptProeprty.get("cellSize"));
+
+			double temptMinX = Double.parseDouble(temptProeprty.get("bottomX")) - 0.5 * temptCellSize;
+			double temptMinY = Double.parseDouble(temptProeprty.get("bottomY")) - 0.5 * temptCellSize;
+			double temptMaxX = Double.parseDouble(temptProeprty.get("topX")) + 0.5 * temptCellSize;
+			double temptMaxY = Double.parseDouble(temptProeprty.get("topY")) + 0.5 * temptCellSize;
+
+			if (temptMinX < minX) {
+				minX = temptMinX;
+			}
+			if (temptMaxX > maxX) {
+				maxX = temptMaxX;
+			}
+			if (temptMinY < minY) {
+				minY = temptMinY;
+			}
+			if (temptMaxY > maxY) {
+				maxY = temptMaxY;
 			}
 		}
-	}
-	
-//	<=====================>
-//	< make the out ascii start at null >
-//	<=====================>
-	private void setOutPutAsciiContent() {
-		ArrayList<String[]> temptFirst = new ArrayList<String[]>(Arrays.asList(this.firstAsciiContent));
-		ArrayList<String[]> temptSecond = new ArrayList<String[]>(Arrays.asList(this.secondAsciiContent));
-		// getOff the property line
-		for (int i = 0; i < 6; i++) {
-			temptFirst.remove(0);
-			temptSecond.remove(0);
-		}
 
-		this.secondAsciiContent = temptSecond.parallelStream().toArray(String[][]::new);
-		this.firstAsciiContent = temptFirst.parallelStream().toArray(String[][]::new);
-
-		int row = new BigDecimal((this.outTopY - this.outBottomY) / this.cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).intValue()+1;
-		int column = new BigDecimal((this.outTopX - this.outBottomX) / this.cellSize)
-				.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).intValue()+1;
-
-		this.outAsciiContent = new String[row][column];
-
+		this.boundaryMap.put("minX", minX);
+		this.boundaryMap.put("maxX", maxX);
+		this.boundaryMap.put("minY", minY);
+		this.boundaryMap.put("maxY", maxY);
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-//	<====================>
-//	< get the merged ascii in array >
-//	<====================>
-	public ArrayList<String[]> getMergedAsciiArray() {
-		TreeMap<String, String> temptTree = getMergedProperty();
-		ArrayList<String[]> temptContent = new ArrayList<String[]>(Arrays.asList(this.outAsciiContent));
-
-		temptContent.add(0, new String[] { "NODATA_value ", temptTree.get("noData") });
-		temptContent.add(0, new String[] { "cellsize", temptTree.get("cellSize") });
-		temptContent.add(0, new String[] { "yllcenter", temptTree.get("bottomY") });
-		temptContent.add(0, new String[] { "xllcenter", temptTree.get("bottomX") });
-		temptContent.add(0, new String[] { "nrows", temptTree.get("row") });
-		temptContent.add(0, new String[] { "ncols", temptTree.get("column") });
-
-		return temptContent;
-	}
-	public String[][] getMergedAscii() {
-		return getMergedAsciiArray().parallelStream().toArray(String[][]::new);
-	}
-
-	
-	
-	
-	
-	public TreeMap<String, String> getMergedProperty() {
-		TreeMap<String, String> temptTree = new TreeMap<String, String>();
-
-		temptTree.put("column", this.outAsciiContent[0].length + "");
-		temptTree.put("row", this.outAsciiContent.length + "");
-		temptTree.put("bottomX",
-				new BigDecimal(this.outBottomX).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
-		temptTree.put("bottomY",
-				new BigDecimal(this.outBottomY).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
-		temptTree.put("cellSize",
-				new BigDecimal(this.cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
-		temptTree.put("noData", this.noData);
-
-		return temptTree;
-	}
-	
-	public void saveMergeAscii(String fileAdd) throws IOException {
-		new AtFileWriter(this.getMergedAscii() , fileAdd).textWriter("    ");
-	}
 }
