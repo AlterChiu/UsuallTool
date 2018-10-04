@@ -158,20 +158,20 @@ public class AtCommonMath {
 		return temptFarest;
 	}
 
-	public int getFarestIndex(double value , double minDis) {
+	public int getFarestIndex(double value, double minDis) {
 		double temptValue = 0;
 		int temptFarest = 0;
 		for (int index = 0; index < this.list.length; index++) {
 			double temptDis = Math.abs(this.list[index] - value);
-			if (temptDis  > temptValue && temptDis >= minDis) {
+			if (temptDis > temptValue && temptDis >= minDis) {
 				temptFarest = index;
 				temptValue = Math.abs(this.list[index] - value);
 			}
 		}
 		return temptFarest;
 	}
-	
-	final void clear() {
+
+	public final void clear() {
 		this.list = null;
 		this.ds.clear();
 	}

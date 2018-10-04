@@ -232,10 +232,10 @@ public class AsciiBasicControl {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
 		double cellSize = Double.parseDouble(property.get("cellSize"));
 
-		minX = minX + 0.5 * cellSize;
-		minY = minY + 0.5 * cellSize;
-		maxX = maxX - 0.5 * cellSize;
-		maxY = maxY - 0.5 * cellSize;
+		minX = new BigDecimal(minX + 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		minY = new BigDecimal(minY + 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		maxX = new BigDecimal(maxX - 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		maxY = new BigDecimal(maxY - 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
 
 		int[] bottomPosition = this.getPosition(minX, minY);
 		int[] topPosition = this.getPosition(maxX, maxY);
