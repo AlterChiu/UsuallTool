@@ -95,8 +95,6 @@ public class AsciiToPath {
 		int temptX = firstMovedPosition[0];
 		int temptY = firstMovedPosition[1];
 		int lastMoving = firstMovedPosition[2];
-		System.out.println(startX + "\t" + startY);
-		System.out.println(temptX + "\t" + temptY);
 
 		while (temptX != this.startX || temptY != this.startY) {
 			// moving setting
@@ -104,7 +102,6 @@ public class AsciiToPath {
 			temptX = moving[0];
 			temptY = moving[1];
 			lastMoving = moving[2];
-			System.out.println(temptX + "\t" + temptY);
 
 			// draw path
 			coordinate = this.ascii.getCoordinate(temptX, temptY);

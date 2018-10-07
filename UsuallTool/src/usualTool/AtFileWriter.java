@@ -15,14 +15,13 @@ public class AtFileWriter {
 	private String[][] temptDoubleArray = null;
 	private String[] temptArray = null;
 	private String fileAdd;
-	
+
 	private String encode = "UTF-8";
 	public static String ANSI = "Cp1252";
 	public static String Unicode = "Unicode";
 	public static String UTF8 = "UTF-8";
 	public static String BIG5 = "big5";
 	public static String ASCII = "ASCII";
-	
 
 	public AtFileWriter(String[][] content, String fileAdd) throws IOException {
 		this.fileAdd = fileAdd;
@@ -46,6 +45,17 @@ public class AtFileWriter {
 		this.temptArray = new String[] { jsonWriter.toJson(json), "" };
 	}
 
+	public AtFileWriter(JsonObject json, String fileAdd, Boolean prettyPrint) throws IOException {
+		this.fileAdd = fileAdd;
+		if (prettyPrint) {
+			Gson jsonWriter = new GsonBuilder().setPrettyPrinting().create();
+			this.temptArray = new String[] { jsonWriter.toJson(json), "" };
+		} else {
+			Gson jsonWriter = new GsonBuilder().create();
+			this.temptArray = new String[] { jsonWriter.toJson(json), "" };
+		}
+	}
+
 	public void csvWriter() throws IOException {
 		wirteFIle(",");
 	}
@@ -59,8 +69,9 @@ public class AtFileWriter {
 	}
 
 	private void wirteFIle(String split) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(this.fileAdd), this.encode));
-		
+		BufferedWriter writer = new BufferedWriter(
+				new OutputStreamWriter(new FileOutputStream(this.fileAdd), this.encode));
+
 		if (temptDoubleArray != null) {
 			for (int i = 0; i < this.temptDoubleArray.length; i++) {
 				writer.write(temptDoubleArray[i][0]);

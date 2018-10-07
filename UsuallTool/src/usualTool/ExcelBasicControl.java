@@ -1,4 +1,4 @@
-package Drawing.Excel;
+package usualTool;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,6 +29,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openxmlformats.schemas.drawingml.x2006.chart.CTBoolean;
 import org.openxmlformats.schemas.drawingml.x2006.chart.CTLineSer;
 import org.openxmlformats.schemas.drawingml.x2006.chart.CTPlotArea;
+
+import Drawing.Excel.ChartImplemetns;
 
 public class ExcelBasicControl {
 	private Workbook workBook;
@@ -78,13 +80,10 @@ public class ExcelBasicControl {
 		}
 	}
 
-	
-	
 	public Workbook getWorkBook() {
 		return this.workBook;
 	}
-	
-	
+
 	// <===================================>
 
 	// <====================================>
@@ -122,18 +121,9 @@ public class ExcelBasicControl {
 	}
 
 	public String[][] getSheetContent() {
-		List<String[]> content = new ArrayList<String[]>();
-		for (int row = this.currentSheet.getLastRowNum(); row < this.currentSheet.getLastRowNum(); row++) {
-			List<String> rowValues = new ArrayList<String>();
-			Row currentRow = this.currentSheet.getRow(row);
-			for (int column = currentRow.getFirstCellNum(); column < currentRow.getLastCellNum(); column++) {
-				rowValues.add(currentRow.getCell(column).getStringCellValue());
-			}
-			content.add(rowValues.parallelStream().toArray(String[]::new));
-		}
-		return content.parallelStream().toArray(String[][]::new);
+		return new AtExcelReader(this.workBook).getContent(this.currentSheet.getSheetName());
 	}
-	
+
 	public Sheet getCurrentSheet() {
 		return this.currentSheet;
 	}
@@ -181,8 +171,8 @@ public class ExcelBasicControl {
 			dataSeires.addSeries(seriesXRange, seriesValueList.get(index))
 					.setTitle(chartProperty.getSeriesName().get(index));
 		}
-		chart.plot(dataSeires, bottomAxis,leftAxis);
-		
+		chart.plot(dataSeires, bottomAxis, leftAxis);
+
 		// if want to smooth
 		if (chartProperty.getSmooth()) {
 			XSSFChart xssfChart = (XSSFChart) chart;

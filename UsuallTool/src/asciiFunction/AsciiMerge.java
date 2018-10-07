@@ -29,7 +29,7 @@ public class AsciiMerge {
 		this.cellSize = Double.parseDouble(this.asciiList.get(0).getProperty().get("cellSize"));
 		this.outNullValue = this.asciiList.get(0).getProperty().get("noData");
 	}
-	
+
 	public AsciiMerge(String[][] file1, String[][] file2) throws IOException {
 		this.asciiList = new ArrayList<AsciiBasicControl>();
 		this.asciiList.add(new AsciiBasicControl(file1));
@@ -37,7 +37,7 @@ public class AsciiMerge {
 		this.cellSize = Double.parseDouble(this.asciiList.get(0).getProperty().get("cellSize"));
 		this.outNullValue = this.asciiList.get(0).getProperty().get("noData");
 	}
-	
+
 	public AsciiMerge(String file1, String[][] file2) throws IOException {
 		this.asciiList = new ArrayList<AsciiBasicControl>();
 		this.asciiList.add(new AsciiBasicControl(file1));
@@ -45,7 +45,7 @@ public class AsciiMerge {
 		this.cellSize = Double.parseDouble(this.asciiList.get(0).getProperty().get("cellSize"));
 		this.outNullValue = this.asciiList.get(0).getProperty().get("noData");
 	}
-	
+
 	public AsciiMerge(String[][] file1, String file2) throws IOException {
 		this.asciiList = new ArrayList<AsciiBasicControl>();
 		this.asciiList.add(new AsciiBasicControl(file1));
@@ -83,6 +83,10 @@ public class AsciiMerge {
 	public void setNullValue(String outNullValue) {
 		this.outNullValue = outNullValue;
 	}
+
+	public void setBoundary(double minX, double maxX, double minY, double maxY) {
+
+	}
 	// <=========================================>
 
 	public List<String[]> saveMergeAscii(String saveAdd) throws IOException {
@@ -104,8 +108,8 @@ public class AsciiMerge {
 		asciiGrid.add(0, new String[] { "cellSize", this.cellSize + "" });
 		asciiGrid.add(0, new String[] { "yllCenter", this.boundaryMap.get("bottomY") + "" });
 		asciiGrid.add(0, new String[] { "xllCenter", this.boundaryMap.get("bottomX") + "" });
-		asciiGrid.add(0, new String[] { "nrows", this.boundaryMap.get("row") + "" });
-		asciiGrid.add(0, new String[] { "ncols", this.boundaryMap.get("column") + "" });
+		asciiGrid.add(0, new String[] { "nrows", this.boundaryMap.get("row").intValue() + "" });
+		asciiGrid.add(0, new String[] { "ncols", this.boundaryMap.get("column").intValue() + "" });
 		return asciiGrid;
 	}
 
@@ -119,37 +123,28 @@ public class AsciiMerge {
 
 			for (int column = 0; column < this.boundaryMap.get("column"); column++) {
 				List<Double> valueList = new ArrayList<Double>();
-				double temptX = this.boundaryMap.get("minX") + this.cellSize * column;
-				double temptY = this.boundaryMap.get("maxY") + this.cellSize * row;
-
-				// get the grid boundary
-				Path2D gridPath = new Path2D.Double();
-				gridPath.moveTo(temptX, temptY);
-				gridPath.lineTo(temptX + this.cellSize, temptY);
-				gridPath.lineTo(temptX + this.cellSize, temptY - this.cellSize);
-				gridPath.lineTo(temptX, temptY - this.cellSize);
+				double temptX = this.boundaryMap.get("bottomX") + column * this.cellSize;
+				double temptY = this.boundaryMap.get("topY") - row * this.cellSize;
 
 				// check for each asciiList
 				for (AsciiBasicControl ascii : this.asciiList) {
 					String nullValue = ascii.getProperty().get("noData");
-					int leftTop[] = ascii.getPosition(temptX, temptY);
-					int rightDown[] = ascii.getPosition(temptX + this.cellSize, temptY - this.cellSize);
-
-					// get the boundary of the ascii by the grida path
-					for (int asciiRow = leftTop[1]; asciiRow >= rightDown[1]; asciiRow--) {
-						for (int asciiColumn = leftTop[0]; asciiColumn <= rightDown[1]; asciiColumn++) {
-							double asciiCoordinate[] = ascii.getCoordinate(asciiColumn, asciiRow);
-							String temptValue = ascii.getValue(asciiColumn, asciiRow);
-
-							if (gridPath.contains(asciiCoordinate[0], asciiCoordinate[1])
-									&& !temptValue.equals(nullValue)) {
-								valueList.add(Double.parseDouble(temptValue));
-							}
-						}
+					String temptValue = ascii.getValue(temptX, temptY);
+					if (!temptValue.equals(nullValue)) {
+						valueList.add(Double.parseDouble(temptValue));
 					}
 				}
-				temptRow.add(new AtCommonMath(valueList).getMean() + "");
+
+				// if there is no value in this grid
+				// set the grid by null value
+				try {
+					temptRow.add(new AtCommonMath(valueList).getMean() + "");
+				} catch (Exception e) {
+					temptRow.add(this.outNullValue);
+				}
 			}
+
+			// add the row values to the asiiList
 			outList.add(temptRow.parallelStream().toArray(String[]::new));
 		}
 		return outList;
@@ -176,9 +171,9 @@ public class AsciiMerge {
 				new BigDecimal(minX + 0.5 * this.cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
 		this.boundaryMap.put("bottomY",
 				new BigDecimal(minY + 0.5 * this.cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
-		this.boundaryMap.put("bottomX",
+		this.boundaryMap.put("topX",
 				new BigDecimal(maxX - 0.5 * this.cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
-		this.boundaryMap.put("bottomX",
+		this.boundaryMap.put("topY",
 				new BigDecimal(maxY - 0.5 * this.cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
 	}
 
