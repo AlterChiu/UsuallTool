@@ -50,30 +50,18 @@ public class testAtCommon {
 	public static void main(String[] args) throws IOException, InvalidRangeException, OperationNotSupportedException,
 			ParseException, EncryptedDocumentException, InvalidFormatException {
 		// TODO Auto-generated method
-		String fileAdd = "E:\\HomeWork\\很瑣碎\\EMIC_2018\\1DStation\\";
-
-		ExcelBasicControl excel = new ExcelBasicControl(fileAdd + "StaitonList.xlsx");
-		excel.selectSheet("Sheet2");
-		String[][] content = excel.getSheetContent();
-
-		for (int column = 5; column < content[0].length; column++) {
-
-			List<String[]> zoneList = new ArrayList<String[]>();
-			zoneList.add(new String[] { "stationID", "modelID" });
-
-			for (int row = 1; row < content.length; row++) {
-				System.out.println(row + "\t" + column);
-				try {
-					if (!content[row][column].equals("")) {
-						zoneList.add(new String[] { content[row][1], content[row][column] });
-					}
-				} catch (Exception e) {
-				}
-			}
-
-			new AtFileWriter(zoneList.parallelStream().toArray(String[][]::new), fileAdd + content[0][column] + ".csv")
-					.csvWriter();
+		String fileAdd = "S:\\Users\\alter\\Desktop\\garbage\\netcdf\\";
+		
+		List<AsciiBasicControl> asciiList = new ArrayList<AsciiBasicControl>();
+		for(int index =1 ; index<=4 ;index++) {
+			asciiList.add(new AsciiBasicControl(fileAdd + "Z" + index + ".asc"));
 		}
+		
+		AsciiMerge asciiMerge= new AsciiMerge(asciiList);
+		asciiMerge.setCellSize(40);
+		
+		new AtFileWriter(asciiMerge.getMergeAsciiArray() , fileAdd + "merge.asc").textWriter("    ");;
+		
 
 	}
 }

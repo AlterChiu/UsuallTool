@@ -186,7 +186,7 @@ public class AsciiMerge {
 		double maxY = Double.parseDouble(asciiProperty.get("topY")) + 0.5 * cellSize;
 
 		for (int index = 1; index < this.asciiList.size(); index++) {
-			Map<String, String> temptProeprty = this.asciiList.get(1).getProperty();
+			Map<String, String> temptProeprty = this.asciiList.get(index).getProperty();
 			double temptCellSize = Double.parseDouble(temptProeprty.get("cellSize"));
 
 			double temptMinX = Double.parseDouble(temptProeprty.get("bottomX")) - 0.5 * temptCellSize;
