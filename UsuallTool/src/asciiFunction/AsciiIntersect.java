@@ -37,7 +37,7 @@ public class AsciiIntersect {
 				this.IntersectMaxY);
 	}
 
-	public Boolean isInterseption(AsciiBasicControl temptAscii) {
+	public Boolean isIntersect(AsciiBasicControl temptAscii) {
 		double cellSize = Double.parseDouble(temptAscii.getProperty().get("cellSize"));
 		double minX = Double.parseDouble(temptAscii.getProperty().get("bottomX")) - 0.5 * cellSize;
 		double maxX = Double.parseDouble(temptAscii.getProperty().get("topX")) + 0.5 * cellSize;
@@ -59,7 +59,7 @@ public class AsciiIntersect {
 		}
 	}
 
-	public Boolean isInterseption(Map<String, Double> boundary) {
+	public Boolean isIntersect(Map<String, Double> boundary) {
 		double minX = boundary.get("minX");
 		double maxX = boundary.get("maxX");
 		double minY = boundary.get("minY");
@@ -80,7 +80,7 @@ public class AsciiIntersect {
 		}
 	}
 
-	public Boolean isInterseption(double minX, double maxX, double minY, double maxY) {
+	public Boolean isIntersect(double minX, double maxX, double minY, double maxY) {
 		// if there is any points of boundary is in the ascii
 		// return true
 		if (this.ascii.isContain(minX, minY)) {
