@@ -129,10 +129,19 @@ public class AsciiMerge {
 				// check for each asciiList
 				for (AsciiBasicControl ascii : this.asciiList) {
 					String nullValue = ascii.getProperty().get("noData");
-					String temptValue = ascii.getValue(temptX, temptY);
-					if (!temptValue.equals(nullValue)) {
-						valueList.add(Double.parseDouble(temptValue));
+
+					int topLeftPosition[] = ascii.getPosition(temptX - this.cellSize, temptY + this.cellSize);
+					int bottomRightPosition[] = ascii.getPosition(temptX + this.cellSize, temptY - this.cellSize);
+
+					for (int asciiRow = topLeftPosition[1]; asciiRow <= bottomRightPosition[1]; asciiRow++) {
+						for (int asciiColumn = topLeftPosition[0]; asciiColumn <= bottomRightPosition[0]; asciiColumn++) {
+							String temptValue = ascii.getValue(asciiColumn, asciiRow);
+							if (!temptValue.equals(nullValue)) {
+								valueList.add(Double.parseDouble(temptValue));
+							}
+						}
 					}
+
 				}
 
 				// if there is no value in this grid

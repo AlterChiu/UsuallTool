@@ -150,8 +150,18 @@ public class ExcelBasicControl {
 		ChartAxis bottomAxis = chart.getChartAxisFactory().createCategoryAxis(chartProperty.getXBarPosition());
 		ValueAxis leftAxis = chart.getChartAxisFactory().createValueAxis(chartProperty.getYBarPosition());
 		leftAxis.setCrosses(AxisCrosses.AUTO_ZERO);
+		bottomAxis.setCrosses(AxisCrosses.MIN);
 
 		LineChartData dataSeires = chart.getChartDataFactory().createLineChartData();
+		// setting the axis value
+		if (chartProperty.getXaxis()) {
+			bottomAxis.setMaximum(chartProperty.getXaxisMax());
+			bottomAxis.setMinimum(chartProperty.getXaxisMin());
+		}
+		if (chartProperty.getYaxis()) {
+			leftAxis.setMaximum(chartProperty.getYaxisMax());
+			leftAxis.setMinimum(chartProperty.getYaxisMin());
+		}
 
 		// Add the value list to the collections ===> x
 		int[] xRange = chartProperty.getXBarValue();
@@ -185,6 +195,12 @@ public class ExcelBasicControl {
 				ser.setSmooth(ctBool);
 			}
 		}
+
+		// <===============================================>
+		bottomAxis.setNumberFormat("yyyy/MM/dd HH:mm");
+		leftAxis.setCrosses(AxisCrosses.MIN);
+		((XSSFChart) chart).setTitleText(chartProperty.getChartName());
+		
 
 	}
 

@@ -37,6 +37,65 @@ public class AsciiIntercept {
 				this.interceptMaxY);
 	}
 
+	public Boolean isInterseption(AsciiBasicControl temptAscii) {
+		double cellSize = Double.parseDouble(temptAscii.getProperty().get("cellSize"));
+		double minX = Double.parseDouble(temptAscii.getProperty().get("bottomX")) - 0.5 * cellSize;
+		double maxX = Double.parseDouble(temptAscii.getProperty().get("topX")) + 0.5 * cellSize;
+		double minY = Double.parseDouble(temptAscii.getProperty().get("bottomY")) - 0.5 * cellSize;
+		double maxY = Double.parseDouble(temptAscii.getProperty().get("topY")) + 0.5 * cellSize;
+
+		// if there is any points of boundary is in the ascii
+		// return true
+		if (this.ascii.isContain(minX, minY)) {
+			return true;
+		} else if (this.ascii.isContain(minX, maxY)) {
+			return true;
+		} else if (this.ascii.isContain(maxX, maxY)) {
+			return true;
+		} else if (this.ascii.isContain(maxX, minY)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public Boolean isInterseption(Map<String, Double> boundary) {
+		double minX = boundary.get("minX");
+		double maxX = boundary.get("maxX");
+		double minY = boundary.get("minY");
+		double maxY = boundary.get("maxY");
+
+		// if there is any points of boundary is in the ascii
+		// return true
+		if (this.ascii.isContain(minX, minY)) {
+			return true;
+		} else if (this.ascii.isContain(minX, maxY)) {
+			return true;
+		} else if (this.ascii.isContain(maxX, maxY)) {
+			return true;
+		} else if (this.ascii.isContain(maxX, minY)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public Boolean isInterseption(double minX, double maxX, double minY, double maxY) {
+		// if there is any points of boundary is in the ascii
+		// return true
+		if (this.ascii.isContain(minX, minY)) {
+			return true;
+		} else if (this.ascii.isContain(minX, maxY)) {
+			return true;
+		} else if (this.ascii.isContain(maxX, maxY)) {
+			return true;
+		} else if (this.ascii.isContain(maxX, minY)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public String[][] getIntercept(AsciiBasicControl boundaryAscii) {
 		Map<String, String> temptProperty = boundaryAscii.getProperty();
 		double boundaryMinX = Double.parseDouble(temptProperty.get("bottomX"));

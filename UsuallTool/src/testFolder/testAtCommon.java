@@ -20,6 +20,8 @@ import javax.naming.OperationNotSupportedException;
 
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.gdal.ogr.Geometry;
+import org.gdal.ogr.ogrConstants;
 
 import com.google.gson.JsonObject;
 
@@ -50,17 +52,13 @@ public class testAtCommon {
 	public static void main(String[] args) throws IOException, InvalidRangeException, OperationNotSupportedException,
 			ParseException, EncryptedDocumentException, InvalidFormatException {
 		// TODO Auto-generated method
-		String fileAdd = "S:\\Users\\alter\\Desktop\\garbage\\netcdf\\";
+		Geometry geo =new Geometry(ogrConstants.wkbPolygon);
+		geo.AddPoint(0, 0);
+		geo.AddPoint(10, 0);
+		geo.AddPoint(10, 10);
+		geo.AddPoint(0, 10);
 		
-		List<AsciiBasicControl> asciiList = new ArrayList<AsciiBasicControl>();
-		for(int index =1 ; index<=4 ;index++) {
-			asciiList.add(new AsciiBasicControl(fileAdd + "Z" + index + ".asc"));
-		}
-		
-		AsciiMerge asciiMerge= new AsciiMerge(asciiList);
-		asciiMerge.setCellSize(40);
-		
-		new AtFileWriter(asciiMerge.getMergeAsciiArray() , fileAdd + "merge.asc").textWriter("    ");;
+		System.out.println(geo.GetPointCount());
 		
 
 	}

@@ -12,7 +12,17 @@ public class ChartImplemetns {
 	private int chartWidth = 15;
 	private int chartHeight = 10;
 	private String selectedSheet = "";
-	private Boolean setSmooth = true; 
+	private Boolean setSmooth = true;
+
+	private Boolean xAxis = false;
+	private double xMax = 0;
+	private double xMin = 0;
+
+	private Boolean yAxis = false;
+	private double yMax = 0;
+	private double yMin = 0;
+
+	private String chartTitle = "";
 
 	private int[] xBarRange;
 	private List<String> seriesName = new ArrayList<String>();
@@ -60,6 +70,22 @@ public class ChartImplemetns {
 		this.setSmooth = bool;
 	}
 
+	public void setXAxis(double max, double min) {
+		this.xAxis = true;
+		this.xMax = max;
+		this.xMin = min;
+	}
+
+	public void setYAxis(double max, double min) {
+		this.yAxis = true;
+		this.yMax = max;
+		this.yMin = min;
+	}
+
+	public void setChartName(String chartName) {
+		this.chartTitle = chartName;
+	}
+
 	public int getStartRow() {
 		return this.startRow;
 	}
@@ -103,8 +129,37 @@ public class ChartImplemetns {
 	public List<String> getSeriesName() {
 		return this.seriesName;
 	}
+
 	public Boolean getSmooth() {
 		return this.setSmooth;
+	}
+
+	public Boolean getXaxis() {
+		return this.xAxis;
+	}
+
+	public Boolean getYaxis() {
+		return this.yAxis;
+	}
+
+	public double getXaxisMax() {
+		return this.xMax;
+	}
+
+	public double getXaxisMin() {
+		return this.xMin;
+	}
+
+	public double getYaxisMax() {
+		return this.yMax;
+	}
+
+	public double getYaxisMin() {
+		return this.yMin;
+	}
+
+	public String getChartName() {
+		return this.chartTitle;
 	}
 
 }
