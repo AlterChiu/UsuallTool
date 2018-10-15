@@ -15,7 +15,7 @@ import com.google.gson.JsonObject;
 import usualTool.AtCommonMath;
 import usualTool.AtFileReader;
 
-public class AsciiIntercept_Json {
+public class AsciiIntersect_Json {
 	private AsciiBasicControl ascii;
 	private JsonObject geoJson;
 	private TreeMap<String, String> property;
@@ -24,11 +24,11 @@ public class AsciiIntercept_Json {
 	// <===============================>
 	// <this is the constructor and the geoJson setting>
 	// <===============================>
-	public AsciiIntercept_Json(JsonObject geojson) throws IOException {
+	public AsciiIntersect_Json(JsonObject geojson) throws IOException {
 		this.geoJson = geojson;
 	}
 
-	public AsciiIntercept_Json(String jsonAdd) throws IOException {
+	public AsciiIntersect_Json(String jsonAdd) throws IOException {
 		this.geoJson = new AtFileReader(jsonAdd).getJsonObject();
 	}
 
@@ -69,7 +69,7 @@ public class AsciiIntercept_Json {
 		return outJson;
 	}
 
-	public List<String[][]> getInterceptAscii(AsciiBasicControl ascii) {
+	public List<String[][]> getIntersectAscii(AsciiBasicControl ascii) {
 		// setting ascii
 		this.ascii = ascii;
 		this.property = ascii.getProperty();
@@ -99,7 +99,7 @@ public class AsciiIntercept_Json {
 	// <====================================>
 	// <Get the series Ascii file clip by the GeoJson>
 	// <====================================>
-	public List<List<String[][]>> getSeriesInterceptAscii(List<AsciiBasicControl> asciiList) {
+	public List<List<String[][]>> getSeriesintersectAscii(List<AsciiBasicControl> asciiList) {
 		List<List<String[][]>> outList = new ArrayList<List<String[][]>>();
 		for (JsonElement feature : this.geoJson.get("features").getAsJsonArray()) {
 
@@ -132,7 +132,7 @@ public class AsciiIntercept_Json {
 	// <=============================================>
 	// <Get the series Json>
 	// <=============================================>
-	public JsonObject getSeriesInterceptJsonObject() {
+	public JsonObject getSeriesintersectJsonObject() {
 		JsonObject outJson = new Gson().fromJson(this.geoJson, JsonObject.class);
 		for (int order = 0; order < asciiFileList.size(); order++) {
 			this.ascii = asciiFileList.get(order);
