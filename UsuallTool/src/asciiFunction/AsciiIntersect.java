@@ -46,14 +46,18 @@ public class AsciiIntersect {
 
 		// if there is any points of boundary is in the ascii
 		// return true
-		if (this.ascii.isContain(minX, minY)) {
-			return true;
-		} else if (this.ascii.isContain(minX, maxY)) {
-			return true;
-		} else if (this.ascii.isContain(maxX, maxY)) {
-			return true;
-		} else if (this.ascii.isContain(maxX, minY)) {
-			return true;
+		double tmeptCellSize = Double.parseDouble(this.property.get("cellSize"));
+		double temptMinX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * tmeptCellSize;
+		double temptMaxX = Double.parseDouble(this.property.get("topX")) + 0.5 * tmeptCellSize;
+		double temptMinY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * tmeptCellSize;
+		double temptMaxY = Double.parseDouble(this.property.get("topY")) + 0.5 * tmeptCellSize;
+
+		if (temptMinX < maxX && temptMaxX > minX) {
+			if (minY < temptMaxY && maxY > temptMinY) {
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			return false;
 		}
@@ -67,14 +71,18 @@ public class AsciiIntersect {
 
 		// if there is any points of boundary is in the ascii
 		// return true
-		if (this.ascii.isContain(minX, minY)) {
-			return true;
-		} else if (this.ascii.isContain(minX, maxY)) {
-			return true;
-		} else if (this.ascii.isContain(maxX, maxY)) {
-			return true;
-		} else if (this.ascii.isContain(maxX, minY)) {
-			return true;
+		double tmeptCellSize = Double.parseDouble(this.property.get("cellSize"));
+		double temptMinX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * tmeptCellSize;
+		double temptMaxX = Double.parseDouble(this.property.get("topX")) + 0.5 * tmeptCellSize;
+		double temptMinY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * tmeptCellSize;
+		double temptMaxY = Double.parseDouble(this.property.get("topY")) + 0.5 * tmeptCellSize;
+
+		if (temptMinX < maxX && temptMaxX > minX) {
+			if (minY < temptMaxY && maxY > temptMinY) {
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			return false;
 		}
@@ -83,14 +91,18 @@ public class AsciiIntersect {
 	public Boolean isIntersect(double minX, double maxX, double minY, double maxY) {
 		// if there is any points of boundary is in the ascii
 		// return true
-		if (this.ascii.isContain(minX, minY)) {
-			return true;
-		} else if (this.ascii.isContain(minX, maxY)) {
-			return true;
-		} else if (this.ascii.isContain(maxX, maxY)) {
-			return true;
-		} else if (this.ascii.isContain(maxX, minY)) {
-			return true;
+		double tmeptCellSize = Double.parseDouble(this.property.get("cellSize"));
+		double temptMinX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * tmeptCellSize;
+		double temptMaxX = Double.parseDouble(this.property.get("topX")) + 0.5 * tmeptCellSize;
+		double temptMinY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * tmeptCellSize;
+		double temptMaxY = Double.parseDouble(this.property.get("topY")) + 0.5 * tmeptCellSize;
+
+		if (temptMinX < maxX && temptMaxX > minX) {
+			if (minY < temptMaxY && maxY > temptMinY) {
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			return false;
 		}
