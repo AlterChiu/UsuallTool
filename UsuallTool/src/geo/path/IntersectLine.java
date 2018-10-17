@@ -5,18 +5,23 @@ import java.awt.geom.PathIterator;
 import java.util.ArrayList;
 import java.util.List;
 
+import usualTool.MathEqualtion.AtLineIntersection;
+
 public class IntersectLine {
 	private Path2D polygon;
-	private double slope = 0;
 	private double interceptLength = 0;
+	private double xCoefficient = 0;
+	private double yCoefficient = 0;
 	private List<Double[]> interceptPoints = new ArrayList<Double[]>();
 
 	public IntersectLine(Path2D path) {
 		this.polygon = path;
 	}
 
-	public List<Double[]> getInterceptPoints(double slope, double interceptLength) {
-		this.slope = slope;
+	public List<Double[]> getInterceptPoints(double xCoefficient, double yCoefficient, double interceptLength) {
+
+		this.xCoefficient = xCoefficient;
+		this.yCoefficient = yCoefficient;
 		this.interceptLength = interceptLength;
 		this.interceptPoints.clear();
 
@@ -40,41 +45,42 @@ public class IntersectLine {
 			// if the line is horizontal
 			if (Math.abs((groupPoint[0][1] - groupPoint[1][1])) < 0.00001) {
 				double temptSlope = 0.;
-				double temptInterceptLength = groupPoint[0][1] - temptSlope * groupPoint[0][0];
-				if (Math.abs(temptSlope - this.slope) > 0.00001) {
-					this.interceptPoints.add(getLineIntercept(temptSlope, temptInterceptLength));
+				double intercept = groupPoint[0][1];
+
+				AtLineIntersection lineIntersection = new AtLineIntersection(temptSlope, intercept, this.xCoefficient,
+						this.yCoefficient, this.interceptLength);
+				if (lineIntersection.isIntersect()) {
+					double interceptPoint[] = lineIntersection.getIntersect();
+					this.interceptPoints.add(new Double[] { interceptPoint[0], interceptPoint[1] });
 				}
 
 				// if the line is vertical
 			} else if (Math.abs(groupPoint[0][0] - groupPoint[1][0]) < 0.000001) {
-				double x = groupPoint[0][0];
-				double y = this.slope * x + this.interceptLength;
-				this.interceptPoints.add(new Double[] { x, y });
+				double coefficientX = 1;
+				double coefficientY = 0;
+				double coefficientIncept = groupPoint[0][0];
+
+				AtLineIntersection lineIntersection = new AtLineIntersection(coefficientX, coefficientY,
+						coefficientIncept, this.xCoefficient, this.yCoefficient, this.interceptLength);
+				if (lineIntersection.isIntersect()) {
+					double interceptPoint[] = lineIntersection.getIntersect();
+					this.interceptPoints.add(new Double[] { interceptPoint[0], interceptPoint[1] });
+				}
 
 				// the others way
 			} else {
-				double temptSlope = 0.;
-				double temptInterceptLength = groupPoint[0][1] - temptSlope * groupPoint[0][0];
-				if (Math.abs(temptSlope - this.slope) > 0.00001) {
-					this.interceptPoints.add(getLineIntercept(temptSlope, temptInterceptLength));
+				double temptSlope = groupPoint[0][1] - groupPoint[1][1];
+				double intercept = groupPoint[0][1] - temptSlope * groupPoint[0][0];
+
+				AtLineIntersection lineIntersection = new AtLineIntersection(temptSlope, intercept, this.xCoefficient,
+						this.yCoefficient, this.interceptLength);
+				if (lineIntersection.isIntersect()) {
+					double interceptPoint[] = lineIntersection.getIntersect();
+					this.interceptPoints.add(new Double[] { interceptPoint[0], interceptPoint[1] });
+
 				}
 			}
-
 		}
-	}
-
-	/**
-	 * 
-	 * @param temptSlope
-	 * @param tmeptInterceptLength
-	 * @return
-	 */
-	// get the point which intercept by to line
-	private Double[] getLineIntercept(double temptSlope, double tmeptInterceptLength) {
-		double x = (tmeptInterceptLength - this.interceptLength) / (this.slope - temptSlope);
-		double y = this.slope * x + this.interceptLength;
-
-		return new Double[] { x, y };
 	}
 
 	/**
@@ -118,7 +124,6 @@ public class IntersectLine {
 			// >0 => skip
 			if (lastSide * thisSide < 0) {
 				interceptPiont.add(new Double[][] { { lastX, lastY }, { thisX, thisY } });
-				System.out.println(lastX + "\t" + lastY + "\t" + thisX + "\t" + thisY);
 			} else if (thisSide == 0) {
 				this.interceptPoints.add(new Double[] { thisX, thisY });
 
@@ -143,7 +148,8 @@ public class IntersectLine {
 	 */
 	// get the side of the point, which base on the given line function
 	private int getPointSide(double x, double y) {
-		double value = y - this.slope * x - this.interceptLength;
+		double value = y * this.yCoefficient + x * this.xCoefficient + this.interceptLength;
+
 		if (value > 0) {
 			return 1;
 		} else if (value < 0) {

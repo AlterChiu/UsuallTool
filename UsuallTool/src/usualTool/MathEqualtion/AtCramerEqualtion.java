@@ -1,15 +1,19 @@
-package usualTool;
+package usualTool.MathEqualtion;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class AtCramerEqualtion {
 	private Double[][] matrix;
 	private int equaltions;
 
-	//<=============================>
-	//<THIS IS CONSTRUCTUR>
-	//<=============================>
+	// <=============================>
+	// <THIS IS CONSTRUCTUR>
+	// <=============================>
 	public AtCramerEqualtion(Double[][] matrix) {
 		this.matrix = matrix;
 		this.equaltions = matrix.length;
@@ -20,8 +24,40 @@ public class AtCramerEqualtion {
 			System.out.println("variable : " + (variable - 1));
 			System.out.println("equaltions : " + equaltions);
 		}
+
 	}
-	//<=============================>
+	// <=============================>
+
+	public Boolean isExistSameEqualtion() {
+		Boolean judgement = false;
+		List<Double[]> matrixList = new ArrayList<Double[]>(Arrays.asList(matrix));
+
+		for (int index = 0; index < matrixList.size() - 1; index++) {
+			Double[] coefficients = matrixList.get(index);
+
+			for (int detect = index + 1; detect < matrixList.size(); detect++) {
+				Double[] temptCoefficients = matrixList.get(detect);
+
+				// get the magnification of the
+				Set<Double> judgeList = new TreeSet<Double>();
+				for (int coefficientIndex = 0; coefficientIndex < coefficients.length; coefficientIndex++) {
+					judgeList.add(new BigDecimal(coefficients[coefficientIndex] - temptCoefficients[coefficientIndex])
+							.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
+				}
+
+				if (judgeList.size() == 1) {
+					matrixList.remove(detect);
+					detect = detect - 1;
+					judgement = true;
+				}
+			}
+		}
+		
+		this.matrix = matrixList.parallelStream().toArray(Double[][]::new);
+		this.equaltions = matrix.length;
+		
+		return judgement;
+	}
 
 	public List<Double> getVariables() {
 		List<Double> variableList = new ArrayList<Double>();

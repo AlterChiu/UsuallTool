@@ -1,4 +1,4 @@
-package usualTool;
+package usualTool.MathEqualtion;
 
 import java.util.ArrayList;
 import java.util.List;

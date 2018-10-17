@@ -35,6 +35,11 @@ public class XYZToAscii {
 		this.setXYZList();
 	}
 
+	public XYZToAscii(String[][] content) {
+		this.xyzContent = new ArrayList<String[]>(Arrays.asList(content));
+		this.setXYZList();
+	}
+
 	// <===============================================>
 	// < output function >
 	// <===============================================>
@@ -78,6 +83,7 @@ public class XYZToAscii {
 		Double maxY = Double.parseDouble(this.xyzContent.get(0)[1]);
 
 		while (this.xyzContent.size() > 0) {
+			System.out.println(xyzContent.size());
 			double temptX = Double.parseDouble(this.xyzContent.get(0)[0]);
 			double temptY = Double.parseDouble(this.xyzContent.get(0)[1]);
 
@@ -97,17 +103,21 @@ public class XYZToAscii {
 			// get the xyzList
 			this.xList.add(temptX);
 			this.yList.add(temptY);
-			this.zList.add(Double.parseDouble(this.xyzContent.get(0)[3]));
+			this.zList.add(Double.parseDouble(this.xyzContent.get(0)[2]));
 			this.xyzContent.remove(0);
 		}
+		System.out.println("xyzList complete");
 	}
 
 	private void setProperty() {
+		// get the boundary
 		AtCommonMath xMath = new AtCommonMath(this.xList);
 		AtCommonMath yMath = new AtCommonMath(this.yList);
 		try {
 			this.maxX = xMath.getMax();
 			this.minY = yMath.getMin();
+			// if the startXY is extinct pass it
+			// or recalculate it
 			String.valueOf(this.minX);
 			String.valueOf(this.maxY);
 		} catch (Exception e) {
@@ -180,9 +190,13 @@ public class XYZToAscii {
 
 	public void start() {
 		setProperty();
+		System.out.println("complete set property");
 		initialTreeMap();
+		System.out.println("complete initial treeMap");
 		getSortedTree();
+		System.out.println("complete storeTree");
 		setAsciiProperty();
+		System.out.println("complete ascii property");
 	}
 
 	// <================================================>
