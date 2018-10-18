@@ -11,6 +11,10 @@ public class AtCramerEqualtion {
 	private Double[][] matrix;
 	private int equaltions;
 
+	// ax + by = c the matrix will be
+	// a1 b1 c1
+	// a2 b2 c2
+
 	// <=============================>
 	// <THIS IS CONSTRUCTUR>
 	// <=============================>
@@ -52,10 +56,10 @@ public class AtCramerEqualtion {
 				}
 			}
 		}
-		
+
 		this.matrix = matrixList.parallelStream().toArray(Double[][]::new);
 		this.equaltions = matrix.length;
-		
+
 		return judgement;
 	}
 
