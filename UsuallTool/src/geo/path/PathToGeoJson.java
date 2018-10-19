@@ -18,7 +18,7 @@ public class PathToGeoJson {
 	private List<Map<String, String>> attribute = new ArrayList<Map<String, String>>();
 
 	private String selectedCoordinateSystem;
-	public	static final String WGS84 = "urn:ogc:def:crs:EPSG::3826";
+	public static final String WGS84 = "urn:ogc:def:crs:EPSG::3826";
 	public static final String TWD97 = "urn:ogc:def:crs:OGC:1.3:CRS84";
 	private String jsonName = "temptGeoJson";
 
@@ -35,17 +35,20 @@ public class PathToGeoJson {
 		this.pathList.add(path);
 	}
 
-	public void setAttributeTitle(List<Map<String, String>> attribute) {
+	public PathToGeoJson setAttributeTitle(List<Map<String, String>> attribute) {
 		this.attribute.clear();
 		this.attribute = attribute;
+		return this;
 	}
 
-	public void setJsonName(String name) {
+	public PathToGeoJson setJsonName(String name) {
 		this.jsonName = name;
+		return this;
 	}
 
-	public void setCoordinateSystem(String system) {
+	public PathToGeoJson setCoordinateSystem(String system) {
 		this.selectedCoordinateSystem = system;
+		return this;
 	}
 
 	public void saveGeoJson(String saveAdd) throws IOException {
@@ -96,7 +99,7 @@ public class PathToGeoJson {
 		}
 
 		this.outJson.add("features", featureArray);
-		new AtFileWriter(this.outJson, saveAdd , false).textWriter("");
+		new AtFileWriter(this.outJson, saveAdd, false).textWriter("");
 	}
 
 	private void clearJson() {

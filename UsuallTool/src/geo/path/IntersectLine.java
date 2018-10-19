@@ -12,25 +12,52 @@ public class IntersectLine {
 	private double interceptLength = 0;
 	private double xCoefficient = 0;
 	private double yCoefficient = 0;
+	private List<Double[]> pathPoints = new ArrayList<Double[]>();
 	private List<Double[]> interceptPoints = new ArrayList<Double[]>();
 
 	public IntersectLine(Path2D path) {
 		this.polygon = path;
 	}
 
+	/*
+	 * ax+by+c=0
+	 * 
+	 */
 	public List<Double[]> getInterceptPoints(double xCoefficient, double yCoefficient, double interceptLength) {
-
+		this.interceptPoints.clear();
 		this.xCoefficient = xCoefficient;
 		this.yCoefficient = yCoefficient;
 		this.interceptLength = interceptLength;
-		this.interceptPoints.clear();
+
+		// get the coordinate points on the path
+		this.pathPoints = getPathCoordinates();
 
 		// get the group point which are in the different side by the given line
 		List<Double[][]> changedPoints = getChangedPoint();
+
 		// use group point to find out the intersect of two line
 		this.calculateIntercept(changedPoints);
 
 		return this.interceptPoints;
+	}
+
+	/*
+	 * 
+	 * get the coordinate of points which on the path
+	 */
+	private List<Double[]> getPathCoordinates() {
+		this.pathPoints.clear();
+
+		PathIterator pathIterator = this.polygon.getPathIterator(null);
+		float coordinate[] = new float[6];
+
+		// get point coordinate
+		for (; !pathIterator.isDone(); pathIterator.next()) {
+			pathIterator.currentSegment(coordinate);
+			this.pathPoints.add(new Double[] { (double) coordinate[0], (double) coordinate[1] });
+		}
+
+		return this.pathPoints;
 	}
 
 	/*
@@ -58,7 +85,7 @@ public class IntersectLine {
 			} else if (Math.abs(groupPoint[0][0] - groupPoint[1][0]) < 0.000001) {
 				double coefficientX = 1;
 				double coefficientY = 0;
-				double coefficientIncept = groupPoint[0][0];
+				double coefficientIncept = -1 * groupPoint[0][0];
 
 				AtLineIntersection lineIntersection = new AtLineIntersection(coefficientX, coefficientY,
 						coefficientIncept, this.xCoefficient, this.yCoefficient, this.interceptLength);
@@ -69,7 +96,7 @@ public class IntersectLine {
 
 				// the others way
 			} else {
-				double temptSlope = groupPoint[0][1] - groupPoint[1][1];
+				double temptSlope = (groupPoint[0][1] - groupPoint[1][1]) / (groupPoint[0][0] - groupPoint[1][0]);
 				double intercept = groupPoint[0][1] - temptSlope * groupPoint[0][0];
 
 				AtLineIntersection lineIntersection = new AtLineIntersection(temptSlope, intercept, this.xCoefficient,
@@ -90,56 +117,37 @@ public class IntersectLine {
 	 */
 	// get the two point, one is inside the polygon and the other one isn't
 	private List<Double[][]> getChangedPoint() {
-		List<Double[][]> interceptPiont = new ArrayList<Double[][]>();
-		PathIterator pathIterator = this.polygon.getPathIterator(null);
-		float coordinate[] = new float[6];
+		List<Double[][]> changePoint = new ArrayList<Double[][]>();
+		int totalPoints = this.pathPoints.size();
 
-		// get first point
-		pathIterator.currentSegment(coordinate);
-		double lastX = coordinate[0];
-		double lastY = coordinate[1];
-		int lastSide = getPointSide(lastX, lastY);
+		for (int index = 0; index < totalPoints-1; index++) {
+			double lastX = this.pathPoints.get(index)[0];
+			double lastY = this.pathPoints.get(index)[1];
+			int lastSide = this.getPointSide(lastX, lastY);
 
-		// check if the start point in on the line
-		if (lastSide == 0) {
-			this.interceptPoints.add(new Double[] { lastX, lastY });
-
-			pathIterator.currentSegment(coordinate);
-			lastX = coordinate[0];
-			lastY = coordinate[1];
-			lastSide = getPointSide(lastX, lastY);
-		}
-		pathIterator.next();
-
-		// check for other point
-		for (; !pathIterator.isDone(); pathIterator.next()) {
-			pathIterator.currentSegment(coordinate);
-			double thisX = coordinate[0];
-			double thisY = coordinate[1];
-			int thisSide = getPointSide(thisX, thisY);
+			double thisX;
+			double thisY;
+			if (index != totalPoints) {
+				thisX = this.pathPoints.get(index + 1)[0];
+				thisY = this.pathPoints.get(index + 1)[1];
+			} else {
+				thisX = this.pathPoints.get(0)[0];
+				thisY = this.pathPoints.get(0)[1];
+			}
+			int thisSide = this.getPointSide(thisX, thisY);
 
 			// if the side is different
 			// <0 => intersect
 			// =0 => sit on that line, move to next point
 			// >0 => skip
 			if (lastSide * thisSide < 0) {
-				interceptPiont.add(new Double[][] { { lastX, lastY }, { thisX, thisY } });
+				changePoint.add(new Double[][] { { lastX, lastY }, { thisX, thisY } });
 			} else if (thisSide == 0) {
 				this.interceptPoints.add(new Double[] { thisX, thisY });
-
-				pathIterator.next();
-				thisX = coordinate[0];
-				thisY = coordinate[1];
-				thisSide = getPointSide(lastX, lastY);
 			}
-
-			// move to next property
-			lastX = thisX;
-			lastY = thisY;
-			lastSide = thisSide;
 		}
 
-		return interceptPiont;
+		return changePoint;
 	}
 
 	/*
