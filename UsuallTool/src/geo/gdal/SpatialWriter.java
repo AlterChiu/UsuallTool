@@ -3,28 +3,20 @@ package geo.gdal;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.poi.sl.draw.geom.Path;
 import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Driver;
 import org.gdal.ogr.Feature;
-import org.gdal.ogr.FeatureDefn;
 import org.gdal.ogr.FieldDefn;
 import org.gdal.ogr.Geometry;
 import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
 import org.gdal.osr.SpatialReference;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class SpatialWriter {

@@ -13,7 +13,6 @@ public class MergeTreeMap {
 		}
 		
 		public TreeMap<String,TreeMap<String,String>> MergeDouble(TreeMap<String,TreeMap<String,String>> tree1 , TreeMap<String,TreeMap<String,String>> tree2){
-			String key1[] = tree1.keySet().parallelStream().toArray(String[]::new);
 			String key2[] = tree2.keySet().parallelStream().toArray(String[]::new);
 			
 			for(int i=0;i<key2.length;i++){
