@@ -1,15 +1,12 @@
 package usualTool;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.TreeMap;
 
 
 public class AtArraySort<E> {
 	private String[][] content;
 	private int index;
-	private double[] keyDouble;
 	private TreeMap<E,ArrayList<String[]>> tree = new TreeMap<E,ArrayList<String[]>>();
 	
 	

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.google.gson.JsonObject;
 
 public class AsciiToPath {
 	private AsciiBasicControl ascii;

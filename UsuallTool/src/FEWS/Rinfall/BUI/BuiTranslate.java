@@ -18,7 +18,6 @@ import FEWS.PIXml.AtPiXmlReader;
 import nl.wldelft.util.timeseries.TimeSeriesArray;
 import usualTool.AtFileReader;
 import usualTool.TimeInterface;
-import usualTool.TimeTranslate;
 
 public class BuiTranslate implements TimeInterface {
 	private String fileAdd;
@@ -171,7 +170,6 @@ public class BuiTranslate implements TimeInterface {
 	public String getPiXMLRainfall() throws IOException, ParseException {
 		AtFileReader buiFIle = new AtFileReader(this.fileAdd);
 		String[] content = buiFIle.getContainWithOut("*");
-		String noMeaningString = content[0];
 		int stationSize = Integer.parseInt(content[1].trim());
 
 		// station ID

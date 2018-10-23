@@ -1,7 +1,5 @@
 package usualTool.MathEqualtion;
 
-import java.math.BigDecimal;
-
 public class AtLineIntersection {
 	/*
 	 * a1(X) + b1(Y) + c1 = 0

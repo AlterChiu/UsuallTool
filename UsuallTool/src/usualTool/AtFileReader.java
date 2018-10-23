@@ -1,18 +1,13 @@
 package usualTool;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
-import java.util.TreeMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import com.google.gson.JsonElement;
@@ -22,7 +17,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 public class AtFileReader {
-	private ArrayList<String> fileContain = new ArrayList<String>();
+	private List<String> fileContain = new ArrayList<String>();
 	private String fileAdd = null;
 	private BufferedReader br;
 	public static String ANSI = "Cp1252";
@@ -56,7 +51,7 @@ public class AtFileReader {
 	}
 
 	public AtFileReader(String fileAdd, String encode) throws IOException {
-		this.br = new BufferedReader(new InputStreamReader(new FileInputStream(fileAdd) , encode));
+		this.br = new BufferedReader(new InputStreamReader(new FileInputStream(fileAdd), encode));
 		this.fileAdd = fileAdd;
 		String tempt;
 		while ((tempt = br.readLine()) != null) {
@@ -72,7 +67,7 @@ public class AtFileReader {
 	}
 
 	public String[] getContain(int start, int end) {
-		ArrayList<String> tempt = (ArrayList<String>) this.fileContain.clone();
+		ArrayList<String> tempt = new ArrayList<String>(this.fileContain);
 		for (int i = 0; i < start; i++) {
 			tempt.remove(0);
 		}
@@ -85,7 +80,8 @@ public class AtFileReader {
 	// <get csv file>
 	// <____________________________________________________________>
 	public String[][] getCsv() {
-		return this.fileContain.stream().map(e -> e.split(",")).collect(Collectors.toList()).parallelStream().toArray(String[][]::new);
+		return this.fileContain.stream().map(e -> e.split(",")).collect(Collectors.toList()).parallelStream()
+				.toArray(String[][]::new);
 	}
 
 	public String[][] getCsv(int start, int end) {
@@ -105,7 +101,8 @@ public class AtFileReader {
 	// <get split file by using significant text>
 	// <__________________________________________________________>
 	public String[][] getContent(String split) {
-		return this.fileContain.stream().map(e -> e.split(split)).collect(Collectors.toList()).parallelStream().toArray(String[][]::new);
+		return this.fileContain.stream().map(e -> e.split(split)).collect(Collectors.toList()).parallelStream()
+				.toArray(String[][]::new);
 	}
 
 	public String[][] getContent(String split, int start, int end) {
@@ -117,7 +114,8 @@ public class AtFileReader {
 	// <get split file by space>
 	// <_______________________________________________>
 	public String[][] getStr() {
-		return this.fileContain.stream().map(e -> e.split(" +")).collect(Collectors.toList()).parallelStream().toArray(String[][]::new);
+		return this.fileContain.stream().map(e -> e.split(" +")).collect(Collectors.toList()).parallelStream()
+				.toArray(String[][]::new);
 	}
 
 	public String[][] getStr(int start, int end) {
@@ -155,13 +153,13 @@ public class AtFileReader {
 		});
 		return tempt.parallelStream().toArray(String[]::new);
 	}
-	
+
 	public JsonObject getJsonObject() throws JsonIOException, JsonSyntaxException, FileNotFoundException {
 		JsonParser parser = new JsonParser();
-        JsonElement jsonElement = parser.parse(new FileReader(fileAdd));
-        return  jsonElement.getAsJsonObject();
+		JsonElement jsonElement = parser.parse(new FileReader(fileAdd));
+		return jsonElement.getAsJsonObject();
 	}
-	
+
 	final void clear() {
 		this.fileContain.clear();
 	}

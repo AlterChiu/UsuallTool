@@ -33,42 +33,42 @@ public class AtCommonMath {
 
 	public double getMax() {
 		double tempt = this.ds.getMax();
-		return new BigDecimal(tempt).setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public double getMin() {
 		double tempt = this.ds.getMin();
-		return new BigDecimal(tempt).setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public double getStd() {
 		double tempt = this.ds.getStandardDeviation();
-		return new BigDecimal(tempt).setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public double getSkewness() {
 		double tempt = this.ds.getSkewness();
-		return new BigDecimal(tempt).setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public double getKurtosis() {
 		double tempt = this.ds.getKurtosis();
-		return new BigDecimal(tempt).setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public double getMean() {
 		double tempt = this.ds.getMean();
-		return new BigDecimal(tempt).setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public double getSum() {
 		double tempt = this.ds.getSum();
-		return new BigDecimal(tempt).setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public double getCorrelartion(double[] arrays) {
 		double tempt = new PearsonsCorrelation().correlation(arrays, this.list);
-		return new BigDecimal(tempt).setScale(this.precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public double getClosestValue(double value) {

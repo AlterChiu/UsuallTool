@@ -138,7 +138,7 @@ public class ExcelBasicControl {
 
 	public void chartCreater(ChartImplemetns chartProperty) {
 		// setting the position of the chart
-		Drawing drawing = this.currentSheet.createDrawingPatriarch();
+		Drawing<?> drawing = this.currentSheet.createDrawingPatriarch();
 		ClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, chartProperty.getStartColumn(),
 				chartProperty.getStartRow(), chartProperty.getStartColumn() + chartProperty.getWidth(),
 				chartProperty.getStartRow() + chartProperty.getHeight());
