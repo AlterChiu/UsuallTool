@@ -187,7 +187,15 @@ public class XYZToAscii {
 			this.outTree.remove(row);
 		}
 	}
+	// <============================================================>
 
+	/*
+	 * 
+	 * 
+	 */
+	// <=======================================>
+	// <start working>
+	// <=======================================>
 	public void start() {
 		setProperty();
 		System.out.println("complete set property");
@@ -198,7 +206,6 @@ public class XYZToAscii {
 		setAsciiProperty();
 		System.out.println("complete ascii property");
 	}
-
 	// <================================================>
 
 	/**
