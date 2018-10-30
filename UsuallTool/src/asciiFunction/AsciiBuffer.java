@@ -64,7 +64,7 @@ public class AsciiBuffer {
 		}
 		String[][] temptOut = selectedAscii.get(0);
 		for (int index = 1; index < selectedAscii.size(); index++) {
-			temptOut = new AsciiMerge(temptOut, selectedAscii.get(index)).getMergeAsciiArray();
+			temptOut = new AsciiMerge(temptOut, selectedAscii.get(index)).getMergedAsciiFile();
 		}
 		return temptOut;
 	}
@@ -85,7 +85,7 @@ public class AsciiBuffer {
 		}
 		String[][] temptOut = selectedAscii.get(0);
 		for (int index = 1; index < selectedAscii.size(); index++) {
-			temptOut = new AsciiMerge(temptOut, selectedAscii.get(index)).getMergeAsciiArray();
+			temptOut = new AsciiMerge(temptOut, selectedAscii.get(index)).getMergedAsciiFile();
 		}
 		return temptOut;
 	}

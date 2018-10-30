@@ -87,17 +87,17 @@ public class AsciiMerge {
 	}
 	// <=========================================>
 
-	public List<String[]> saveMergeAscii(String saveAdd) throws IOException {
-		List<String[]> temptList = this.getMergeAscii();
+	public List<String[]> saveMergedAscii(String saveAdd) throws IOException {
+		List<String[]> temptList = this.getMergedAscii();
 		new AtFileWriter(temptList.parallelStream().toArray(String[][]::new), saveAdd).textWriter("    ");
 		return temptList;
 	}
 
-	public String[][] getMergeAsciiArray() {
-		return this.getMergeAscii().parallelStream().toArray(String[][]::new);
+	public String[][] getMergedAsciiFile() {
+		return this.getMergedAscii().parallelStream().toArray(String[][]::new);
 	}
 
-	public List<String[]> getMergeAscii() {
+	public List<String[]> getMergedAscii() {
 		getMergeBoundary();
 		resetBoundary();
 		List<String[]> asciiGrid = setGridValue();

@@ -213,6 +213,8 @@ public class SpatialWriter {
 				field.SetName(name);
 				outLayer.CreateField(field);
 
+			} else if (type.equals("NULL")) {
+				System.out.println("null title " + name);
 			} else {
 				System.out.println("error type " + type);
 			}
@@ -221,10 +223,15 @@ public class SpatialWriter {
 		// add feature
 		for (int index = 0; index < this.geometryList.size(); index++) {
 			Feature feature = new Feature(outLayer.GetLayerDefn());
+			
 			// attribute value
-			for (String attributeKey : attribute.get(index).keySet()) {
-				feature.SetField(attributeKey, (String) attribute.get(index).get(attributeKey));
+			try {
+				for (String attributeKey : attribute.get(index).keySet()) {
+					feature.SetField(attributeKey, (String) attribute.get(index).get(attributeKey));
+				}
+			} catch (Exception e) {
 			}
+			
 			// geometry
 			feature.SetGeometry(this.geometryList.get(index));
 			outLayer.CreateFeature(feature);
