@@ -1,5 +1,6 @@
 package asciiFunction;
 
+import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -65,7 +66,12 @@ public class AsciiMerge {
 		this.cellSize = Double.parseDouble(this.asciiList.get(0).getProperty().get("cellSize"));
 		this.outNullValue = this.asciiList.get(0).getProperty().get("noData");
 	}
+	// <================================================>
 
+	/*
+	 * user function
+	 */
+	// <===============================================>
 	public void addAscii(String fileAdd) throws IOException {
 		this.asciiList.add(new AsciiBasicControl(fileAdd));
 	}
@@ -80,10 +86,6 @@ public class AsciiMerge {
 
 	public void setNullValue(String outNullValue) {
 		this.outNullValue = outNullValue;
-	}
-
-	public void setBoundary(double minX, double maxX, double minY, double maxY) {
-
 	}
 	// <=========================================>
 
@@ -118,28 +120,32 @@ public class AsciiMerge {
 		// get the total grid
 		for (int row = 0; row < this.boundaryMap.get("row"); row++) {
 			List<String> temptRow = new ArrayList<String>();
+			double temptCenterY = this.boundaryMap.get("topY") - row * this.cellSize;
 
 			for (int column = 0; column < this.boundaryMap.get("column"); column++) {
 				List<Double> valueList = new ArrayList<Double>();
-				double temptX = this.boundaryMap.get("bottomX") + column * this.cellSize;
-				double temptY = this.boundaryMap.get("topY") - row * this.cellSize;
+				double temptCenterX = this.boundaryMap.get("bottomX") + column * this.cellSize;
 
 				// check for each asciiList
 				for (AsciiBasicControl ascii : this.asciiList) {
-					String nullValue = ascii.getProperty().get("noData");
+					
+					if (ascii.isContain(temptCenterX, temptCenterY)) {
+						String nullValue = ascii.getProperty().get("noData");
 
-					int topLeftPosition[] = ascii.getPosition(temptX - this.cellSize, temptY + this.cellSize);
-					int bottomRightPosition[] = ascii.getPosition(temptX + this.cellSize, temptY - this.cellSize);
+						int topLeftPosition[] = ascii.getPosition(temptCenterX - this.cellSize * 0.49999,
+								temptCenterY + this.cellSize * 0.49999);
+						int bottomRightPosition[] = ascii.getPosition(temptCenterX + this.cellSize * 0.49999,
+								temptCenterY - this.cellSize * 0.49999);
 
-					for (int asciiRow = topLeftPosition[1]; asciiRow <= bottomRightPosition[1]; asciiRow++) {
-						for (int asciiColumn = topLeftPosition[0]; asciiColumn <= bottomRightPosition[0]; asciiColumn++) {
-							String temptValue = ascii.getValue(asciiColumn, asciiRow);
-							if (!temptValue.equals(nullValue)) {
-								valueList.add(Double.parseDouble(temptValue));
+						for (int asciiRow = topLeftPosition[1]; asciiRow <= bottomRightPosition[1]; asciiRow++) {
+							for (int asciiColumn = topLeftPosition[0]; asciiColumn <= bottomRightPosition[0]; asciiColumn++) {
+								String temptValue = ascii.getValue(asciiColumn, asciiRow);
+								if (!temptValue.equals(nullValue)) {
+									valueList.add(Double.parseDouble(temptValue));
+								}
 							}
 						}
 					}
-
 				}
 
 				// if there is no value in this grid
@@ -156,15 +162,20 @@ public class AsciiMerge {
 		}
 		return outList;
 	}
+	// <=============================================================>
 
+	/*
+	 * Boundary
+	 */
+	// <=============================================================>
 	private void resetBoundary() {
-		double minX = new BigDecimal(this.boundaryMap.get("minX")).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-		double maxX = new BigDecimal(this.boundaryMap.get("maxX")).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-		double minY = new BigDecimal(this.boundaryMap.get("minY")).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-		double maxY = new BigDecimal(this.boundaryMap.get("maxY")).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double minX = this.boundaryMap.get("minX");
+		double maxX = this.boundaryMap.get("maxX");
+		double minY = this.boundaryMap.get("minY");
+		double maxY = this.boundaryMap.get("maxY");
 
-		int column = new BigDecimal((maxX - minX) / cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).intValue();
-		int row = new BigDecimal((maxY - minY) / cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).intValue();
+		int column = new BigDecimal((maxX - minX) / cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+		int row = new BigDecimal((maxY - minY) / cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
 		maxX = minX + column * cellSize;
 		maxY = minY + row * cellSize;
 
@@ -186,20 +197,18 @@ public class AsciiMerge {
 
 	private void getMergeBoundary() {
 		this.boundaryMap = new TreeMap<String, Double>();
-		Map<String, String> asciiProperty = this.asciiList.get(0).getProperty();
-		double minX = Double.parseDouble(asciiProperty.get("bottomX")) - 0.5 * cellSize;
-		double minY = Double.parseDouble(asciiProperty.get("bottomY")) - 0.5 * cellSize;
-		double maxX = Double.parseDouble(asciiProperty.get("topX")) + 0.5 * cellSize;
-		double maxY = Double.parseDouble(asciiProperty.get("topY")) + 0.5 * cellSize;
+		Map<String, Double> asciiBoundary = this.asciiList.get(0).getBoundary();
+		double minX = asciiBoundary.get("minX");
+		double minY = asciiBoundary.get("minY");
+		double maxX = asciiBoundary.get("maxX");
+		double maxY = asciiBoundary.get("maxY");
 
 		for (int index = 1; index < this.asciiList.size(); index++) {
-			Map<String, String> temptProeprty = this.asciiList.get(index).getProperty();
-			double temptCellSize = Double.parseDouble(temptProeprty.get("cellSize"));
-
-			double temptMinX = Double.parseDouble(temptProeprty.get("bottomX")) - 0.5 * temptCellSize;
-			double temptMinY = Double.parseDouble(temptProeprty.get("bottomY")) - 0.5 * temptCellSize;
-			double temptMaxX = Double.parseDouble(temptProeprty.get("topX")) + 0.5 * temptCellSize;
-			double temptMaxY = Double.parseDouble(temptProeprty.get("topY")) + 0.5 * temptCellSize;
+			Map<String, Double> temptBoundary = this.asciiList.get(index).getBoundary();
+			double temptMinX = temptBoundary.get("minX");
+			double temptMinY = temptBoundary.get("minY");
+			double temptMaxX = temptBoundary.get("maxX");
+			double temptMaxY = temptBoundary.get("maxY");
 
 			if (temptMinX < minX) {
 				minX = temptMinX;
@@ -220,5 +229,5 @@ public class AsciiMerge {
 		this.boundaryMap.put("minY", minY);
 		this.boundaryMap.put("maxY", maxY);
 	}
-
+//<====================================================================>
 }

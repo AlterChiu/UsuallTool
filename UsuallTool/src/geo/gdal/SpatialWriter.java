@@ -160,17 +160,17 @@ public class SpatialWriter {
 
 		// output geometry ,start point
 		StringBuilder sb = new StringBuilder();
-		sb.append("POLYGON(");
-		sb.append(startX + " " + startY + ",");
+		sb.append("{\"type\" : \"Polygon\" , \"coordinates\" : [[");
+		sb.append("[" + startX + "," + startY + "],");
 		temptPathIteratore.next();
 
 		for (; !temptPathIteratore.isDone(); temptPathIteratore.next()) {
 			temptPathIteratore.currentSegment(coordinate);
-			sb.append(coordinate[0] + " " + coordinate[1] + ",");
+			sb.append("[" +coordinate[0] + "," + coordinate[1] + "],");
 		}
-		sb.append(startX + " " + startY + ")");
-
-		return Geometry.CreateFromWkt(sb.toString());
+		sb.append("[" + startX + "," + startY + "] ]] }");
+		
+		return Geometry.CreateFromJson(sb.toString());
 	}
 
 	/*

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-
 public class AsciiToPath {
 	private AsciiBasicControl ascii;
 	private String asciiContent[][];
@@ -96,6 +95,7 @@ public class AsciiToPath {
 		int lastMoving = firstMovedPosition[2];
 
 		while (temptX != this.startX || temptY != this.startY) {
+			
 			// moving setting
 			int[] moving = this.getMovingPosition(temptX, temptY, lastMoving);
 			temptX = moving[0];
