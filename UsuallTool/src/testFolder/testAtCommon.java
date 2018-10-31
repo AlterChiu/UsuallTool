@@ -1,51 +1,54 @@
 package testFolder;
 
+import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.naming.OperationNotSupportedException;
-
 import org.gdal.gdal.gdal;
+import org.gdal.ogr.DataSource;
+import org.gdal.ogr.Driver;
+import org.gdal.ogr.Feature;
+import org.gdal.ogr.FeatureDefn;
 import org.gdal.ogr.Geometry;
+import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
-import org.gdal.osr.osr;
 
-import FEWS.PIXml.AtPiXmlReader;
-import geo.gdal.SpatialFileTranslater;
-import geo.gdal.SpatialReader;
-import nl.wldelft.util.timeseries.TimeSeriesArray;
+import asciiFunction.AsciiBasicControl;
+import asciiFunction.AsciiToPath;
+import geo.gdal.SpatialWriter;
 import usualTool.AtFileWriter;
-
-import org.gdal.ogr.DataSource;
-import org.gdal.ogr.Driver;
 
 public class testAtCommon {
 
-	public static void main(String[] args) throws OperationNotSupportedException, IOException {
+	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method
-//		String fileAdd = "F:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Export\\Alter\\observed.xml";
-		String fileAdd = "F:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Export\\Alter\\simulation.xml";
+		String fileAdd = "F:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Export\\Alter\\temptAscii.asc";
+		String saveAdd = "F:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Export\\Alter\\temptAscii.geoJson";
 
-		AtPiXmlReader piReader = new AtPiXmlReader();
+//		gdal.AllRegister();
+//		Driver dataSourceDriver = ogr.GetDriverByName("Geojson");
+//		DataSource outDataSource = dataSourceDriver.CreateDataSource(saveAdd);
 		List<String> outList = new ArrayList<String>();
+		outList.add("x,y");
 
-		List<TimeSeriesArray> seriesArray = piReader.getTimeSeriesArrays(fileAdd);
-		seriesArray.forEach(series -> {
-			if (series.getHeader().getLocationId().equals("1156")) {
-				for (int index = 0; index < series.size(); index++) {
-					outList.add(series.getValue(index) + "");
-				}
-			}
-		});
+		Path2D path = new AsciiToPath(new AsciiBasicControl(fileAdd)).getAsciiPath();
+		PathIterator pathIt = path.getPathIterator(null);
+
+		float coordinate[] = new float[6];
+		for (; pathIt.isDone(); pathIt.next()) {
+			pathIt.currentSegment(coordinate);
+
+			outList.add(coordinate[0] + "," + coordinate[1]);
+		}
 
 		new AtFileWriter(outList.parallelStream().toArray(String[]::new),
-				"F:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Export\\Alter\\simulation_Tanshiu.txt").tabWriter();
-		
-//		new AtFileWriter(outList.parallelStream().toArray(String[]::new),
-//				"F:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Export\\Alter\\observed_Tanshiu.txt").tabWriter();
+				"F:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Export\\Alter\\temptAscii.csv").csvWriter();
 
+//		SpatialWriter spWriter = new SpatialWriter(path);
+//		spWriter.saveAsGeoJson(saveAdd);
 	}
 }

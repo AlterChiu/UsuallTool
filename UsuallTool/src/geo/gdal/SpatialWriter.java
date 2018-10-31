@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.gdal.gdal.gdal;
 import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Driver;
 import org.gdal.ogr.Feature;
@@ -17,7 +18,6 @@ import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
 import org.gdal.osr.SpatialReference;
 
-import usualTool.FileFunction;
 
 public class SpatialWriter {
 	private List<Geometry> geometryList = new ArrayList<Geometry>();
@@ -38,6 +38,7 @@ public class SpatialWriter {
 	// <constructor>
 	// <=========================================>
 	public SpatialWriter(List<Path2D> pathList) {
+		gdal.AllRegister();
 		// translate path to geometry
 		pathList.forEach(e -> {
 			this.geometryList.add(getGeometry(e));
@@ -48,6 +49,7 @@ public class SpatialWriter {
 	}
 
 	public SpatialWriter(Path2D path) {
+		gdal.AllRegister();
 		// translate path to geometry
 		this.geometryList.add(getGeometry(path));
 
@@ -105,7 +107,7 @@ public class SpatialWriter {
 	// <output function>
 	// <===========================================>
 	public void saveAsGeoJson(String saveAdd) {
-		Driver dr = ogr.GetDriverByName("GeoJson");
+		Driver dr = ogr.GetDriverByName("Geojson");
 		createSpatialFile(saveAdd, dr);
 	}
 
@@ -178,7 +180,7 @@ public class SpatialWriter {
 	private void createSpatialFile(String saveAdd, Driver dataSourceDriver) {
 		// create output layer
 		if (new File(saveAdd).exists()) {
-			new FileFunction().delete(saveAdd);
+			dataSourceDriver.DeleteDataSource(saveAdd);
 		}
 		DataSource outDataSource = dataSourceDriver.CreateDataSource(saveAdd);
 		Layer outLayer = outDataSource.CreateLayer(this.layerName, this.outputSpatitalSystem);

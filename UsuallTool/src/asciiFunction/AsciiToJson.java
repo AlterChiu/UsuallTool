@@ -3,7 +3,7 @@ package asciiFunction;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.TreeMap;
+import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -13,7 +13,7 @@ import com.google.gson.JsonParser;
 
 public class AsciiToJson {
 	private String[][] asciiContent;
-	private TreeMap<String, String> asciiProperty;
+	private Map<String, String> asciiProperty;
 
 	public AsciiToJson(String[][] asciiFile) throws IOException {
 		AsciiBasicControl ascii = new AsciiBasicControl(asciiFile);

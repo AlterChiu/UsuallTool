@@ -6,7 +6,7 @@ import java.util.TreeMap;
 
 public class AsciiIntersect {
 	private AsciiBasicControl ascii;
-	private TreeMap<String, String> property;
+	private Map<String, String> property;
 
 	private double IntersectMinX;
 	private double IntersectMaxX;

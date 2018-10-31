@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import usualTool.AtCommonMath;
@@ -12,7 +14,7 @@ public class AsciiGridChange {
 
 	private String[][] asciiGrid;
 	private String[][] asciiContent;
-	private TreeMap<String, String> originalProperty;
+	private Map<String, String> originalProperty;
 
 	public AsciiGridChange(String asciiFile) throws IOException {
 		AsciiBasicControl temptAscii = new AsciiBasicControl(asciiFile);
@@ -37,7 +39,7 @@ public class AsciiGridChange {
 	// <======================>
 	// <get the target ascii file property >
 	// <======================>
-	public TreeMap<String, String> getChangedProperty(int gridSize) {
+	public Map<String, String> getChangedProperty(int gridSize) {
 		if (gridSize >= 2) {
 			TreeMap<String, String> temptTreeMap = new TreeMap<String, String>();
 
@@ -79,10 +81,10 @@ public class AsciiGridChange {
 	// <=========================>
 	// <get the target property by text array >
 	// <=========================>
-	public ArrayList<String[]> getTargetPropertyContent(int gridSize) {
+	public List<String[]> getTargetPropertyContent(int gridSize) {
 		if (gridSize >= 2) {
-			TreeMap<String, String> temptProperty = getChangedProperty(gridSize);
-			ArrayList<String[]> temptArray = new ArrayList<String[]>();
+			Map<String, String> temptProperty = getChangedProperty(gridSize);
+			List<String[]> temptArray = new ArrayList<String[]>();
 
 			temptArray.add(new String[] { "ncols", temptProperty.get("column") });
 			temptArray.add(new String[] { "nrows", temptProperty.get("row") });
@@ -151,8 +153,8 @@ public class AsciiGridChange {
 	// <====================>
 	public String[][] getChangedContent(int gridSize) {
 		if (gridSize >= 2) {
-			ArrayList<String[]> tempt = getTargetPropertyContent(gridSize);
-			ArrayList<String[]> changedGrid = new ArrayList<String[]>(Arrays.asList(getChangedGrid(gridSize)));
+			List<String[]> tempt = getTargetPropertyContent(gridSize);
+			List<String[]> changedGrid = new ArrayList<String[]>(Arrays.asList(getChangedGrid(gridSize)));
 			changedGrid.forEach(line -> tempt.add(line));
 
 			return tempt.parallelStream().toArray(String[][]::new);

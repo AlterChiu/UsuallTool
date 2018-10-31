@@ -5,7 +5,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
+import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -18,7 +18,7 @@ import usualTool.AtFileReader;
 public class AsciiIntersect_Json {
 	private AsciiBasicControl ascii;
 	private JsonObject geoJson;
-	private TreeMap<String, String> property;
+	private Map<String, String> property;
 	private List<AsciiBasicControl> asciiFileList = new ArrayList<AsciiBasicControl>();;
 
 	// <===============================>

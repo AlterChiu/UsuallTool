@@ -2,12 +2,13 @@ package asciiFunction;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.TreeMap;
 
 public class AsciiBuffer {
 	private AsciiBasicControl asciiControl;
 	private ArrayList<Double[]> bufferCenter = new ArrayList<Double[]>();
-	private TreeMap<String, String> property;
+	private Map<String, String> property;
 	private double cellSize;
 	private String noData = "null";
 

@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import usualTool.AtCommonMath;
@@ -13,7 +14,8 @@ import usualTool.AtFileReader;
 
 public class AsciiBasicControl {
 	private String[][] asciiContent = null;
-	private TreeMap<String, String> property;
+	private Map<String, String> property;
+	private Map<String, Double> boundary;
 	private String[][] asciiGrid;
 
 	// <==============>
@@ -23,6 +25,7 @@ public class AsciiBasicControl {
 		this.asciiContent = asciiContent;
 		cutFirstColumn();
 		setProperty();
+		setBoundary();
 		this.asciiGrid = this.getAsciiGrid();
 
 	}
@@ -31,6 +34,7 @@ public class AsciiBasicControl {
 		this.asciiContent = new AtFileReader(fileAdd).getStr();
 		cutFirstColumn();
 		setProperty();
+		setBoundary();
 		this.asciiGrid = this.getAsciiGrid();
 	}
 
@@ -87,11 +91,30 @@ public class AsciiBasicControl {
 		this.property = temptTree;
 	}
 
+	private void setBoundary() {
+		Map<String, Double> boundary = new TreeMap<String, Double>();
+		double cellSize = Double.parseDouble(this.property.get("cellSize"));
+
+		double minX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
+		double maxX = Double.parseDouble(this.property.get("topX")) + 0.5 * cellSize;
+		double minY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * cellSize;
+		double maxY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
+
+		boundary.put("minX", minX);
+		boundary.put("maxX", maxX);
+		boundary.put("minY", minY);
+		boundary.put("maxY", maxY);
+		this.boundary = boundary;
+	}
+
 	// <================>
 	// <get the property>
 	// <================>
-	public TreeMap<String, String> getProperty() {
+	public Map<String, String> getProperty() {
 		return this.property;
+	}
+	public Map<String, Double> getBoundary() {
+		return this.boundary;
 	}
 
 	// <=================>

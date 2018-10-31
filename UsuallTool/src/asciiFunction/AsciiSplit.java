@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
+import java.util.Map;
 
 public class AsciiSplit {
-	private TreeMap<String, String> asciiProperty;
+	private Map<String, String> asciiProperty;
 	private AsciiBasicControl asciiControl;
 	private int splitNum;
 	private List<Integer> xMaxList;
