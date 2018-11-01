@@ -21,58 +21,58 @@ public class TimeTranslate {
 	
 	
 
-	public String milliToDate(long time, String format) {
+	static public String milliToDate(long time, String format) {
 		SimpleDateFormat sdf = new SimpleDateFormat(format);
 		return sdf.format(time);
 	}
-	public String StringGetSelected(String time, String format,String selected) throws ParseException {
-		Long tempLong = this.StringToLong(time, format);
-		return this.milliToDate(tempLong, selected);
+	static public String StringGetSelected(String time, String format,String selected) throws ParseException {
+		Long tempLong = StringToLong(time, format);
+		return milliToDate(tempLong, selected);
 	}
 	
-	public String milliToTime(long time, String format) {
+	static public String milliToTime(long time, String format) {
 		return DurationFormatUtils.formatDuration(time,format);
 	}
 
-	public long StringToLong(String time, String format) throws ParseException {
+	static public long StringToLong(String time, String format) throws ParseException {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
 		return dateFormat.parse(time).getTime();
 	}
 	
-	public String addMonth(String time , String format) throws ParseException {
+	static public String addMonth(String time , String format) throws ParseException {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
-		long milliTime = this.StringToLong(time, format);
+		long milliTime = StringToLong(time, format);
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(milliTime);
 		calendar.add(Calendar.MONTH, 1);
 		return dateFormat.format(calendar.getTime());	
 	}
-	public String addMonth(String time , String format , int month) throws ParseException {
+	static public String addMonth(String time , String format , int month) throws ParseException {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
-		long milliTime = this.StringToLong(time, format);
+		long milliTime = StringToLong(time, format);
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(milliTime);
 		calendar.add(Calendar.MONTH, month);
 		return dateFormat.format(calendar.getTime());	
 	}
-	public String addYear(String time , String format) throws ParseException {
+	static public String addYear(String time , String format) throws ParseException {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
-		long milliTime = this.StringToLong(time, format);
+		long milliTime = StringToLong(time, format);
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(milliTime);
 		calendar.add(Calendar.YEAR, 1);
 		return dateFormat.format(calendar.getTime());	
 	}
-	public String addYear(String time , String format , int year) throws ParseException {
+	static public String addYear(String time , String format , int year) throws ParseException {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
-		long milliTime = this.StringToLong(time, format);
+		long milliTime = StringToLong(time, format);
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(milliTime);
 		calendar.add(Calendar.YEAR, year);
 		return dateFormat.format(calendar.getTime());	
 	}
 
-	public String getDate(String time , String format){
+	static public String getDate(String time , String format){
 		SimpleDateFormat sdf = new SimpleDateFormat(format);
 		return sdf.format(time);
 	}

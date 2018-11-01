@@ -17,9 +17,9 @@ import org.dom4j.Element;
 import FEWS.PIXml.AtPiXmlReader;
 import nl.wldelft.util.timeseries.TimeSeriesArray;
 import usualTool.AtFileReader;
-import usualTool.TimeInterface;
+import usualTool.TimeTranslate;
 
-public class BuiTranslate implements TimeInterface {
+public class BuiTranslate {
 	private String fileAdd;
 	private TreeMap<String, String> idMapping = null;
 	private ArrayList<TimeSeriesArray> timeSeriesArrays;
@@ -80,7 +80,7 @@ public class BuiTranslate implements TimeInterface {
 		outArray.add("*Daarna voor elk station de neerslag in mm per tijdstap.");
 
 		outArray.add(
-				TimeInterface.milliToDate(firstTimeSeriesArray.getStartTime(), " yyyy MM dd HH mm ss") + TimeInterface
+				TimeTranslate.milliToDate(firstTimeSeriesArray.getStartTime(), " yyyy MM dd HH mm ss") + TimeTranslate
 						.milliToTime(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size(),
 								" dd HH mm ss"));
 
@@ -141,9 +141,9 @@ public class BuiTranslate implements TimeInterface {
 
 		double previousTime = (firstTimeSeriesArray.getTimeStep().getStepMillis()) * times;
 
-		outArray.add(TimeInterface.milliToDate(firstTimeSeriesArray.getStartTime() - (long) previousTime,
+		outArray.add(TimeTranslate.milliToDate(firstTimeSeriesArray.getStartTime() - (long) previousTime,
 				" yyyy MM dd HH mm ss")
-				+ TimeInterface
+				+ TimeTranslate
 						.milliToTime(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size()
 								+ (long) previousTime, " dd HH mm ss"));
 
@@ -183,7 +183,7 @@ public class BuiTranslate implements TimeInterface {
 
 		// start time
 		String[] startTimeSetting = content[3 + stationSize].trim().split(" +");
-		this.startDate = TimeInterface
+		this.startDate = TimeTranslate
 				.StringToLong(
 						startTimeSetting[0] + " " + startTimeSetting[1] + " " + startTimeSetting[2] + " "
 								+ startTimeSetting[3] + " " + startTimeSetting[4] + " " + startTimeSetting[5],
@@ -218,10 +218,10 @@ public class BuiTranslate implements TimeInterface {
 			header.addElement("parameterId").addText("P.obs");
 			header.addElement("timeStep").addAttribute("unit", "second").addAttribute("multiplier",
 					this.timeStepMultiplier + "");
-			header.addElement("startDate").addAttribute("date", TimeInterface.milliToDate(this.startDate, "yyyy-MM-dd"))
-					.addAttribute("time", TimeInterface.milliToDate(this.startDate, "HH:mm:ss"));
-			header.addElement("endDate").addAttribute("date", TimeInterface.milliToDate(this.endDate, "yyyy-MM-dd"))
-					.addAttribute("time", TimeInterface.milliToDate(this.endDate, "HH:mm:ss"));
+			header.addElement("startDate").addAttribute("date", TimeTranslate.milliToDate(this.startDate, "yyyy-MM-dd"))
+					.addAttribute("time", TimeTranslate.milliToDate(this.startDate, "HH:mm:ss"));
+			header.addElement("endDate").addAttribute("date", TimeTranslate.milliToDate(this.endDate, "yyyy-MM-dd"))
+					.addAttribute("time", TimeTranslate.milliToDate(this.endDate, "HH:mm:ss"));
 			header.addElement("missVal").addText("-999.99");
 			header.addElement("stationName").addText(stationId.get(order));
 			header.addElement("units").addText("mm");
@@ -231,10 +231,10 @@ public class BuiTranslate implements TimeInterface {
 			for (int time = 0; time < rainfallValue.size(); time++) {
 				series.addElement("event")
 						.addAttribute("date",
-								TimeInterface.milliToDate(this.startDate + time * this.timeStepMultiplier * 1000,
+								TimeTranslate.milliToDate(this.startDate + time * this.timeStepMultiplier * 1000,
 										"yyyy-MM-dd"))
 						.addAttribute("time",
-								TimeInterface.milliToDate(this.startDate + time * this.timeStepMultiplier * 1000,
+								TimeTranslate.milliToDate(this.startDate + time * this.timeStepMultiplier * 1000,
 										"HH:mm:ss"))
 						.addAttribute("value", rainfallValue.get(time)[order]).addAttribute("flag", "2");
 
