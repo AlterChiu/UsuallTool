@@ -113,6 +113,7 @@ public class AsciiBasicControl {
 	public Map<String, String> getProperty() {
 		return this.property;
 	}
+
 	public Map<String, Double> getBoundary() {
 		return this.boundary;
 	}
@@ -251,6 +252,15 @@ public class AsciiBasicControl {
 
 	// <getting the asciiGrid by setting the coordinate>
 	// <______________________________________________________________________________________________>
+	public String[][] getClipAsciiFile(Map<String, Double> boundary) {
+		double minX = boundary.get("minX");
+		double maxX = boundary.get("maxX");
+		double minY = boundary.get("minY");
+		double maxY = boundary.get("maxY");
+
+		return getClipAsciiFile(minX, minY, maxX, maxY);
+	}
+
 	public String[][] getClipAsciiFile(double minX, double minY, double maxX, double maxY) {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
 		double cellSize = Double.parseDouble(property.get("cellSize"));
