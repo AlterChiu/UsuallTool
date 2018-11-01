@@ -21,7 +21,9 @@ import asciiFunction.AsciiBasicControl;
 import asciiFunction.AsciiMerge;
 import asciiFunction.AsciiToPath;
 import geo.gdal.SpatialWriter;
+import geo.path.IntersectLine;
 import usualTool.AtFileWriter;
+import usualTool.MathEqualtion.AtLineIntersection;
 
 public class testAtCommon {
 
@@ -30,9 +32,14 @@ public class testAtCommon {
 		String fileAdd = "F:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Export\\Alter\\temptAscii.asc";
 		String saveAdd = "F:\\FEWS\\FEWS_Taiwan_2017\\Taiwan\\Export\\Alter\\temptAscii.geoJson";
 		
-		 SpatialWriter spWriter = new SpatialWriter(new AsciiToPath(fileAdd).getAsciiPath());
-		 spWriter.setCoordinateSystem(SpatialWriter.TWD97_121);
-		 
-		spWriter.saveAsGeoJson(saveAdd);
+		Path2D path = new AsciiToPath(fileAdd).getAsciiPath();
+		IntersectLine intersect = new IntersectLine(path);
+		intersect.getInterceptPoints(3, 1, -3042889).forEach(e-> System.out.println(e[0] + "\t" + e[1]));;
+		
+//		AtLineIntersection intersect = new AtLineIntersection(1,0,-5,0,1,4);
+//		double[]  temptPoint = intersect.getIntersect();
+//		System.out.println(temptPoint[0] + "\t" + temptPoint[1]);
+		
+
 	}
 }

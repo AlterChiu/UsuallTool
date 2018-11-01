@@ -3,7 +3,9 @@ package geo.path;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import usualTool.MathEqualtion.AtLineIntersection;
 
@@ -13,7 +15,7 @@ public class IntersectLine {
 	private double xCoefficient = 0;
 	private double yCoefficient = 0;
 	private List<Double[]> pathPoints = new ArrayList<Double[]>();
-	private List<Double[]> interceptPoints = new ArrayList<Double[]>();
+	private Set<Double[]> interceptPoints = new HashSet<Double[]>();
 
 	public IntersectLine(Path2D path) {
 		this.polygon = path;
@@ -21,9 +23,8 @@ public class IntersectLine {
 
 	/*
 	 * ax+by+c=0
-	 * 
 	 */
-	public List<Double[]> getInterceptPoints(double xCoefficient, double yCoefficient, double interceptLength) {
+	public Set<Double[]> getInterceptPoints(double xCoefficient, double yCoefficient, double interceptLength) {
 		this.interceptPoints.clear();
 		this.xCoefficient = xCoefficient;
 		this.yCoefficient = yCoefficient;
@@ -68,44 +69,37 @@ public class IntersectLine {
 	// and the other one is get by "getChangedPoint"
 	private void calculateIntercept(List<Double[][]> groupPoints) {
 		for (Double[][] groupPoint : groupPoints) {
+			double coefficientX;
+			double coefficientY;
+			double coefficientIncept;
 
-			// if the line is horizontal
-			if (Math.abs((groupPoint[0][1] - groupPoint[1][1])) < 0.00001) {
-				double temptSlope = 0.;
-				double intercept = groupPoint[0][1];
+			// if the line is vertical
+			if (Math.abs((groupPoint[0][1] - groupPoint[1][1])) < 0.000001) {
+				coefficientX = 0;
+				coefficientY = 1;
+				coefficientIncept = -1 * groupPoint[0][1];
 
-				AtLineIntersection lineIntersection = new AtLineIntersection(temptSlope, intercept, this.xCoefficient,
-						this.yCoefficient, this.interceptLength);
-				if (lineIntersection.isIntersect()) {
-					double interceptPoint[] = lineIntersection.getIntersect();
-					this.interceptPoints.add(new Double[] { interceptPoint[0], interceptPoint[1] });
-				}
-
-				// if the line is vertical
+				// if the line is horizontal
 			} else if (Math.abs(groupPoint[0][0] - groupPoint[1][0]) < 0.000001) {
-				double coefficientX = 1;
-				double coefficientY = 0;
-				double coefficientIncept = -1 * groupPoint[0][0];
-
-				AtLineIntersection lineIntersection = new AtLineIntersection(coefficientX, coefficientY,
-						coefficientIncept, this.xCoefficient, this.yCoefficient, this.interceptLength);
-				if (lineIntersection.isIntersect()) {
-					double interceptPoint[] = lineIntersection.getIntersect();
-					this.interceptPoints.add(new Double[] { interceptPoint[0], interceptPoint[1] });
-				}
+				coefficientX = 1;
+				coefficientY = 0;
+				coefficientIncept = -1 * groupPoint[0][0];
 
 				// the others way
 			} else {
 				double temptSlope = (groupPoint[0][1] - groupPoint[1][1]) / (groupPoint[0][0] - groupPoint[1][0]);
 				double intercept = groupPoint[0][1] - temptSlope * groupPoint[0][0];
 
-				AtLineIntersection lineIntersection = new AtLineIntersection(temptSlope, intercept, this.xCoefficient,
-						this.yCoefficient, this.interceptLength);
-				if (lineIntersection.isIntersect()) {
-					double interceptPoint[] = lineIntersection.getIntersect();
-					this.interceptPoints.add(new Double[] { interceptPoint[0], interceptPoint[1] });
+				coefficientX = -1 * temptSlope;
+				coefficientY = 1;
+				coefficientIncept = -1 * intercept;
+			}
 
-				}
+			AtLineIntersection lineIntersection = new AtLineIntersection(coefficientX, coefficientY, coefficientIncept,
+					this.xCoefficient, this.yCoefficient, this.interceptLength);
+			if (lineIntersection.isIntersect()) {
+				double interceptPoint[] = lineIntersection.getIntersect();
+				this.interceptPoints.add(new Double[] { interceptPoint[0], interceptPoint[1] });
 			}
 		}
 	}
@@ -120,14 +114,14 @@ public class IntersectLine {
 		List<Double[][]> changePoint = new ArrayList<Double[][]>();
 		int totalPoints = this.pathPoints.size();
 
-		for (int index = 0; index < totalPoints-1; index++) {
+		for (int index = 0; index < totalPoints; index++) {
 			double lastX = this.pathPoints.get(index)[0];
 			double lastY = this.pathPoints.get(index)[1];
 			int lastSide = this.getPointSide(lastX, lastY);
 
 			double thisX;
 			double thisY;
-			if (index != totalPoints) {
+			if (index != totalPoints - 1) {
 				thisX = this.pathPoints.get(index + 1)[0];
 				thisY = this.pathPoints.get(index + 1)[1];
 			} else {
@@ -144,6 +138,7 @@ public class IntersectLine {
 				changePoint.add(new Double[][] { { lastX, lastY }, { thisX, thisY } });
 			} else if (thisSide == 0) {
 				this.interceptPoints.add(new Double[] { thisX, thisY });
+				index = index + 2;
 			}
 		}
 
