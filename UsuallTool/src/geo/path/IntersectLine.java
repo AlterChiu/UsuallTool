@@ -19,6 +19,9 @@ public class IntersectLine {
 
 	public IntersectLine(Path2D path) {
 		this.polygon = path;
+
+		// get the coordinate points on the path
+		this.pathPoints = getPathCoordinates();
 	}
 
 	/*
@@ -29,9 +32,6 @@ public class IntersectLine {
 		this.xCoefficient = xCoefficient;
 		this.yCoefficient = yCoefficient;
 		this.interceptLength = interceptLength;
-
-		// get the coordinate points on the path
-		this.pathPoints = getPathCoordinates();
 
 		// get the group point which are in the different side by the given line
 		List<Double[][]> changedPoints = getChangedPoint();
@@ -56,16 +56,16 @@ public class IntersectLine {
 			int side = getPointSide(point[0], point[1]);
 			if (side < 0) {
 				nagtiveSide.add(point);
-			}else if(side >0) {
+			} else if (side > 0) {
 				positiveSide.add(point);
-			}else {
+			} else {
 				nagtiveSide.add(point);
 				positiveSide.add(point);
 			}
 		}
 		outList.add(positiveSide);
 		outList.add(nagtiveSide);
-		
+
 		return outList;
 	}
 
