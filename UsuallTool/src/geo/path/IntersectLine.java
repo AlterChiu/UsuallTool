@@ -42,6 +42,33 @@ public class IntersectLine {
 		return this.interceptPoints;
 	}
 
+	public List<List<Double[]>> getSidePoints(double xCoefficient, double yCoefficient, double interceptLength) {
+		List<Double[]> positiveSide = new ArrayList<>();
+		List<Double[]> nagtiveSide = new ArrayList<>();
+		List<List<Double[]>> outList = new ArrayList<>();
+
+		this.interceptPoints.clear();
+		this.xCoefficient = xCoefficient;
+		this.yCoefficient = yCoefficient;
+		this.interceptLength = interceptLength;
+
+		for (Double[] point : this.pathPoints) {
+			int side = getPointSide(point[0], point[1]);
+			if (side < 0) {
+				nagtiveSide.add(point);
+			}else if(side >0) {
+				positiveSide.add(point);
+			}else {
+				nagtiveSide.add(point);
+				positiveSide.add(point);
+			}
+		}
+		outList.add(positiveSide);
+		outList.add(nagtiveSide);
+		
+		return outList;
+	}
+
 	/*
 	 * 
 	 * get the coordinate of points which on the path
