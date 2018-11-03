@@ -119,20 +119,20 @@ public class AsciiIntersect {
 				this.IntersectMaxY);
 	}
 
-	public Map<String, String> getBoundary(double minX, double maxX, double minY, double maxY) {
-		Map<String, String> outMap = new TreeMap<String, String>();
+	public Map<String, Double> getBoundary(double minX, double maxX, double minY, double maxY) {
+		Map<String, Double> outMap = new TreeMap<String, Double>();
 		getIntersectBoundary(minX, maxX, minY, maxY);
 
-		outMap.put("minX", this.IntersectMinX + "");
-		outMap.put("maxX", this.IntersectMaxX + "");
-		outMap.put("minY", this.IntersectMinY + "");
-		outMap.put("maxY", this.IntersectMaxY + "");
+		outMap.put("minX", this.IntersectMinX);
+		outMap.put("maxX", this.IntersectMaxX);
+		outMap.put("minY", this.IntersectMinY);
+		outMap.put("maxY", this.IntersectMaxY);
 		return outMap;
 
 	}
 
-	public Map<String, String> getBoundary(AsciiBasicControl boundaryAscii) {
-		Map<String, String> outMap = new TreeMap<String, String>();
+	public Map<String, Double> getBoundary(AsciiBasicControl boundaryAscii) {
+		Map<String, Double> outMap = new TreeMap<String, Double>();
 		Map<String, String> temptProperty = boundaryAscii.getProperty();
 		double boundaryMinX = Double.parseDouble(temptProperty.get("bottomX"));
 		double boundaryMaxX = Double.parseDouble(temptProperty.get("topX"));
@@ -140,10 +140,10 @@ public class AsciiIntersect {
 		double boundaryMinY = Double.parseDouble(temptProperty.get("bottomY"));
 		getIntersectBoundary(boundaryMinX, boundaryMaxX, boundaryMinY, boundaryMaxY);
 
-		outMap.put("minX", this.IntersectMinX + "");
-		outMap.put("maxX", this.IntersectMaxX + "");
-		outMap.put("minY", this.IntersectMinY + "");
-		outMap.put("maxY", this.IntersectMaxY + "");
+		outMap.put("minX", this.IntersectMinX);
+		outMap.put("maxX", this.IntersectMaxX);
+		outMap.put("minY", this.IntersectMinY);
+		outMap.put("maxY", this.IntersectMaxY);
 		return outMap;
 
 	}
