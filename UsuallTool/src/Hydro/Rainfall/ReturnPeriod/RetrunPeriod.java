@@ -2,12 +2,10 @@ package Hydro.Rainfall.ReturnPeriod;
 
 public interface RetrunPeriod {
 
-	public double getPeriodRainfall();
+	public double getPeriodRainfall(int year);
 
-	public void setMeanValue();
+	public double getReturnPeriodCoefficient(int year);
 
-	public void setDistributionParameter();
-
-	public double getChiSquared();
+	public double getMeanValue();
 
 }
