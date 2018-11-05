@@ -34,10 +34,34 @@ public class AsciiIntersect {
 		this.property = ascii.getProperty();
 	}
 
+	/*
+	 * 
+	 */
 	// <===========================>
 	// < get the asciiFile which split by given line>
 	// <===========================>
-	public List<Map<String, Double>> getIntersect(double xCoefficient, double yCoefficient,
+	public Boolean isIntersect(double xCoefficient, double yCoefficient, double intersectCoefficient) {
+		Map<String, Double> boundary = this.ascii.getBoundary();
+
+		double crossTopX = -1 * (yCoefficient * boundary.get("maxY") + intersectCoefficient) / xCoefficient;
+		double crossBottomX = -1 * (yCoefficient * boundary.get("minY") + intersectCoefficient) / xCoefficient;
+		double crossRightY = -1 * (xCoefficient * boundary.get("maxX") + intersectCoefficient) / yCoefficient;
+		double crossLeftY = -1 * (xCoefficient * boundary.get("maxX") + intersectCoefficient) / yCoefficient;
+
+		if (crossTopX <= boundary.get("maxX") && crossTopX >= boundary.get("minX")) {
+			return true;
+		} else if (crossBottomX <= boundary.get("maxX") && crossBottomX >= boundary.get("minX")) {
+			return true;
+		} else if (crossRightY <= boundary.get("maxY") && crossRightY >= boundary.get("minY")) {
+			return true;
+		} else if (crossLeftY <= boundary.get("maxY") && crossLeftY >= boundary.get("minY")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public List<Map<String, Double>> getIntersectSideBoundary(double xCoefficient, double yCoefficient,
 			double intersectCoefficient) {
 		List<Map<String, Double>> outBoundary = new ArrayList<>();
 
@@ -79,36 +103,60 @@ public class AsciiIntersect {
 		return outBoundary;
 	}
 
-	public Boolean isIntersect(double xCoefficient, double yCoefficient, double intersectCoefficient) {
-		Map<String, Double> boundary = this.ascii.getBoundary();
+	public List<AsciiBasicControl> getIntersectSideAscii(double xCoefficient, double yCoefficient,
+			double intersectCoefficient) throws IOException {
 
-		double crossTopX = -1 * (yCoefficient * boundary.get("maxY") + intersectCoefficient) / xCoefficient;
-		double crossBottomX = -1 * (yCoefficient * boundary.get("minY") + intersectCoefficient) / xCoefficient;
-		double crossRightY = -1 * (xCoefficient * boundary.get("maxX") + intersectCoefficient) / yCoefficient;
-		double crossLeftY = -1 * (xCoefficient * boundary.get("maxX") + intersectCoefficient) / yCoefficient;
+		List<AsciiBasicControl> outAsciiList = new ArrayList<>();
+		for (Map<String, Double> temptBoundary : getIntersectSideBoundary(xCoefficient, yCoefficient,
+				intersectCoefficient)) {
+			outAsciiList.add(this.ascii.getClipAsciiFile(temptBoundary));
+		}
+		return outAsciiList;
+	}
 
-		if (crossTopX <= boundary.get("maxX") && crossTopX >= boundary.get("minX")) {
-			return true;
-		} else if (crossBottomX <= boundary.get("maxX") && crossBottomX >= boundary.get("minX")) {
-			return true;
-		} else if (crossRightY <= boundary.get("maxY") && crossRightY >= boundary.get("minY")) {
-			return true;
-		} else if (crossLeftY <= boundary.get("maxY") && crossLeftY >= boundary.get("minY")) {
-			return true;
+	// <=======================================================================>
+
+	/*
+	 * 
+	 */
+	// <=========================>
+	// < get the intersect by giving boundary >
+	// <=========================>
+	public Boolean isIntersect(double minX, double maxX, double minY, double maxY) {
+		// if there is any points of boundary is in the ascii
+		// return true
+		double tmeptCellSize = Double.parseDouble(this.property.get("cellSize"));
+		double temptMinX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * tmeptCellSize;
+		double temptMaxX = Double.parseDouble(this.property.get("topX")) + 0.5 * tmeptCellSize;
+		double temptMinY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * tmeptCellSize;
+		double temptMaxY = Double.parseDouble(this.property.get("topY")) + 0.5 * tmeptCellSize;
+
+		if (temptMinX < maxX && temptMaxX > minX) {
+			if (minY < temptMaxY && maxY > temptMinY) {
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			return false;
 		}
 	}
 
-	// <=========================>
-	// <start from the left top of the asciiGrid>
-	// <=========================>
-	public AsciiBasicControl getIntersect(double minX, double maxX, double minY, double maxY) throws IOException {
-		getIntersectBoundary(minX, maxX, minY, maxY);
-		return this.ascii.getClipAsciiFile(this.IntersectMinX, this.IntersectMinY, this.IntersectMaxX,
-				this.IntersectMaxY);
+	public Map<String, Double> getIntersectBoundary(double minX, double maxX, double minY, double maxY) {
+		return intersectBoundary(minX, maxX, minY, maxY);
 	}
 
+	public AsciiBasicControl getIntersectAscii(double minX, double maxX, double minY, double maxY) throws IOException {
+		return this.ascii.getClipAsciiFile(intersectBoundary(minX, maxX, minY, maxY));
+	}
+	// <=======================================================================>
+
+	/*
+	 * 
+	 */
+	// <=======================>
+	// < get the intersect by giving asciiFile>
+	// <=======================>
 	public Boolean isIntersect(AsciiBasicControl temptAscii) {
 		double cellSize = Double.parseDouble(temptAscii.getProperty().get("cellSize"));
 		double minX = Double.parseDouble(temptAscii.getProperty().get("bottomX")) - 0.5 * cellSize;
@@ -135,6 +183,23 @@ public class AsciiIntersect {
 		}
 	}
 
+	public Map<String, Double> getIntersectBoundary(AsciiBasicControl boundaryAscii) {
+		Map<String, Double> temptProperty = boundaryAscii.getBoundary();
+		return intersectBoundary(temptProperty);
+	}
+
+	public AsciiBasicControl getIntersectAscii(AsciiBasicControl boundaryAscii) throws IOException {
+		Map<String, Double> temptProperty = boundaryAscii.getBoundary();
+		return this.ascii.getClipAsciiFile(intersectBoundary(temptProperty));
+	}
+	// <=================================================================>
+
+	/*
+	 * 
+	 */
+	// <============================>
+	// < get the intersect by giving boundary map>
+	// <============================>
 	public Boolean isIntersect(Map<String, Double> boundary) {
 		double minX = boundary.get("minX");
 		double maxX = boundary.get("maxX");
@@ -160,95 +225,87 @@ public class AsciiIntersect {
 		}
 	}
 
-	public Boolean isIntersect(double minX, double maxX, double minY, double maxY) {
-		// if there is any points of boundary is in the ascii
-		// return true
-		double tmeptCellSize = Double.parseDouble(this.property.get("cellSize"));
-		double temptMinX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * tmeptCellSize;
-		double temptMaxX = Double.parseDouble(this.property.get("topX")) + 0.5 * tmeptCellSize;
-		double temptMinY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * tmeptCellSize;
-		double temptMaxY = Double.parseDouble(this.property.get("topY")) + 0.5 * tmeptCellSize;
+	public Map<String, Double> getIntersectBoundary(Map<String, Double> boundary) {
+		return intersectBoundary(boundary);
+	}
 
-		if (temptMinX < maxX && temptMaxX > minX) {
-			if (minY < temptMaxY && maxY > temptMinY) {
-				return true;
-			} else {
-				return false;
-			}
+	public AsciiBasicControl getIntersectAscii(Map<String, Double> boundary) throws IOException {
+		return this.ascii.getClipAsciiFile(intersectBoundary(boundary));
+	}
+	// <=============================================================>
+
+	/*
+	 * 
+	 * private function
+	 */
+	// <===========================================================>
+	private Map<String, Double> intersectBoundary(Map<String, Double> temptBoundary) {
+		Map<String, Double> boundary = this.ascii.getBoundary();
+		if (boundary.get("minX") > temptBoundary.get("minX")) {
+			this.IntersectMinX = boundary.get("minX");
 		} else {
-			return false;
+			this.IntersectMinX = temptBoundary.get("minX");
 		}
+
+		if (boundary.get("minY") > temptBoundary.get("minY")) {
+			this.IntersectMinY = boundary.get("minY");
+		} else {
+			this.IntersectMinY = temptBoundary.get("minY");
+		}
+
+		if (boundary.get("maxX") < temptBoundary.get("maxX")) {
+			this.IntersectMaxX = boundary.get("maxX");
+		} else {
+			this.IntersectMaxX = temptBoundary.get("maxX");
+		}
+
+		if (boundary.get("maxY") < temptBoundary.get("maxY")) {
+			this.IntersectMaxY = boundary.get("maxY");
+		} else {
+			this.IntersectMaxY = temptBoundary.get("maxY");
+		}
+
+		Map<String, Double> outBoundary = new TreeMap<String, Double>();
+		outBoundary.put("minX", IntersectMinX);
+		outBoundary.put("maxX", IntersectMaxX);
+		outBoundary.put("minY", IntersectMinY);
+		outBoundary.put("maxY", IntersectMaxY);
+
+		return outBoundary;
 	}
 
-	public AsciiBasicControl getIntersect(AsciiBasicControl boundaryAscii) throws IOException {
-		Map<String, String> temptProperty = boundaryAscii.getProperty();
-		double boundaryMinX = Double.parseDouble(temptProperty.get("bottomX"));
-		double boundaryMaxX = Double.parseDouble(temptProperty.get("topX"));
-		double boundaryMaxY = Double.parseDouble(temptProperty.get("topY"));
-		double boundaryMinY = Double.parseDouble(temptProperty.get("bottomY"));
-		getIntersectBoundary(boundaryMinX, boundaryMaxX, boundaryMinY, boundaryMaxY);
-		return this.ascii.getClipAsciiFile(this.IntersectMinX, this.IntersectMinY, this.IntersectMaxX,
-				this.IntersectMaxY);
-	}
-
-	public Map<String, Double> getBoundary(double minX, double maxX, double minY, double maxY) {
-		Map<String, Double> outMap = new TreeMap<String, Double>();
-		getIntersectBoundary(minX, maxX, minY, maxY);
-
-		outMap.put("minX", this.IntersectMinX);
-		outMap.put("maxX", this.IntersectMaxX);
-		outMap.put("minY", this.IntersectMinY);
-		outMap.put("maxY", this.IntersectMaxY);
-		return outMap;
-
-	}
-
-	public Map<String, Double> getBoundary(AsciiBasicControl boundaryAscii) {
-		Map<String, Double> outMap = new TreeMap<String, Double>();
-		Map<String, String> temptProperty = boundaryAscii.getProperty();
-		double boundaryMinX = Double.parseDouble(temptProperty.get("bottomX"));
-		double boundaryMaxX = Double.parseDouble(temptProperty.get("topX"));
-		double boundaryMaxY = Double.parseDouble(temptProperty.get("topY"));
-		double boundaryMinY = Double.parseDouble(temptProperty.get("bottomY"));
-		getIntersectBoundary(boundaryMinX, boundaryMaxX, boundaryMinY, boundaryMaxY);
-
-		outMap.put("minX", this.IntersectMinX);
-		outMap.put("maxX", this.IntersectMaxX);
-		outMap.put("minY", this.IntersectMinY);
-		outMap.put("maxY", this.IntersectMaxY);
-		return outMap;
-
-	}
-
-	private void getIntersectBoundary(double minX, double maxX, double minY, double maxY) {
-		double cellSize = Double.parseDouble(this.property.get("cellSize"));
-		double temptMinX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
-		double temptMaxX = Double.parseDouble(this.property.get("topX")) + 0.5 * cellSize;
-		double temptMaxY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
-		double temptMinY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * cellSize;
-
-		if (temptMinX > minX) {
-			this.IntersectMinX = temptMinX;
+	private Map<String, Double> intersectBoundary(double minX, double maxX, double minY, double maxY) {
+		Map<String, Double> boundary = this.ascii.getBoundary();
+		if (boundary.get("minX") > minX) {
+			this.IntersectMinX = boundary.get("minX");
 		} else {
 			this.IntersectMinX = minX;
 		}
 
-		if (temptMinY > minY) {
-			this.IntersectMinY = temptMinY;
+		if (boundary.get("minY") > minY) {
+			this.IntersectMinY = boundary.get("minY");
 		} else {
 			this.IntersectMinY = minY;
 		}
 
-		if (temptMaxX < maxX) {
-			this.IntersectMaxX = temptMaxX;
+		if (boundary.get("maxX") < maxX) {
+			this.IntersectMaxX = boundary.get("maxX");
 		} else {
 			this.IntersectMaxX = maxX;
 		}
 
-		if (temptMaxY < maxY) {
-			this.IntersectMaxY = temptMaxY;
+		if (boundary.get("maxY") < maxY) {
+			this.IntersectMaxY = boundary.get("maxY");
 		} else {
 			this.IntersectMaxY = maxY;
 		}
+
+		Map<String, Double> outBoundary = new TreeMap<String, Double>();
+		outBoundary.put("minX", IntersectMinX);
+		outBoundary.put("maxX", IntersectMaxX);
+		outBoundary.put("minY", IntersectMinY);
+		outBoundary.put("maxY", IntersectMaxY);
+
+		return outBoundary;
 	}
 }
