@@ -1,8 +1,14 @@
 package asciiFunction;
 
+import java.awt.geom.Path2D;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import geo.path.IntersectLine;
+import usualTool.AtCommonMath;
 
 public class AsciiIntersect {
 	private AsciiBasicControl ascii;
@@ -28,10 +34,76 @@ public class AsciiIntersect {
 		this.property = ascii.getProperty();
 	}
 
+	// <===========================>
+	// < get the asciiFile which split by given line>
+	// <===========================>
+	public List<Map<String, Double>> getIntersect(double xCoefficient, double yCoefficient,
+			double intersectCoefficient) {
+		List<Map<String, Double>> outBoundary = new ArrayList<>();
+
+		Map<String, Double> boundary = this.ascii.getBoundary();
+		Path2D temptPath = new Path2D.Double();
+		temptPath.moveTo(boundary.get("minX"), boundary.get("maxY"));
+		temptPath.lineTo(boundary.get("minX"), boundary.get("minY"));
+		temptPath.lineTo(boundary.get("maxX"), boundary.get("minY"));
+		temptPath.lineTo(boundary.get("maxX"), boundary.get("maxY"));
+
+		List<List<Double[]>> sidePoints = new IntersectLine(temptPath).getSidePoints(xCoefficient, yCoefficient,
+				intersectCoefficient);
+
+		for (int index = 0; index < sidePoints.size(); index++) {
+			List<Double> temptXList = new ArrayList<Double>();
+			List<Double> temptYList = new ArrayList<Double>();
+
+			List<Double[]> temptPoints = sidePoints.get(index);
+			temptPoints.forEach(point -> {
+				temptXList.add(point[0]);
+				temptYList.add(point[1]);
+			});
+			AtCommonMath xStatics = new AtCommonMath(temptXList);
+			AtCommonMath yStatics = new AtCommonMath(temptYList);
+			double minX = xStatics.getMin();
+			double maxX = xStatics.getMax();
+			double minY = yStatics.getMin();
+			double maxY = yStatics.getMax();
+
+			Map<String, Double> temptBoundary = new TreeMap<>();
+			temptBoundary.put("maxX", maxX);
+			temptBoundary.put("minX", minX);
+			temptBoundary.put("minY", minY);
+			temptBoundary.put("maxY", maxY);
+
+			outBoundary.add(temptBoundary);
+		}
+
+		return outBoundary;
+	}
+
+	public Boolean isIntersect(double xCoefficient, double yCoefficient, double intersectCoefficient) {
+		Map<String, Double> boundary = this.ascii.getBoundary();
+
+		double crossTopX = -1 * (yCoefficient * boundary.get("maxY") + intersectCoefficient) / xCoefficient;
+		double crossBottomX = -1 * (yCoefficient * boundary.get("minY") + intersectCoefficient) / xCoefficient;
+		double crossRightY = -1 * (xCoefficient * boundary.get("maxX") + intersectCoefficient) / yCoefficient;
+		double crossLeftY = -1 * (xCoefficient * boundary.get("maxX") + intersectCoefficient) / yCoefficient;
+
+		if (crossTopX <= boundary.get("maxX") && crossTopX >= boundary.get("minX")) {
+			return true;
+		} else if (crossBottomX <= boundary.get("maxX") && crossBottomX >= boundary.get("minX")) {
+			return true;
+		} else if (crossRightY <= boundary.get("maxY") && crossRightY >= boundary.get("minY")) {
+			return true;
+		} else if (crossLeftY <= boundary.get("maxY") && crossLeftY >= boundary.get("minY")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	// <=========================>
 	// <start from the left top of the asciiGrid>
 	// <=========================>
-	public String[][] getIntersect(double minX, double maxX, double minY, double maxY) {
+	public AsciiBasicControl getIntersect(double minX, double maxX, double minY, double maxY) throws IOException {
 		getIntersectBoundary(minX, maxX, minY, maxY);
 		return this.ascii.getClipAsciiFile(this.IntersectMinX, this.IntersectMinY, this.IntersectMaxX,
 				this.IntersectMaxY);
@@ -108,7 +180,7 @@ public class AsciiIntersect {
 		}
 	}
 
-	public String[][] getIntersect(AsciiBasicControl boundaryAscii) {
+	public AsciiBasicControl getIntersect(AsciiBasicControl boundaryAscii) throws IOException {
 		Map<String, String> temptProperty = boundaryAscii.getProperty();
 		double boundaryMinX = Double.parseDouble(temptProperty.get("bottomX"));
 		double boundaryMaxX = Double.parseDouble(temptProperty.get("topX"));

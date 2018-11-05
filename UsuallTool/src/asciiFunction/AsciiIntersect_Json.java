@@ -69,11 +69,11 @@ public class AsciiIntersect_Json {
 		return outJson;
 	}
 
-	public List<String[][]> getIntersectAscii(AsciiBasicControl ascii) {
+	public List<AsciiBasicControl> getIntersectAscii(AsciiBasicControl ascii) throws IOException {
 		// setting ascii
 		this.ascii = ascii;
 		this.property = ascii.getProperty();
-		List<String[][]> outAsciiList = new ArrayList<String[][]>();
+		List<AsciiBasicControl> outAsciiList = new ArrayList<AsciiBasicControl>();
 
 		// get each features
 		for (JsonElement feature : this.geoJson.get("features").getAsJsonArray()) {
@@ -99,8 +99,8 @@ public class AsciiIntersect_Json {
 	// <====================================>
 	// <Get the series Ascii file clip by the GeoJson>
 	// <====================================>
-	public List<List<String[][]>> getSeriesintersectAscii(List<AsciiBasicControl> asciiList) {
-		List<List<String[][]>> outList = new ArrayList<List<String[][]>>();
+	public List<List<AsciiBasicControl>> getSeriesintersectAscii(List<AsciiBasicControl> asciiList) throws IOException {
+		List<List<AsciiBasicControl>> outList = new ArrayList<List<AsciiBasicControl>>();
 		for (JsonElement feature : this.geoJson.get("features").getAsJsonArray()) {
 
 			// get the each polygons in json file
@@ -116,7 +116,7 @@ public class AsciiIntersect_Json {
 			double minY = temptBound.getMinY();
 
 			// get each ascii
-			List<String[][]> featureAscii = new ArrayList<String[][]>();
+			List<AsciiBasicControl> featureAscii = new ArrayList<AsciiBasicControl>();
 			for (AsciiBasicControl temptAscii : asciiList) {
 
 				// setting the ascii

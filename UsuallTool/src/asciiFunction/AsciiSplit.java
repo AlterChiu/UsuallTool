@@ -14,7 +14,7 @@ public class AsciiSplit {
 	private List<Integer> xMinList;
 	private List<Integer> yMaxList;
 	private List<Integer> yMinList;
-	private List<String[][]> outList = new ArrayList<String[][]>();
+	private List<AsciiBasicControl> outList = new ArrayList<AsciiBasicControl>();
 	private String splitModel = "column";
 
 	// <===============> <=============================== >
@@ -40,7 +40,7 @@ public class AsciiSplit {
 
 	private List<Integer[]> getSplitNode() {
 		List<Integer[]> outList = new ArrayList<Integer[]>();
-		int totalLength = Integer.parseInt(this.asciiProperty.get(this.splitModel))-1;
+		int totalLength = Integer.parseInt(this.asciiProperty.get(this.splitModel)) - 1;
 		int splitGridNum = new BigDecimal(totalLength / splitNum).setScale(0, BigDecimal.ROUND_UP).intValue();
 
 		// <Get the node have to split>
@@ -56,14 +56,14 @@ public class AsciiSplit {
 		for (int index = 1; index < splitNode.size() - 1; index++) {
 			outList.add(new Integer[] { splitNode.get(index - 1), splitNode.get(index) });
 		}
-		outList.add(new Integer[] { totalLength - splitGridNum  , totalLength});
+		outList.add(new Integer[] { totalLength - splitGridNum, totalLength });
 
 		return outList;
 	}
 
-	//<==================================================>
-	//<                                 Set the clip boundary from zero to max                         >
-	//<==================================================>
+	// <==================================================>
+	// < Set the clip boundary from zero to max >
+	// <==================================================>
 	private void setBoundary() {
 		xMaxList = new ArrayList<Integer>();
 		xMinList = new ArrayList<Integer>();
@@ -71,9 +71,9 @@ public class AsciiSplit {
 		yMinList = new ArrayList<Integer>();
 
 		for (int index = 0; index < this.splitNum; index++) {
-			xMaxList.add(Integer.parseInt(this.asciiProperty.get("column"))-1);
+			xMaxList.add(Integer.parseInt(this.asciiProperty.get("column")) - 1);
 			xMinList.add(0);
-			yMaxList.add(Integer.parseInt(this.asciiProperty.get("row"))-1);
+			yMaxList.add(Integer.parseInt(this.asciiProperty.get("row")) - 1);
 			yMinList.add(0);
 		}
 	}
@@ -84,8 +84,8 @@ public class AsciiSplit {
 		yMaxList.clear();
 		yMinList.clear();
 	}
-	
-	//<======================================================>
+
+	// <======================================================>
 	private void setStraightBoundary() {
 		List<Integer[]> splitNode = getSplitNode();
 		this.xMaxList.clear();
@@ -108,7 +108,7 @@ public class AsciiSplit {
 		}
 	}
 
-	private void clipBoundary() {
+	private void clipBoundary() throws IOException {
 		outList.clear();
 		for (int index = 0; index < this.xMinList.size(); index++) {
 			outList.add(this.asciiControl.getClipAsciiFile(this.xMinList.get(index), this.yMinList.get(index),
@@ -121,7 +121,7 @@ public class AsciiSplit {
 	// <------------------------------->
 
 	// output will be two asciiFile up and down
-	public List<String[][]> straightSplit(int splitNum) {
+	public List<AsciiBasicControl> straightSplit(int splitNum) throws IOException {
 		this.splitModel = "column";
 		this.splitNum = splitNum;
 		setBoundary();
@@ -132,7 +132,7 @@ public class AsciiSplit {
 	}
 
 	// output will be two asciiFile left and right
-	public List<String[][]> horizontalSplit(int splitNum) {
+	public List<AsciiBasicControl> horizontalSplit(int splitNum) throws IOException {
 		this.splitModel = "row";
 		this.splitNum = splitNum;
 		setBoundary();
@@ -140,7 +140,7 @@ public class AsciiSplit {
 		clipBoundary();
 		clear();
 		return this.outList;
-		
+
 	}
 
 }

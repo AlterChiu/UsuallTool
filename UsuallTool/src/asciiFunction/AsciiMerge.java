@@ -89,17 +89,13 @@ public class AsciiMerge {
 	}
 	// <=========================================>
 
-	public List<String[]> saveMergedAscii(String saveAdd) throws IOException {
-		List<String[]> temptList = this.getMergedAscii();
-		new AtFileWriter(temptList.parallelStream().toArray(String[][]::new), saveAdd).textWriter("    ");
+	public AsciiBasicControl saveMergedAscii(String saveAdd) throws IOException {
+		AsciiBasicControl temptList = this.getMergedAscii();
+		new AtFileWriter(temptList.getAsciiFile(), saveAdd).textWriter("    ");
 		return temptList;
 	}
 
-	public String[][] getMergedAsciiFile() {
-		return this.getMergedAscii().parallelStream().toArray(String[][]::new);
-	}
-
-	public List<String[]> getMergedAscii() {
+	public AsciiBasicControl getMergedAscii() throws IOException {
 		getMergeBoundary();
 		resetBoundary();
 		List<String[]> asciiGrid = setGridValue();
@@ -110,7 +106,7 @@ public class AsciiMerge {
 		asciiGrid.add(0, new String[] { "xllCenter", this.boundaryMap.get("bottomX") + "" });
 		asciiGrid.add(0, new String[] { "nrows", this.boundaryMap.get("row").intValue() + "" });
 		asciiGrid.add(0, new String[] { "ncols", this.boundaryMap.get("column").intValue() + "" });
-		return asciiGrid;
+		return new AsciiBasicControl(asciiGrid.parallelStream().toArray(String[][]::new));
 	}
 
 	private List<String[]> setGridValue() {
@@ -128,7 +124,7 @@ public class AsciiMerge {
 
 				// check for each asciiList
 				for (AsciiBasicControl ascii : this.asciiList) {
-					
+
 					if (ascii.isContain(temptCenterX, temptCenterY)) {
 						String nullValue = ascii.getProperty().get("noData");
 

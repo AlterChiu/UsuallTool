@@ -13,11 +13,13 @@ public class ReturnPeriod_PT3 implements RetrunPeriod {
 
 	public ReturnPeriod_PT3(List<Double> valueList) {
 		this.commonMath = new AtCommonMath(valueList);
+		int valueSize = valueList.size();
 		valueList.clear();
 
 		this.mean = this.commonMath.getMean();
 		this.dis = this.commonMath.getStd();
-		this.sk = this.commonMath.getSkewness();
+		this.sk = this.commonMath.getSkewness() * Math.sqrt((valueSize * (valueSize - 1))) / (valueSize - 2)
+				* (1 + 8.5 / valueSize);
 	}
 
 	@Override

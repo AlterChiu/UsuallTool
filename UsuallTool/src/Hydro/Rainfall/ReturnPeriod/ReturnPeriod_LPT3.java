@@ -18,12 +18,14 @@ public class ReturnPeriod_LPT3 implements RetrunPeriod {
 		List<Double> adjustedList = new ArrayList<Double>(
 				valueList.stream().map(value -> Math.log(value)).collect(Collectors.toList()));
 		this.commonMath = new AtCommonMath(adjustedList);
+		int valueSize = valueList.size();
 		this.valueList.clear();
 		adjustedList.clear();
 
 		this.mean = this.commonMath.getMean();
 		this.dis = this.commonMath.getStd();
-		this.sk = this.commonMath.getSkewness();
+		this.sk = this.commonMath.getSkewness() * Math.sqrt((valueSize * (valueSize - 1))) / (valueSize - 2)
+				* (1 + 8.5 / valueSize);
 	}
 
 	@Override

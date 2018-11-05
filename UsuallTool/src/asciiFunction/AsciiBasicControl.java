@@ -252,7 +252,7 @@ public class AsciiBasicControl {
 
 	// <getting the asciiGrid by setting the coordinate>
 	// <______________________________________________________________________________________________>
-	public String[][] getClipAsciiFile(Map<String, Double> boundary) {
+	public AsciiBasicControl getClipAsciiFile(Map<String, Double> boundary) throws IOException {
 		double minX = boundary.get("minX");
 		double maxX = boundary.get("maxX");
 		double minY = boundary.get("minY");
@@ -261,7 +261,7 @@ public class AsciiBasicControl {
 		return getClipAsciiFile(minX, minY, maxX, maxY);
 	}
 
-	public String[][] getClipAsciiFile(double minX, double minY, double maxX, double maxY) {
+	public AsciiBasicControl getClipAsciiFile(double minX, double minY, double maxX, double maxY) throws IOException {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
 		double cellSize = Double.parseDouble(property.get("cellSize"));
 
@@ -292,7 +292,7 @@ public class AsciiBasicControl {
 			asciiGrid.add(temptLine.parallelStream().toArray(String[]::new));
 		}
 
-		return asciiGrid.parallelStream().toArray(String[][]::new);
+		return new AsciiBasicControl(asciiGrid.parallelStream().toArray(String[][]::new));
 	}
 
 	// <============================================================================>
