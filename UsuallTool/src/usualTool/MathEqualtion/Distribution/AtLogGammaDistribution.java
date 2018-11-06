@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math3.distribution.GammaDistribution;
-import org.apache.commons.math3.distribution.NormalDistribution;
 
 import usualTool.AtCommonMath;
 
@@ -87,21 +86,55 @@ public class AtLogGammaDistribution implements AtDistribution {
 
 	@Override
 	public double getValue(double cumulative) {
-		return Math.exp(distribution.cumulativeProbability(cumulative));
+		double minValue = this.distribution.getSupportLowerBound();
+		if (minValue < -9999) {
+			minValue = -9999;
+		}
+
+		double maxValue = this.distribution.getSupportUpperBound();
+		if (maxValue > 9999) {
+			maxValue = 9999;
+		}
+
+		double temptValue = (minValue + maxValue) / 2;
+		double tempCum = this.getCumulative(temptValue);
+		int convergenceTime = 0;
+
+		// convergence to close cumulative by precise is 1%
+		while (Math.abs(tempCum - cumulative) > 0.005 && convergenceTime < 20) {
+			// move to left
+			if (tempCum > cumulative) {
+				maxValue = temptValue;
+				temptValue = (minValue + maxValue) / 2;
+
+				// move to right
+			} else {
+				minValue = temptValue;
+				temptValue = (minValue + maxValue) / 2;
+			}
+			tempCum = this.getCumulative(temptValue);
+		}
+
+		return Math.exp(temptValue);
 	}
 
 	@Override
 	public double getMaxValue() {
-		return Math.exp(distribution.cumulativeProbability(0.9999));
+		return getValue(0.99);
 	}
 
 	@Override
 	public double getMinValue() {
-		return Math.exp(distribution.cumulativeProbability(0.0001));
+		return getValue(0.01);
 	}
 
 	@Override
 	public void setPointScale(int scale) {
 		pointScale = scale;
+	}
+
+	@Override
+	public double getCumulative(double x) {
+		return Math.exp(distribution.cumulativeProbability(x));
 	}
 }

@@ -68,17 +68,46 @@ public class AtLogNormalDistribuition implements AtDistribution {
 
 	@Override
 	public double getValue(double cumulative) {
-		return Math.exp(distribution.cumulativeProbability(cumulative));
+		double minValue = this.distribution.getSupportLowerBound();
+		if (minValue < -9999) {
+			minValue = -9999;
+		}
+
+		double maxValue = this.distribution.getSupportUpperBound();
+		if (maxValue > 9999) {
+			maxValue = 9999;
+		}
+
+		double temptValue = (minValue + maxValue) / 2;
+		double tempCum = this.getCumulative(temptValue);
+		int convergenceTime = 0;
+
+		// convergence to close cumulative by precise is 1%
+		while (Math.abs(tempCum - cumulative) > 0.005 && convergenceTime < 20) {
+			// move to left
+			if (tempCum > cumulative) {
+				maxValue = temptValue;
+				temptValue = (minValue + maxValue) / 2;
+
+				// move to right
+			} else {
+				minValue = temptValue;
+				temptValue = (minValue + maxValue) / 2;
+			}
+			tempCum = this.getCumulative(temptValue);
+		}
+
+		return Math.exp(temptValue);
 	}
 
 	@Override
 	public double getMaxValue() {
-		return Math.exp(distribution.cumulativeProbability(0.9999));
+		return getValue(0.99);
 	}
 
 	@Override
 	public double getMinValue() {
-		return Math.exp(distribution.cumulativeProbability(0.0001));
+		return getValue(0.00);
 	}
 
 	@Override
@@ -93,5 +122,10 @@ public class AtLogNormalDistribuition implements AtDistribution {
 	public double getStandarDeviation() {
 		return Math.exp(this.standarDeviation);
 
+	}
+
+	@Override
+	public double getCumulative(double x) {
+		return Math.exp(this.mean);
 	}
 }

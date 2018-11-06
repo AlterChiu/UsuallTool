@@ -67,18 +67,47 @@ public class AtGammaDistribution implements AtDistribution {
 	}
 
 	@Override
-	public double getValue(double x) {
-		return distribution.cumulativeProbability(x);
+	public double getValue(double cumulative) {
+		double minValue = this.distribution.getSupportLowerBound();
+		if (minValue < -9999) {
+			minValue = -9999;
+		}
+
+		double maxValue = this.distribution.getSupportUpperBound();
+		if (maxValue > 9999) {
+			maxValue = 9999;
+		}
+
+		double temptValue = (minValue + maxValue) / 2;
+		double tempCum = this.getCumulative(temptValue);
+		int convergenceTime = 0;
+
+		// convergence to close cumulative by precise is 1%
+		while (Math.abs(tempCum - cumulative) > 0.005 && convergenceTime < 20) {
+			// move to left
+			if (tempCum > cumulative) {
+				maxValue = temptValue;
+				temptValue = (minValue + maxValue) / 2;
+
+				// move to right
+			} else {
+				minValue = temptValue;
+				temptValue = (minValue + maxValue) / 2;
+			}
+			tempCum = this.getCumulative(temptValue);
+		}
+
+		return temptValue;
 	}
 
 	@Override
 	public double getMaxValue() {
-		return distribution.cumulativeProbability(0.9999);
+		return getValue(0.99);
 	}
 
 	@Override
 	public double getMinValue() {
-		return distribution.cumulativeProbability(0.0001);
+		return getValue(0.01);
 	}
 
 	@Override
@@ -92,6 +121,11 @@ public class AtGammaDistribution implements AtDistribution {
 
 	public double getShape() {
 		return this.shape;
+	}
+
+	@Override
+	public double getCumulative(double x) {
+		return distribution.cumulativeProbability(x);
 	}
 
 }

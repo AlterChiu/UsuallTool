@@ -10,6 +10,8 @@ public interface AtDistribution {
 
 	public double getProbability(double lowBoundary, double upBoundary);
 
+	public double getCumulative(double x);
+
 	public double getValue(double cumulative);
 
 	public double getMaxValue();

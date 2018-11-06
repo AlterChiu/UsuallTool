@@ -92,6 +92,11 @@ public class AtCommonMath {
 		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
+	// begin from the minValue
+	public List<Double> getSortedList() {
+		return this.sortedList;
+	}
+
 	public final void clear() {
 		this.sortedList.clear();
 		this.ds.clear();
