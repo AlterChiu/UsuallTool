@@ -6,10 +6,15 @@ public interface AtDistribution {
 
 	public double getIntRandom();
 
-	public double getPossibility(double x);
-	
-	public double getValue(double possibility);
-	
-	public double get
+	public double getProbability(double x);
 
+	public double getProbability(double lowBoundary, double upBoundary);
+
+	public double getValue(double cumulative);
+
+	public double getMaxValue();
+
+	public double getMinValue();
+
+	public void setPointScale(int scale);
 }
