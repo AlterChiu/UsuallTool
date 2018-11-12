@@ -81,7 +81,8 @@ public class ChiSquareChecking {
 
 			// get the possibility from data
 			int totalSize = this.valueList.size();
-			List<Double> groupValues = this.groupMap.get(limits.get(index + 1));
+			List<Double> groupValues = this.groupMap.get(limits.get(index + 1)); 
+			
 			double possibilityData = groupValues.size() / totalSize;
 
 			// get group chiSquare

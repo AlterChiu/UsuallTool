@@ -3,6 +3,7 @@ package geo.gdal;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.File;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,6 @@ import org.gdal.ogr.Geometry;
 import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
 import org.gdal.osr.SpatialReference;
-
 
 public class SpatialWriter {
 	private List<Geometry> geometryList = new ArrayList<Geometry>();
@@ -166,10 +166,10 @@ public class SpatialWriter {
 
 		for (; !temptPathIteratore.isDone(); temptPathIteratore.next()) {
 			temptPathIteratore.currentSegment(coordinate);
-			sb.append("[" +coordinate[0] + "," + coordinate[1] + "],");
+			sb.append("[" + coordinate[0] + "," + coordinate[1] + "],");
 		}
 		sb.append("[" + startX + "," + startY + "] ]] }");
-		
+
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
@@ -225,15 +225,29 @@ public class SpatialWriter {
 		// add feature
 		for (int index = 0; index < this.geometryList.size(); index++) {
 			Feature feature = new Feature(outLayer.GetLayerDefn());
-			
+
 			// attribute value
 			try {
 				for (String attributeKey : attribute.get(index).keySet()) {
-					feature.SetField(attributeKey, (String) attribute.get(index).get(attributeKey));
+
+					String type = this.fieldType.get(attributeKey).toUpperCase();
+					if (type.equals("STRING") || type.equals("CHAR") || type.equals("STR") || type.equals("CHARATER")) {
+						feature.SetField(attributeKey, (String) attribute.get(index).get(attributeKey));
+
+					} else if (type.equals("DOUBLE") || type.equals("FLOAT") || type.equals("REAL")) {
+						feature.SetField(attributeKey, (Double) attribute.get(index).get(attributeKey));
+
+					} else if (type.equals("INT") || type.equals("INTEGER")) {
+						feature.SetField(attributeKey, (Integer) attribute.get(index).get(attributeKey));
+
+					} else if (type.equals("DATE") || type.equals("TIME")) {
+						feature.SetField(attributeKey, (Double) attribute.get(index).get(attributeKey));
+					}
+
 				}
 			} catch (Exception e) {
 			}
-			
+
 			// geometry
 			feature.SetGeometry(this.geometryList.get(index));
 			outLayer.CreateFeature(feature);
