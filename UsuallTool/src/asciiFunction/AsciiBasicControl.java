@@ -265,8 +265,7 @@ public class AsciiBasicControl {
 	public AsciiBasicControl getClipAsciiFile(double minX, double minY, double maxX, double maxY) throws IOException {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
 		double cellSize = Double.parseDouble(property.get("cellSize"));
-		Map<String, Double> temptBoundary = new AsciiIntersect(this.asciiContent).getIntersectBoundary(minX, maxX, minY,
-				maxY);
+		Map<String, Double> temptBoundary = this.getIntersectBoundary(minX, maxX, minY, maxY);
 
 		minX = new BigDecimal(temptBoundary.get("minX") + 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP)
 				.doubleValue();
