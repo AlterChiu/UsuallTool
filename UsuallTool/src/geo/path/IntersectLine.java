@@ -52,6 +52,7 @@ public class IntersectLine {
 		this.yCoefficient = yCoefficient;
 		this.interceptLength = interceptLength;
 
+		// insert the path point
 		for (Double[] point : this.pathPoints) {
 			int side = getPointSide(point[0], point[1]);
 			if (side < 0) {
@@ -63,6 +64,13 @@ public class IntersectLine {
 				positiveSide.add(point);
 			}
 		}
+
+		// insert the intersect point
+		this.getInterceptPoints(xCoefficient, yCoefficient, interceptLength).forEach(point -> {
+			nagtiveSide.add(point);
+			positiveSide.add(point);
+		});
+		
 		outList.add(positiveSide);
 		outList.add(nagtiveSide);
 

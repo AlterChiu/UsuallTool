@@ -437,7 +437,7 @@ public class AsciiBasicControl {
 
 		List<List<Double[]>> sidePoints = new IntersectLine(temptPath).getSidePoints(xCoefficient, yCoefficient,
 				intersectCoefficient);
-
+		
 		for (int index = 0; index < sidePoints.size(); index++) {
 			List<Double> temptXList = new ArrayList<Double>();
 			List<Double> temptYList = new ArrayList<Double>();
