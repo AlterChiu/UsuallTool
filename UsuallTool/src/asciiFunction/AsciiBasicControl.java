@@ -293,7 +293,8 @@ public class AsciiBasicControl {
 		for (int line = topPosition[1]; line <= bottomPosition[1]; line++) {
 			ArrayList<String> temptLine = new ArrayList<String>();
 			for (int column = bottomPosition[0]; column <= topPosition[0]; column++) {
-				temptLine.add(this.asciiGrid[line][column]);
+				double coordinate[] = this.getCoordinate(column, line);
+				temptLine.add(this.getValue(coordinate[0], coordinate[1]));
 			}
 			asciiGrid.add(temptLine.parallelStream().toArray(String[]::new));
 		}
@@ -437,7 +438,7 @@ public class AsciiBasicControl {
 
 		List<List<Double[]>> sidePoints = new IntersectLine(temptPath).getSidePoints(xCoefficient, yCoefficient,
 				intersectCoefficient);
-		
+
 		for (int index = 0; index < sidePoints.size(); index++) {
 			List<Double> temptXList = new ArrayList<Double>();
 			List<Double> temptYList = new ArrayList<Double>();
