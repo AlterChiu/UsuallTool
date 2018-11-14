@@ -28,10 +28,16 @@ public class testAtCommon {
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method
 
-		AsciiBasicControl ascii = new AsciiBasicControl("E:\\mapReduce\\modelTest\\OriginalDEM\\ZoneU1_20m.asc");
-		List<Map<String, Double>> boudnarys = ascii.getIntersectSideBoundary(1, 0, -164791);
-
-		boudnarys.forEach(e -> System.out.println(e.get("minX") + "\t" + e.get("maxX")));
-
+		AsciiBasicControl ascii = new AsciiBasicControl("E:\\mapReduce\\modelTest\\tempt\\merge.asc");
+		
+		System.out.println(ascii.getBoundary().get("minX") + "\t" + ascii.getBoundary().get("maxX"));
+		
+		Map<String, Double> boundary = new TreeMap<>();
+		boundary.put("minX", 154862.5);
+		boundary.put("maxX", 167587.5);
+		boundary.put("minY", 2545734.5);
+		boundary.put("maxY", 2558394.5);
+		
+//		new AtFileWriter(ascii.getClipAsciiFile(boundary).getAsciiFile() , "E:\\mapReduce\\modelTest\\tempt\\test02.asc").textWriter(" ");
 	}
 }

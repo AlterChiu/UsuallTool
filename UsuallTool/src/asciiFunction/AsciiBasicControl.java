@@ -19,9 +19,14 @@ public class AsciiBasicControl {
 	private Map<String, Double> boundary;
 	private String[][] asciiGrid;
 
-	// <==============>
-	// < constructor function>
-	// <==============>
+	/*
+	 * 
+	 */
+	// <=============================================>
+	// < =================Constructor Function==============>
+	// <=============================================>
+
+	// <________________________________________________________________________>
 	public AsciiBasicControl(String[][] asciiContent) throws IOException {
 		this.asciiContent = asciiContent;
 		cutFirstColumn();
@@ -39,9 +44,8 @@ public class AsciiBasicControl {
 		this.asciiGrid = this.getAsciiGrid();
 	}
 
-	// <=========================>
 	// < using while ascii file start by a space >
-	// <=========================>
+	// <________________________________________________________________________>
 	private AsciiBasicControl cutFirstColumn() throws IOException {
 		// function for the open file
 		if (this.asciiContent[6][0].equals("")) {
@@ -53,10 +57,62 @@ public class AsciiBasicControl {
 		}
 		return this;
 	}
+	// <=============================================>
 
-	// <====================>
-	// < get the read asciiFile property>
-	// <====================>
+	/*
+	 * 
+	 */
+	// <=============================================>
+	// < ==================Boundary Function==============>
+	// <=============================================>
+
+	// <________________________________________________________________________>
+	public Map<String, Double> getBoundary() {
+		return this.boundary;
+	}
+
+	private void setBoundary() {
+		Map<String, Double> boundary = new TreeMap<String, Double>();
+		double cellSize = Double.parseDouble(this.property.get("cellSize"));
+
+		double minX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
+		double maxX = Double.parseDouble(this.property.get("topX")) + 0.5 * cellSize;
+		double minY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * cellSize;
+		double maxY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
+
+		boundary.put("minX", minX);
+		boundary.put("maxX", maxX);
+		boundary.put("minY", minY);
+		boundary.put("maxY", maxY);
+		this.boundary = boundary;
+	}
+	// <=============================================>
+
+	/*
+	 * 
+	 */
+	// <=============================================>
+	// < ===================Property Function==============>
+	// <=============================================>
+
+	// <________________________________________________________________________>
+	public Map<String, String> getProperty() {
+		return this.property;
+	}
+
+	public String[][] getPropertyText() {
+		ArrayList<String[]> temptTree = new ArrayList<String[]>();
+
+		temptTree.add(new String[] { "ncols", this.asciiContent[0][1] });
+		temptTree.add(new String[] { "nrows", this.asciiContent[1][1] });
+		temptTree.add(new String[] { "xllcenter", this.asciiContent[2][1] });
+		temptTree.add(new String[] { "yllcenter", this.asciiContent[3][1] });
+		temptTree.add(new String[] { "cellsize", this.asciiContent[4][1] });
+		temptTree.add(new String[] { "NODATA_value", this.asciiContent[5][1] });
+
+		return temptTree.parallelStream().toArray(String[][]::new);
+	}
+
 	private void setProperty() {
 		TreeMap<String, String> temptTree = new TreeMap<String, String>();
 		double cellSize = new BigDecimal(this.asciiContent[4][1]).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
@@ -91,53 +147,16 @@ public class AsciiBasicControl {
 
 		this.property = temptTree;
 	}
+	// <=================================================>
 
-	private void setBoundary() {
-		Map<String, Double> boundary = new TreeMap<String, Double>();
-		double cellSize = Double.parseDouble(this.property.get("cellSize"));
+	/*
+	 * 
+	 */
+	// <=============================================>
+	// < ==================Value Function=================>
+	// <=============================================>
 
-		double minX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
-		double maxX = Double.parseDouble(this.property.get("topX")) + 0.5 * cellSize;
-		double minY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * cellSize;
-		double maxY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
-
-		boundary.put("minX", minX);
-		boundary.put("maxX", maxX);
-		boundary.put("minY", minY);
-		boundary.put("maxY", maxY);
-		this.boundary = boundary;
-	}
-
-	// <================>
-	// <get the property>
-	// <================>
-	public Map<String, String> getProperty() {
-		return this.property;
-	}
-
-	public Map<String, Double> getBoundary() {
-		return this.boundary;
-	}
-
-	// <=================>
-	// <get the property in text>
-	// <=================>
-	public String[][] getPropertyText() {
-		ArrayList<String[]> temptTree = new ArrayList<String[]>();
-
-		temptTree.add(new String[] { "ncols", this.asciiContent[0][1] });
-		temptTree.add(new String[] { "nrows", this.asciiContent[1][1] });
-		temptTree.add(new String[] { "xllcenter", this.asciiContent[2][1] });
-		temptTree.add(new String[] { "yllcenter", this.asciiContent[3][1] });
-		temptTree.add(new String[] { "cellsize", this.asciiContent[4][1] });
-		temptTree.add(new String[] { "NODATA_value", this.asciiContent[5][1] });
-
-		return temptTree.parallelStream().toArray(String[][]::new);
-	}
-
-	// <===========================>
-	// < get the value by giving location of ascii >
-	// <===========================>
+	// <________________________________________________________________________>
 	public String getValue(double x, double y) {
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
 		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
@@ -176,9 +195,14 @@ public class AsciiBasicControl {
 		return this;
 	}
 
-	// <=================================================>
-	// < get the position by giving coordinate of ascii > < x , y ><column , row>
-	// <=================================================>
+	/*
+	 * 
+	 */
+	// <=============================================>
+	// < ===============Get Position Function===============>
+	// <=============================================>
+
+	// <==============================================>
 	public int[] getPosition(double x, double y) {
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
 		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
@@ -213,9 +237,12 @@ public class AsciiBasicControl {
 		return new double[] { startX + (column + 0.5) * cellSize, startY - (row + 0.5) * cellSize };
 	}
 
-	// <===========================>
-	// < get the ASCII GRID >
-	// <===========================>
+	/*
+	 * 
+	 */
+	// <=============================================>
+	// < ===============Get Ascii Function==================>
+	// <=============================================>
 
 	// <getting the asciiContent>
 	// <____________________________________________________________________________________________________________>
@@ -251,8 +278,19 @@ public class AsciiBasicControl {
 		return temptArray.parallelStream().toArray(String[][]::new);
 	}
 
+	/*
+	 * 
+	 */
+	// <=============================================>
+	// < =================Clip Function===================>
+	// <=============================================>
+
 	// <getting the asciiGrid by setting the coordinate>
 	// <______________________________________________________________________________________________>
+	public AsciiBasicControl getClipAsciiFile(AsciiBasicControl ascii) throws IOException {
+		return getClipAsciiFile(ascii.getBoundary());
+	}
+
 	public AsciiBasicControl getClipAsciiFile(Map<String, Double> boundary) throws IOException {
 		double minX = boundary.get("minX");
 		double maxX = boundary.get("maxX");
@@ -265,16 +303,11 @@ public class AsciiBasicControl {
 	public AsciiBasicControl getClipAsciiFile(double minX, double minY, double maxX, double maxY) throws IOException {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
 		double cellSize = Double.parseDouble(property.get("cellSize"));
-		Map<String, Double> temptBoundary = this.getIntersectBoundary(minX, maxX, minY, maxY);
 
-		minX = new BigDecimal(temptBoundary.get("minX") + 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
-		minY = new BigDecimal(temptBoundary.get("minY") + 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
-		maxX = new BigDecimal(temptBoundary.get("maxX") - 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
-		maxY = new BigDecimal(temptBoundary.get("maxY") - 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
+		minX = new BigDecimal(minX + 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		minY = new BigDecimal(minY + 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		maxX = new BigDecimal(maxX - 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		maxY = new BigDecimal(maxY - 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
 
 		int[] bottomPosition = this.getPosition(minX, minY);
 		int[] topPosition = this.getPosition(maxX, maxY);
@@ -371,6 +404,13 @@ public class AsciiBasicControl {
 		}
 		return outList.parallelStream().toArray(String[][]::new);
 	}
+
+	/*
+	 * 
+	 */
+	// <=============================================>
+	// < ==============Contain Function===================>
+	// <=============================================>
 
 	// <get the boundary is inside or not>
 	// <____________________________________________________________________________>
@@ -509,10 +549,6 @@ public class AsciiBasicControl {
 	public Map<String, Double> getIntersectBoundary(double minX, double maxX, double minY, double maxY) {
 		return intersectBoundary(minX, maxX, minY, maxY);
 	}
-
-	public AsciiBasicControl getIntersectAscii(double minX, double maxX, double minY, double maxY) throws IOException {
-		return this.getClipAsciiFile(intersectBoundary(minX, maxX, minY, maxY));
-	}
 	// <=======================================================================>
 
 	/*
@@ -548,14 +584,9 @@ public class AsciiBasicControl {
 	}
 
 	public Map<String, Double> getIntersectBoundary(AsciiBasicControl boundaryAscii) {
-		Map<String, Double> temptProperty = boundaryAscii.getBoundary();
-		return intersectBoundary(temptProperty);
+		return intersectBoundary(boundaryAscii.getBoundary());
 	}
 
-	public AsciiBasicControl getIntersectAscii(AsciiBasicControl boundaryAscii) throws IOException {
-		Map<String, Double> temptProperty = boundaryAscii.getBoundary();
-		return this.getClipAsciiFile(intersectBoundary(temptProperty));
-	}
 	// <=================================================================>
 
 	/*
@@ -592,74 +623,46 @@ public class AsciiBasicControl {
 	public Map<String, Double> getIntersectBoundary(Map<String, Double> boundary) {
 		return intersectBoundary(boundary);
 	}
-
-	public AsciiBasicControl getIntersectAscii(Map<String, Double> boundary) throws IOException {
-		return this.getClipAsciiFile(intersectBoundary(boundary));
-	}
 	// <=============================================================>
 
 	/*
-	 * 
-	 * private function
+	 * Intersect Boundary private function
 	 */
 	// <===========================================================>
-	private Map<String, Double> intersectBoundary(Map<String, Double> temptBoundary) {
-		Map<String, Double> boundary = this.getBoundary();
-		if (boundary.get("minX") > temptBoundary.get("minX")) {
-			boundary.put("minX", boundary.get("minX"));
-		} else {
-			boundary.put("minX", temptBoundary.get("minX"));
-		}
-
-		if (boundary.get("minY") > temptBoundary.get("minY")) {
-			boundary.put("minY", boundary.get("minY"));
-		} else {
-			boundary.put("minY", temptBoundary.get("minY"));
-		}
-
-		if (boundary.get("maxX") < temptBoundary.get("maxX")) {
-			boundary.put("maxX", boundary.get("maxX"));
-		} else {
-			boundary.put("maxX", temptBoundary.get("maxX"));
-		}
-
-		if (boundary.get("maxY") < temptBoundary.get("maxY")) {
-			boundary.put("maxY", boundary.get("maxY"));
-		} else {
-			boundary.put("maxY", temptBoundary.get("maxY"));
-		}
-
-		return boundary;
+	private Map<String, Double> intersectBoundary(Map<String, Double> boundary) {
+		return intersectBoundary(boundary.get("minX"), boundary.get("maxX"), boundary.get("minY"),
+				boundary.get("maxY"));
 	}
 
 	private Map<String, Double> intersectBoundary(double minX, double maxX, double minY, double maxY) {
-		Map<String, Double> boundary = this.getBoundary();
-		if (boundary.get("minX") > minX) {
-			boundary.put("minX", boundary.get("minX"));
+		Map<String, Double> boundary = new TreeMap<>();
+		if (this.boundary.get("minX") > minX) {
+			boundary.put("minX", this.boundary.get("minX"));
 		} else {
 			boundary.put("minX", minX);
 		}
 
-		if (boundary.get("minY") > minY) {
-			boundary.put("minY", boundary.get("minY"));
+		if (this.boundary.get("minY") > minY) {
+			boundary.put("minY", this.boundary.get("minY"));
 		} else {
 			boundary.put("minY", minY);
 		}
 
-		if (boundary.get("maxX") < maxX) {
-			boundary.put("maxX", boundary.get("maxX"));
+		if (this.boundary.get("maxX") < maxX) {
+			boundary.put("maxX", this.boundary.get("maxX"));
 		} else {
 			boundary.put("maxX", maxX);
 		}
 
-		if (boundary.get("maxY") < maxY) {
-			boundary.put("maxY", boundary.get("maxY"));
+		if (this.boundary.get("maxY") < maxY) {
+			boundary.put("maxY", this.boundary.get("maxY"));
 		} else {
 			boundary.put("maxY", maxY);
 		}
 
 		return boundary;
 	}
+	// <==================================================================>
 
 	// <=================>
 	// < replace the noData value>
