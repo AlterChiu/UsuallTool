@@ -205,11 +205,11 @@ public class AsciiBasicControl {
 	// <==============================================>
 	public int[] getPosition(double x, double y) {
 		double cellSize = Double.parseDouble(this.property.get("cellSize"));
-		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
-		double startY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
+		double startX = Double.parseDouble(this.property.get("bottomX"));
+		double startY = Double.parseDouble(this.property.get("topY"));
 
-		int row = new BigDecimal((startY - y) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
-		int column = new BigDecimal((x - startX) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
+		int row = new BigDecimal((startY - y) / cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+		int column = new BigDecimal((x - startX) / cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
 		return new int[] { column, row };
 	}
 
@@ -311,15 +311,12 @@ public class AsciiBasicControl {
 
 		int[] bottomPosition = this.getPosition(minX, minY);
 		int[] topPosition = this.getPosition(maxX, maxY);
-
 		double[] outllCenter = this.getCoordinate(bottomPosition[0], bottomPosition[1]);
-		String xllCenter = new BigDecimal(outllCenter[0]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
-		String yllCenter = new BigDecimal(outllCenter[1]).setScale(3, BigDecimal.ROUND_HALF_UP).toString();
 
 		asciiGrid.add(new String[] { "ncols", topPosition[0] - bottomPosition[0] + 1 + "" });
 		asciiGrid.add(new String[] { "nrows", -topPosition[1] + bottomPosition[1] + 1 + "" });
-		asciiGrid.add(new String[] { "xllcenter", xllCenter + "" });
-		asciiGrid.add(new String[] { "yllcenter", yllCenter + "" });
+		asciiGrid.add(new String[] { "xllcenter", outllCenter[0] + "" });
+		asciiGrid.add(new String[] { "yllcenter", outllCenter[1] + "" });
 		asciiGrid.add(new String[] { "cellsize", property.get("cellSize") });
 		asciiGrid.add(new String[] { "nodata_value", property.get("noData") });
 
