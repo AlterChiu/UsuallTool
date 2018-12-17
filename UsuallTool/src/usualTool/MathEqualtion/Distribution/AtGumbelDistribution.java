@@ -18,6 +18,7 @@ public class AtGumbelDistribution implements AtDistribution {
 	public AtGumbelDistribution(List<Double> valueList) {
 		setParameter(new AtCommonMath(valueList));
 		this.distribution = new GumbelDistribution(this.location, this.scale);
+		distribution.reseedRandomGenerator(System.currentTimeMillis());
 	}
 
 	public AtGumbelDistribution(double location, double scale) {
@@ -29,6 +30,7 @@ public class AtGumbelDistribution implements AtDistribution {
 			this.scale = scale;
 			this.distribution = new GumbelDistribution(this.location, this.scale);
 		}
+		distribution.reseedRandomGenerator(System.currentTimeMillis());
 	}
 
 	private void setParameter(AtCommonMath staticsMath) {
@@ -44,13 +46,11 @@ public class AtGumbelDistribution implements AtDistribution {
 
 	@Override
 	public double getDoubleRandom() {
-		distribution.reseedRandomGenerator(System.currentTimeMillis());
 		return new BigDecimal(distribution.sample()).setScale(pointScale, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	@Override
 	public double getIntRandom() {
-		distribution.reseedRandomGenerator(System.currentTimeMillis());
 		return new BigDecimal(distribution.sample()).setScale(pointScale, BigDecimal.ROUND_HALF_UP).intValue();
 	}
 

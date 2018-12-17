@@ -2,17 +2,12 @@
 <classpath>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/xmlServer/XML/dom4j-2.1.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/AtCommonFunction"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/commons-collections4-4.1.jar"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/commons-collections4-4.1-javadoc.jar"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/poi-3.17.jar"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/poi-examples-3.17.jar"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/poi-excelant-3.17.jar"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/poi-ooxml-3.17.jar"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/poi-ooxml-schemas-3.17.jar"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/poi-scratchpad-3.17.jar"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/stax-api.jar"/>
-	<classpathentry kind="lib" path="C:/code/JAVA library/Apache/ApachePoi/poi-3.17/xmlbeans.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/AtCommon"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/FEWS"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/GDAL"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/POI"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JChart"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/XML"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

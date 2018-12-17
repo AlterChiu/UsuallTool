@@ -23,11 +23,13 @@ public class AtLogNormalDistribuition implements AtDistribution {
 	public AtLogNormalDistribuition(List<Double> valueList) {
 		List<Double> reviseList = new ArrayList<>();
 		valueList.forEach(e -> reviseList.add(Math.log(e)));
-
+		
 		AtCommonMath staticsMath = new AtCommonMath(reviseList);
 		this.standarDeviation = staticsMath.getStd();
+		System.out.println(standarDeviation);
 		this.mean = staticsMath.getMean();
 		this.distribution = new NormalDistribution(this.mean, this.standarDeviation);
+		distribution.reseedRandomGenerator(System.currentTimeMillis());
 		staticsMath.clear();
 	}
 
@@ -35,20 +37,19 @@ public class AtLogNormalDistribuition implements AtDistribution {
 		this.standarDeviation = std;
 		this.mean = mean;
 		this.distribution = new NormalDistribution(this.mean, this.standarDeviation);
+		distribution.reseedRandomGenerator(System.currentTimeMillis());
 	}
 
 	// <=============================================>
 
 	@Override
 	public double getDoubleRandom() {
-		distribution.reseedRandomGenerator(System.currentTimeMillis());
 		return new BigDecimal(Math.exp(distribution.sample())).setScale(pointScale, BigDecimal.ROUND_HALF_UP)
 				.doubleValue();
 	}
 
 	@Override
 	public double getIntRandom() {
-		distribution.reseedRandomGenerator(System.currentTimeMillis());
 		return new BigDecimal(Math.exp(distribution.sample())).setScale(pointScale, BigDecimal.ROUND_HALF_UP)
 				.intValue();
 	}

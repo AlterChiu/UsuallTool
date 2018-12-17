@@ -20,23 +20,23 @@ public class AtNormalDistribution implements AtDistribution {
 		staticsMath.clear();
 
 		this.distribution = new NormalDistribution(this.mean, this.standarDeviation);
+		distribution.reseedRandomGenerator(System.currentTimeMillis());
 	}
 
 	public AtNormalDistribution(double mean, double std) {
 		this.standarDeviation = std;
 		this.mean = mean;
 		this.distribution = new NormalDistribution(this.mean, this.standarDeviation);
+		distribution.reseedRandomGenerator(System.currentTimeMillis());
 	}
 
 	@Override
 	public double getDoubleRandom() {
-		distribution.reseedRandomGenerator(System.currentTimeMillis());
 		return new BigDecimal(distribution.sample()).setScale(pointScale, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	@Override
 	public double getIntRandom() {
-		distribution.reseedRandomGenerator(System.currentTimeMillis());
 		return new BigDecimal(distribution.sample()).setScale(pointScale, BigDecimal.ROUND_HALF_UP).intValue();
 	}
 

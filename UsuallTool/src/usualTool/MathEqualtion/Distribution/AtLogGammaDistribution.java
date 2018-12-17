@@ -27,6 +27,7 @@ public class AtLogGammaDistribution implements AtDistribution {
 
 		setParameter(new AtCommonMath(valueList));
 		this.distribution = new GammaDistribution(this.shape, this.scale);
+		distribution.reseedRandomGenerator(System.currentTimeMillis());
 	}
 
 	public AtLogGammaDistribution(double shape, double scale) {
@@ -42,6 +43,7 @@ public class AtLogGammaDistribution implements AtDistribution {
 			this.shape = shape;
 			this.scale = scale;
 			this.distribution = new GammaDistribution(this.shape, this.scale);
+			distribution.reseedRandomGenerator(System.currentTimeMillis());
 		}
 	}
 
@@ -59,14 +61,12 @@ public class AtLogGammaDistribution implements AtDistribution {
 
 	@Override
 	public double getDoubleRandom() {
-		distribution.reseedRandomGenerator(System.currentTimeMillis());
 		return new BigDecimal(Math.exp(distribution.sample())).setScale(pointScale, BigDecimal.ROUND_HALF_UP)
 				.doubleValue();
 	}
 
 	@Override
 	public double getIntRandom() {
-		distribution.reseedRandomGenerator(System.currentTimeMillis());
 		return new BigDecimal(Math.exp(distribution.sample())).setScale(pointScale, BigDecimal.ROUND_HALF_UP)
 				.intValue();
 	}

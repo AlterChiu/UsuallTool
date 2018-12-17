@@ -7,7 +7,6 @@ import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 public class AtCommonMath {
-	private static int precision = 3;
 	private DescriptiveStatistics ds;
 	private List<Double> sortedList = new ArrayList<Double>();
 
@@ -36,60 +35,105 @@ public class AtCommonMath {
 		}
 	}
 
-	public double getMax() {
-		double tempt = this.ds.getMax();
+	public double getMax(int precision) {
+		Double tempt = this.ds.getMax();
 		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
-	public double getMin() {
-		double tempt = this.ds.getMin();
+	public double getMin(int precision) {
+		Double tempt = this.ds.getMin();
 		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
-	public double getStd() {
-		double tempt = this.ds.getStandardDeviation();
+	public double getStd(int precision) {
+		Double tempt = this.ds.getStandardDeviation();
 		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
-	public double getSkewness() {
-		double tempt = this.ds.getSkewness();
+	public double getSkewness(int precision) {
+		Double tempt = this.ds.getSkewness();
 		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
-	public double getKurtosis() {
-		double tempt = this.ds.getKurtosis();
+	public double getKurtosis(int precision) {
+		Double tempt = this.ds.getKurtosis();
 		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
-	public double getMean() {
-		double tempt = this.ds.getMean();
+	public double getMean(int precision) {
+		Double tempt = this.ds.getMean();
 		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
-	public double getSum() {
-		double tempt = this.ds.getSum();
+	public double getSum(int precision) {
+		Double tempt = this.ds.getSum();
 		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
-	public double getVariance() {
-		double tempt = this.ds.getVariance();
+	public double getVariance(int precision) {
+		Double tempt = this.ds.getVariance();
 		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
-	public double getMedium() {
-		double tempt = this.sortedList.get(this.sortedList.size() / 2);
+	public double getMedium(int precision) {
+		Double tempt = this.sortedList.get(this.sortedList.size() / 2);
 		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public double getPersentage(double persantage) {
-		double tempt = this.ds.getPercentile(persantage);
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		Double tempt = this.ds.getPercentile(persantage);
+		return tempt;
 	}
 
 	public double getCorrelartion(double[] arrays) {
-		double tempt = new PearsonsCorrelation().correlation(arrays,
+		Double tempt = new PearsonsCorrelation().correlation(arrays,
 				this.sortedList.parallelStream().mapToDouble(Double::doubleValue).toArray());
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return tempt;
+	}
+
+	public double getMax() {
+		Double tempt = this.ds.getMax();
+		return tempt;
+	}
+
+	public double getMin() {
+		Double tempt = this.ds.getMin();
+		return tempt;
+	}
+
+	public double getStd() {
+		Double tempt = this.ds.getStandardDeviation();
+		return tempt;
+	}
+
+	public double getSkewness() {
+		Double tempt = this.ds.getSkewness();
+		return tempt;
+	}
+
+	public double getKurtosis() {
+		Double tempt = this.ds.getKurtosis();
+		return tempt;
+	}
+
+	public double getMean() {
+		Double tempt = this.ds.getMean();
+		return tempt;
+	}
+
+	public double getSum() {
+		Double tempt = this.ds.getSum();
+		return tempt;
+	}
+
+	public double getVariance() {
+		Double tempt = this.ds.getVariance();
+		return tempt;
+	}
+
+	public double getMedium() {
+		Double tempt = this.sortedList.get(this.sortedList.size() / 2);
+		return tempt;
 	}
 
 	// begin from the minValue

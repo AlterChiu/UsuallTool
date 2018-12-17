@@ -8,7 +8,7 @@ import java.util.TreeMap;
 
 import usualTool.AtCommonMath;
 
-public class ChiSquareChecking {
+public class AtChiSquareChecking {
 	private AtCommonMath statics;
 	private List<Double> valueList;
 	private double maxValue;
@@ -18,13 +18,12 @@ public class ChiSquareChecking {
 
 	private int setGroupNumber = 5;
 
-	public ChiSquareChecking(List<Double> valueList) {
-		this.statics = new AtCommonMath(this.valueList);
+	public AtChiSquareChecking(List<Double> valueList) {
+		this.statics = new AtCommonMath(valueList);
 		this.valueList = this.statics.getSortedList();
-		this.maxValue = this.valueList.get(this.valueList.size());
+		this.maxValue = this.valueList.get(this.valueList.size()-1);
 		this.minValue = this.valueList.get(0);
 		this.midleValue = this.statics.getMedium();
-
 	}
 
 	public void groupListInitialize(int groupSize) {
@@ -36,7 +35,6 @@ public class ChiSquareChecking {
 		double leftDiffer = (this.midleValue - this.minValue) / (this.setGroupNumber / 2);
 		for (int group = 0; group < this.setGroupNumber / 2; group++) {
 			double groupLimit = this.minValue + group * leftDiffer;
-
 			// add the value to groupList which is under limit
 			List<Double> groupList = new ArrayList<Double>();
 			while (temptList.size() > 0 && temptList.get(0) <= groupLimit) {
@@ -51,7 +49,6 @@ public class ChiSquareChecking {
 		for (int group = 0; group < new BigDecimal(this.setGroupNumber / 2).setScale(1, BigDecimal.ROUND_UP)
 				.intValue(); group++) {
 			double groupLimit = this.midleValue + group * rightDiffer;
-
 			// add the value to groupList which is under limit
 			List<Double> groupList = new ArrayList<Double>();
 			while (temptList.size() > 0 && temptList.get(0) <= groupLimit) {
@@ -65,7 +62,7 @@ public class ChiSquareChecking {
 
 	public double getchiSquareValue(AtDistribution distribution) {
 		// check for the map is null or not
-		if (this.groupMap == null) {
+		if (this.groupMap .size()<1) {
 			this.groupListInitialize(this.setGroupNumber);
 		}
 
