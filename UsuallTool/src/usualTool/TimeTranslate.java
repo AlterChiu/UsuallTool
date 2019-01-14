@@ -39,6 +39,16 @@ public class TimeTranslate {
 		return dateFormat.parse(time).getTime();
 	}
 	
+	static public String addDay(String time , String format) throws ParseException {
+		long milliTime = StringToLong(time, format) + 3600000*24;
+		return milliToDate(milliTime , format);
+	}
+	
+	static public String addHour(String time , String format) throws ParseException {
+		long milliTime = StringToLong(time, format) + 3600000;
+		return milliToDate(milliTime , format);
+	}
+	
 	static public String addMonth(String time , String format) throws ParseException {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
 		long milliTime = StringToLong(time, format);

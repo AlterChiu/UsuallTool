@@ -31,7 +31,7 @@ public class ReturnPeriod_PT3 implements RetrunPeriod {
 	@Override
 	public double getReturnPeriodCoefficient(int year) {
 		// TODO Auto-generated method stub
-		double t = AtMathFunction.StandardDeviation(1 / year);
+		double t = AtMathFunction.StandardDeviation(1. / year);
 		double Csy = this.sk;
 		double Kt = 2 / Csy * Math.pow((1 + Csy * t / 6 - Csy * Csy / 36), 3) - 2 / Csy;
 		return Kt;

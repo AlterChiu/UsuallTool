@@ -31,7 +31,7 @@ public class ReturnPeriod_LN3 implements RetrunPeriod {
 
 	@Override
 	public double getReturnPeriodCoefficient(int year) {
-		double t = AtMathFunction.StandardDeviation(1 / year);
+		double t = AtMathFunction.StandardDeviation(1./ year);
 		double w = (-1 * this.sk + Math.sqrt(this.sk * this.sk + 4)) / 2;
 		double z = (1 - Math.pow(w, 2 / 3)) / Math.pow(w, 1 / 3);
 		double Sy = Math.sqrt(Math.log(z * z + 1));

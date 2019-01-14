@@ -1,8 +1,0 @@
-/**
- * 
- */
-/**
- * @author alter
- *
- */
-package testFolder;
