@@ -11,7 +11,6 @@ public class ReturnPeriod_EV1 implements RetrunPeriod {
 
 	public ReturnPeriod_EV1(List<Double> valueList) {
 		this.commonMath = new AtCommonMath(valueList);
-		valueList.clear();
 
 		this.mean = this.commonMath.getMean();
 		this.dis = this.commonMath.getStd();

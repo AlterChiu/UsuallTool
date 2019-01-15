@@ -13,13 +13,10 @@ public class ReturnPeriod_PT3 implements RetrunPeriod {
 
 	public ReturnPeriod_PT3(List<Double> valueList) {
 		this.commonMath = new AtCommonMath(valueList);
-		int valueSize = valueList.size();
-		valueList.clear();
 
 		this.mean = this.commonMath.getMean();
 		this.dis = this.commonMath.getStd();
-		this.sk = this.commonMath.getSkewness() * Math.sqrt((valueSize * (valueSize - 1))) / (valueSize - 2)
-				* (1 + 8.5 / valueSize);
+		this.sk = this.commonMath.getSkewness();
 	}
 
 	@Override
@@ -33,7 +30,7 @@ public class ReturnPeriod_PT3 implements RetrunPeriod {
 		// TODO Auto-generated method stub
 		double t = AtMathFunction.StandardDeviation(1. / year);
 		double Csy = this.sk;
-		double Kt = 2 / Csy * Math.pow((1 + Csy * t / 6 - Csy * Csy / 36), 3) - 2 / Csy;
+		double Kt = 2. / Csy * Math.pow((1 + Csy * t / 6 - Csy * Csy / 36), 3) - 2 / Csy;
 		return Kt;
 	}
 

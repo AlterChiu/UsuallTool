@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import Hydro.Rainfall.ReturnPeriod.RetrunPeriod;
 import Hydro.Rainfall.ReturnPeriod.ReturnPeriod_LPT3;
 import usualTool.FileFunction;
 import usualTool.MathEqualtion.AtMathFunction;
@@ -29,7 +30,7 @@ public class testAtCommon {
 			}
 		}
 			
-		ReturnPeriod_LPT3 lpt3 = new ReturnPeriod_LPT3(random);
+		RetrunPeriod lpt3 = new ReturnPeriod_LPT3(random);
 		System.out.println(lpt3.getPeriodRainfall(200));
 		
 		}
