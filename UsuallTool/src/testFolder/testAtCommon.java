@@ -7,7 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import Hydro.Rainfall.ReturnPeriod.ReturnPeriod_LPT3;
 import usualTool.FileFunction;
+import usualTool.MathEqualtion.AtMathFunction;
+import usualTool.MathEqualtion.Distribution.AtNormalDistribution;
 
 public class testAtCommon {
 	private static int threadNum = 4;
@@ -17,77 +20,17 @@ public class testAtCommon {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		int fileCount = 0;
-
-		// the fileList here is the name of catchments
-		List<String> catchmentsList = new ArrayList<>(Arrays.asList(fileList = new File(fileAdd).list()));
-		List<String> lostData = loseData();
-		int fileLength = catchmentsList.size();
-
-		/*
-		 * initial thread
-		 */
-		Map<Integer, Thread> threadList = new HashMap<>();
-		for (int index = 0; index < threadNum; index++) {
-			if (lostData.size() > 0) {
-				threadList.put(index, initialThread(catchmentsList.get(Integer.parseInt(lostData.get(0))),
-						Integer.parseInt(lostData.get(0))));
-				threadList.get(index).start();
-				lostData.remove(0);
-
-			} else {
-				threadList.put(index, initialThread(catchmentsList.get(fileCount), fileCount));
-				fileCount++;
-				threadList.get(index).start();
+		List<Double> random = new ArrayList<Double>();
+		AtNormalDistribution distribution = new AtNormalDistribution(0,100);
+		for(int index = 0 ; index< 500 ; index++) {
+			double tempt = distribution.getDoubleRandom();
+			if(tempt>0) {
+				random.add(tempt);
 			}
 		}
-
-		/*
-		 * run thread
-		 */
-		runThread: while (fileCount < fileLength) {
-			for (int index = 0; index < threadNum; index++) {
-				if (!threadList.get(index).isAlive()) {
-					System.out.println(threadList.get(index).getName() + " end");
-					fileCount++;
-
-					if (fileCount == fileLength) {
-						break runThread;
-					} else {
-						threadList.remove(index);
-						threadList.put(index, initialThread(catchmentsList.get(fileCount), fileCount));
-						threadList.get(index).start();
-					}
-				}
-			}
-		}
-	}
-
-	private static List<String> loseData() {
-		String[] timeList = new String[] {};
-		return new ArrayList<String>(Arrays.asList(timeList));
-	}
-
-	private static Thread initialThread(String targetCatchment, int fileCount) {
-		Thread temptThread = new Thread(new threadClass(fileAdd + targetCatchment + "//day//"));
-		temptThread.setName(fileCount + "");
-		return temptThread;
-	}
-
-	public static class threadClass extends Thread {
-		private String targetFolder = "";
-	
-		public threadClass(String targetFolder) {
-			this.targetFolder = targetFolder ;
-		}
-
-		public void run() {
-			for(String fileName : new File(this.targetFolder).list()) {
-				ff.delete(this.targetFolder + fileName);
-			}
+			
+		ReturnPeriod_LPT3 lpt3 = new ReturnPeriod_LPT3(random);
+		System.out.println(lpt3.getPeriodRainfall(200));
 		
 		}
-	
-}
-
 }

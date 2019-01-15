@@ -25,7 +25,7 @@ public class ReturnPeriod_EV1 implements RetrunPeriod {
 
 	@Override
 	public double getReturnPeriodCoefficient(int year) {
-		return Math.sqrt(6) / Math.PI * (-0.5772157 - Math.log((1 - 1. / year)));
+		return Math.sqrt(6) / Math.PI * (-0.5772157 - Math.log(-Math.log(1 - 1. / year)));
 	}
 
 	@Override
