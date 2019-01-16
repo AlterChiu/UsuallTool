@@ -18,8 +18,8 @@ public class XYZToAscii {
 	// y,x,z
 	private TreeMap<Integer, TreeMap<Integer, List<Double>>> outTree = new TreeMap<Integer, TreeMap<Integer, List<Double>>>();
 	private List<String[]> outList = new ArrayList<>();
-	private double minX;
-	private double maxY;
+	private double minX = -9999;
+	private double maxY = -9999;
 	private double minY;
 	private double maxX;
 	private double cellSize = 1.0;
@@ -47,7 +47,7 @@ public class XYZToAscii {
 	}
 
 	public void saveAscii(String fileAdd) throws IOException {
-		new AtFileWriter(this.getAsciiFile(), fileAdd).textWriter("    ");
+		new AtFileWriter(this.getAsciiFile(), fileAdd).textWriter("  ");
 	}
 
 	public String[][] getAsciiGrid() {
@@ -56,14 +56,14 @@ public class XYZToAscii {
 
 	public String[][] getAsciiFile() {
 		ArrayList<String[]> outArray = new ArrayList<String[]>();
-		outArray.add(new String[] { "ncols", this.property.get("column") });
-		outArray.add(new String[] { "nrows", this.property.get("row") });
-		outArray.add(new String[] { "xllCenter", this.property.get("bottomX") });
-		outArray.add(new String[] { "yllCenter", this.property.get("bottomY") });
-		outArray.add(new String[] { "cellsize", this.property.get("cellSize") });
-		outArray.add(new String[] { "nodata_value", this.property.get("noData") });
+		outArray.add(new String[] { "NCOLS", this.property.get("column") });
+		outArray.add(new String[] { "NROWS", this.property.get("row") });
+		outArray.add(new String[] { "XLLCENTER", this.property.get("bottomX") });
+		outArray.add(new String[] { "YLLCENTER", this.property.get("bottomY") });
+		outArray.add(new String[] { "CELLSIZE", this.property.get("cellSize") });
+		outArray.add(new String[] { "NODATA_VALUE", this.property.get("noData") });
 
-		Arrays.asList(this.outList).forEach(line -> outArray.add(line.parallelStream().toArray(String[]::new)));
+		this.outList.forEach(lineData -> outArray.add(lineData));
 		return outArray.parallelStream().toArray(String[][]::new);
 	}
 	// <===============================================>
@@ -82,7 +82,6 @@ public class XYZToAscii {
 		Double maxY = Double.parseDouble(this.xyzContent.get(0)[1]);
 
 		while (this.xyzContent.size() > 0) {
-			System.out.println(xyzContent.size());
 			double temptX = Double.parseDouble(this.xyzContent.get(0)[0]);
 			double temptY = Double.parseDouble(this.xyzContent.get(0)[1]);
 
@@ -112,14 +111,12 @@ public class XYZToAscii {
 		// get the boundary
 		AtCommonMath xMath = new AtCommonMath(this.xList);
 		AtCommonMath yMath = new AtCommonMath(this.yList);
-		try {
-			this.maxX = xMath.getMax();
-			this.minY = yMath.getMin();
-			// if the startXY is extinct pass it
-			// or recalculate it
-			String.valueOf(this.minX);
-			String.valueOf(this.maxY);
-		} catch (Exception e) {
+
+		this.maxX = xMath.getMax();
+		this.minY = yMath.getMin();
+		// if the startXY is extinct pass it
+		// or recalculate it
+		if (Math.abs(this.minX + 9999) < 1 || Math.abs(this.maxY + 9999) < 1) {
 			this.minX = new AtCommonMath(this.xList).getMin();
 			this.maxY = new AtCommonMath(this.yList).getMax();
 		}
@@ -129,20 +126,20 @@ public class XYZToAscii {
 		// set the column and row
 		// reBoundary the xyList
 		int row = new BigDecimal((this.maxY - this.minY) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP)
-				.intValue() + 1;
+				.intValue();
 		int column = new BigDecimal((this.maxX - this.minX) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP)
-				.intValue() + 1;
+				.intValue();
 		this.maxX = column * this.cellSize + this.minX;
 		this.minY = this.maxY - row * this.cellSize;
 
-		this.property.put("bottomX", this.minX + "");
-		this.property.put("bottomY", this.minY + "");
-		this.property.put("topX", this.maxX + "");
-		this.property.put("topY", this.maxY + "");
+		this.property.put("bottomX", this.minX - this.cellSize / 2 + "");
+		this.property.put("bottomY", this.minY - this.cellSize / 2 + "");
+		this.property.put("topX", this.maxX + this.cellSize / 2 + "");
+		this.property.put("topY", this.maxY + this.cellSize / 2 + "");
 		this.property.put("cellSize", this.cellSize + "");
 		this.property.put("noData", this.noData);
-		this.property.put("row", row + "");
-		this.property.put("column", column + "");
+		this.property.put("row", row + 1 + "");
+		this.property.put("column", column + 1 + "");
 	}
 
 	// the order of tree , y,x,z
@@ -162,8 +159,8 @@ public class XYZToAscii {
 	}
 
 	private void getSortedTree() {
-		double boundaryMinX = this.minX - this.cellSize * 0.5;
-		double boundaryMaxY = this.maxY + this.cellSize * 0.5;
+		double boundaryMinX = this.minX;
+		double boundaryMaxY = this.maxY;
 
 		for (int index = 0; index < this.xList.size(); index++) {
 			int temptRow = new BigDecimal((boundaryMaxY - this.yList.get(index)) / this.cellSize)
@@ -174,15 +171,21 @@ public class XYZToAscii {
 		}
 	}
 
-	private void setAsciiProperty() {
+	private void setAsciiContent() {
 		Integer[] rowList = this.outTree.keySet().parallelStream().toArray(Integer[]::new);
 		for (int row : rowList) {
 			List<String> temptList = new ArrayList<String>();
 			Integer[] columnList = this.outTree.get(row).keySet().parallelStream().toArray(Integer[]::new);
 			for (int column : columnList) {
-				temptList.add(new AtCommonMath(this.outTree.get(row).get(column)).getMean() + "");
+				double temptValue = new AtCommonMath(this.outTree.get(row).get(column)).getMean();
+				try {
+					temptList.add(new BigDecimal(temptValue).setScale(2, BigDecimal.ROUND_HALF_UP).toString());
+				} catch (Exception e) {
+					temptList.add(this.noData);
+				}
 				this.outTree.get(row).remove(column);
 			}
+			this.outList.add(temptList.parallelStream().toArray(String[]::new));
 			this.outTree.remove(row);
 		}
 	}
@@ -202,8 +205,8 @@ public class XYZToAscii {
 		System.out.println("complete initial treeMap");
 		getSortedTree();
 		System.out.println("complete storeTree");
-		setAsciiProperty();
-		System.out.println("complete ascii property");
+		setAsciiContent();
+		System.out.println("complete ascii Content");
 	}
 	// <================================================>
 

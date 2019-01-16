@@ -1,37 +1,34 @@
 package testFolder;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import Hydro.Rainfall.ReturnPeriod.RetrunPeriod;
-import Hydro.Rainfall.ReturnPeriod.ReturnPeriod_LPT3;
-import usualTool.FileFunction;
-import usualTool.MathEqualtion.AtMathFunction;
-import usualTool.MathEqualtion.Distribution.AtNormalDistribution;
+import asciiFunction.XYZToAscii;
+import usualTool.AtFileReader;
 
 public class testAtCommon {
-	private static int threadNum = 4;
-	public static String fileAdd = "E:\\QpesumsAnalysis\\RainfallData\\catchment\\";
-	public static FileFunction ff = new FileFunction();
-	public static String[] fileList = null;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		List<Double> random = new ArrayList<Double>();
-		AtNormalDistribution distribution = new AtNormalDistribution(0,100);
-		for(int index = 0 ; index< 500 ; index++) {
-			double tempt = distribution.getDoubleRandom();
-			if(tempt>0) {
-				random.add(tempt);
+		String[][] distributionConternt = new AtFileReader(
+				"H:\\RainfallData\\createRainfall\\3_3_noRatio_distribution\\3_3_noRatio_distribution.csv").getCsv();
+		String saveAdd = "H:\\RainfallData\\createRainfall\\3_3_noRatio_distribution\\";
+
+		for (int column = 3; column < distributionConternt[0].length; column++) {
+			List<String[]> temptLine = new ArrayList<>();
+
+			for (int line = 1; line < distributionConternt.length; line++) {
+				temptLine.add(new String[] {distributionConternt[line][1] , distributionConternt[line][2] , distributionConternt[line][column]});
 			}
-		}
 			
-		RetrunPeriod lpt3 = new ReturnPeriod_LPT3(random);
-		System.out.println(lpt3.getPeriodRainfall(200));
-		
+			XYZToAscii toAscii = new XYZToAscii(temptLine.parallelStream().toArray(String[][]::new));
+			toAscii.setCellSize(0.0125);
+			toAscii.start();
+			toAscii.saveAscii(saveAdd + distributionConternt[0][column] + ".asc");
+			System.out.println( distributionConternt[0][column]  + "\tend");
 		}
+
+	}
+
 }
