@@ -25,6 +25,9 @@ public class XYZToAscii {
 	private double cellSize = 1.0;
 	private String noData = "-99";
 
+	private int coordinateScale = 4;
+	private int valeuScale = 3;
+
 	private List<Double> xList = new ArrayList<Double>();
 	private List<Double> yList = new ArrayList<Double>();
 	private List<Double> zList = new ArrayList<Double>();
@@ -112,13 +115,17 @@ public class XYZToAscii {
 		AtCommonMath xMath = new AtCommonMath(this.xList);
 		AtCommonMath yMath = new AtCommonMath(this.yList);
 
-		this.maxX = xMath.getMax();
-		this.minY = yMath.getMin();
+		this.maxX = new BigDecimal(xMath.getMax()).setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
+		this.minY = new BigDecimal(yMath.getMin()).setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
 		// if the startXY is extinct pass it
 		// or recalculate it
 		if (Math.abs(this.minX + 9999) < 1 || Math.abs(this.maxY + 9999) < 1) {
-			this.minX = new AtCommonMath(this.xList).getMin();
-			this.maxY = new AtCommonMath(this.yList).getMax();
+			this.minX = new BigDecimal(new AtCommonMath(this.xList).getMin())
+					.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+			this.maxY = new BigDecimal(new AtCommonMath(this.yList).getMax())
+					.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
 		}
 		xMath.clear();
 		yMath.clear();
@@ -129,8 +136,10 @@ public class XYZToAscii {
 				.intValue();
 		int column = new BigDecimal((this.maxX - this.minX) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP)
 				.intValue();
-		this.maxX = column * this.cellSize + this.minX;
-		this.minY = this.maxY - row * this.cellSize;
+		this.maxX = new BigDecimal(column * this.cellSize + this.minX)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+		this.minY = new BigDecimal(this.maxY - row * this.cellSize)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
 
 		this.property.put("bottomX", this.minX - this.cellSize / 2 + "");
 		this.property.put("bottomY", this.minY - this.cellSize / 2 + "");
@@ -179,7 +188,8 @@ public class XYZToAscii {
 			for (int column : columnList) {
 				double temptValue = new AtCommonMath(this.outTree.get(row).get(column)).getMean();
 				try {
-					temptList.add(new BigDecimal(temptValue).setScale(2, BigDecimal.ROUND_HALF_UP).toString());
+					temptList.add(
+							new BigDecimal(temptValue).setScale(this.valeuScale, BigDecimal.ROUND_HALF_UP).toString());
 				} catch (Exception e) {
 					temptList.add(this.noData);
 				}
@@ -227,6 +237,16 @@ public class XYZToAscii {
 
 	public XYZToAscii setCellSize(double cellSize) {
 		this.cellSize = cellSize;
+		return this;
+	}
+
+	public XYZToAscii setCoordinateScale(int scale) {
+		this.coordinateScale = scale;
+		return this;
+	}
+
+	public XYZToAscii setValueScale(int scale) {
+		this.valeuScale = scale;
 		return this;
 	}
 
