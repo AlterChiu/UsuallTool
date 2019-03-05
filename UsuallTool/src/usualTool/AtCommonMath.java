@@ -2,37 +2,32 @@ package usualTool;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 public class AtCommonMath {
 	private DescriptiveStatistics ds;
-	private List<Double> sortedList = new ArrayList<Double>();
+	private List<Double> valueList = new ArrayList<>();
 
 	public AtCommonMath(double[] valueList) {
+		this.valueList = Arrays.asList(ArrayUtils.toObject(valueList));
 		this.ds = new DescriptiveStatistics(valueList);
-		for (double temptDouble : this.ds.getSortedValues()) {
-			this.sortedList.add(temptDouble);
-		}
 	}
 
 	public AtCommonMath(List<Double> valueList) {
+		this.valueList = valueList;
 		this.ds = new DescriptiveStatistics(valueList.stream().mapToDouble(Double::doubleValue).toArray());
-		for (double temptDouble : this.ds.getSortedValues()) {
-			this.sortedList.add(temptDouble);
-		}
 	}
 
 	public AtCommonMath(String[] valueList) {
-		ArrayList<Double> tempt = new ArrayList<Double>();
 		for (String value : valueList) {
-			tempt.add(Double.parseDouble(value));
+			this.valueList.add(Double.parseDouble(value));
 		}
-		this.ds = new DescriptiveStatistics(tempt.parallelStream().mapToDouble(Double::doubleValue).toArray());
-		for (double temptDouble : this.ds.getSortedValues()) {
-			this.sortedList.add(temptDouble);
-		}
+		this.ds = new DescriptiveStatistics(this.valueList.stream().mapToDouble(Double::doubleValue).toArray());
 	}
 
 	public double getMax(int precision) {
@@ -76,8 +71,7 @@ public class AtCommonMath {
 	}
 
 	public double getMedium(int precision) {
-		Double tempt = this.sortedList.get(this.sortedList.size() / 2);
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(getMedium()).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public double getPersentage(double persantage) {
@@ -87,8 +81,16 @@ public class AtCommonMath {
 
 	public double getCorrelartion(double[] arrays) {
 		Double tempt = new PearsonsCorrelation().correlation(arrays,
-				this.sortedList.parallelStream().mapToDouble(Double::doubleValue).toArray());
+				this.valueList.parallelStream().mapToDouble(Double::doubleValue).toArray());
 		return tempt;
+	}
+
+	public double getRMS(double[] arrays) {
+		List<Double> temptList = new ArrayList<>();
+		for (int index = 0; index < this.valueList.size(); index++) {
+			temptList.add(Math.abs(this.valueList.get(index) - arrays[index]));
+		}
+		return new AtCommonMath(temptList).getMean() * Math.sqrt(arrays.length);
 	}
 
 	public double getMax() {
@@ -132,17 +134,22 @@ public class AtCommonMath {
 	}
 
 	public double getMedium() {
-		Double tempt = this.sortedList.get(this.sortedList.size() / 2);
+		List<Double> temptList = getSortedList();
+		Double tempt = temptList.get(temptList.size() / 2);
 		return tempt;
 	}
 
 	// begin from the minValue
 	public List<Double> getSortedList() {
-		return this.sortedList;
+		List<Double> sortedList = new ArrayList<>();
+		for (double temptDouble : this.ds.getSortedValues()) {
+			sortedList.add(temptDouble);
+		}
+		return sortedList;
 	}
 
 	public final void clear() {
-		this.sortedList.clear();
+		this.valueList.clear();
 		this.ds.clear();
 	}
 }

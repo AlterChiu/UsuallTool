@@ -1,12 +1,15 @@
 package testFolder;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import Hydro.Rainfall.ReturnPeriod.RetrunPeriod;
+import Hydro.Rainfall.ReturnPeriod.ReturnPeriod_PT3;
 import asciiFunction.AsciiBasicControl;
 import usualTool.AtCommonMath;
 import usualTool.AtFileReader;
@@ -17,20 +20,26 @@ public class test {
 
 	public static void main(String[] args) throws IOException, ParseException {
 		// TODO Auto-generated method stub
-		String fileAdd = "H:\\RainfallData\\createRainfall\\掃描式事件篩選方法\\Hour\\1\\PT3_200.asc";
-		AsciiBasicControl ascii = new AsciiBasicControl(fileAdd);
+		AsciiBasicControl originalAscii = new AsciiBasicControl(
+				"E:\\mapReduce\\報告用-別刪\\20181201_Pintung_FEWS_12_3_plis1.5\\OriginalDEM\\lowResolutionDem.asc");
 
-		int row = Integer.parseInt(ascii.getProperty().get("row"));
-		int column = Integer.parseInt(ascii.getProperty().get("column"));
+		double topY =2505914.5;
+		double botY = 2504314.5;
+		double differ = topY - botY;
 
-		for (int temptColumn = 0; temptColumn < column; temptColumn++) {
-			for (int temptRow = 0; temptRow < row; temptRow++) {
-				String temptCalue = ascii.getValue(temptColumn, temptRow);
-				if (Double.parseDouble(temptCalue) < 0 && !temptCalue.equals(ascii.getProperty().get("noData"))) {
-					double[] temptCoordinate = ascii.getCoordinate(temptColumn, temptRow);
-					System.out.println(temptCoordinate[0] + "_" + temptCoordinate[1]);
-				}
-			}
+		double temptTopY = topY;
+		int count = 0;
+		while (temptTopY >= originalAscii.getBoundary().get("minY")) {
+			Map<String, Double> temptClip = originalAscii.getBoundary();
+			double temptBot = temptTopY - differ;
+			temptClip.put("maxY", temptTopY);
+			temptClip.put("minY", temptBot);
+			new AtFileWriter(originalAscii.getClipAsciiFile(temptClip).getAsciiFile(),
+					"E:\\mapReduce\\報告用-別刪\\20181201_Pintung_FEWS_12_3_plis1.5\\test\\" + count + ".asc")
+							.textWriter(" ");
+
+			temptTopY = temptBot;
+			count++;
 		}
 
 	}
