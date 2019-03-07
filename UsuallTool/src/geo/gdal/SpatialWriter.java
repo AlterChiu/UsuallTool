@@ -3,7 +3,6 @@ package geo.gdal;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.File;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,7 @@ public class SpatialWriter {
 	// <=========================================>
 	// <constructor>
 	// <=========================================>
-	public SpatialWriter(List<Path2D> pathList) {
+	public SpatialWriter setPathList(List<Path2D> pathList) {
 		gdal.AllRegister();
 		// translate path to geometry
 		pathList.forEach(e -> {
@@ -46,15 +45,27 @@ public class SpatialWriter {
 
 		// setting coordinate system
 		outputSpatitalSystem.ImportFromEPSG(WGS84);
+		return this;
 	}
 
-	public SpatialWriter(Path2D path) {
+	public SpatialWriter setPathList(Path2D path) {
 		gdal.AllRegister();
 		// translate path to geometry
 		this.geometryList.add(getGeometry(path));
 
 		// setting coordinate system
 		outputSpatitalSystem.ImportFromEPSG(WGS84);
+		return this;
+	}
+
+	public SpatialWriter setGeoList(List<Geometry> getList) {
+		gdal.AllRegister();
+		// translate path to geometry
+		this.geometryList = getList;
+
+		// setting coordinate system
+		outputSpatitalSystem.ImportFromEPSG(WGS84);
+		return this;
 	}
 	// <=========================================>
 
@@ -65,9 +76,9 @@ public class SpatialWriter {
 	// <==========================================>
 	// <output setting>
 	// <==========================================>
-	public SpatialWriter setAttributeTitle(List<Map<String, Object>> attribute) {
+	public SpatialWriter setAttributeTable(List<Map<String, Object>> attributeTatle) {
 		this.attribute.clear();
-		this.attribute = attribute;
+		this.attribute = attributeTatle;
 		return this;
 	}
 
@@ -184,7 +195,7 @@ public class SpatialWriter {
 		}
 		DataSource outDataSource = dataSourceDriver.CreateDataSource(saveAdd);
 		Layer outLayer = outDataSource.CreateLayer(this.layerName, this.outputSpatitalSystem);
-
+		
 		// create field
 		List<String> fieldName = new ArrayList<String>(this.fieldType.keySet());
 		for (String name : fieldName) {

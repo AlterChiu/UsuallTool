@@ -1,46 +1,43 @@
 package testFolder;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import Hydro.Rainfall.ReturnPeriod.RetrunPeriod;
-import Hydro.Rainfall.ReturnPeriod.ReturnPeriod_PT3;
-import asciiFunction.AsciiBasicControl;
-import usualTool.AtCommonMath;
-import usualTool.AtFileReader;
-import usualTool.AtFileWriter;
-import usualTool.TimeTranslate;
+import org.gdal.ogr.Geometry;
+
+import geo.gdal.SpatialFileTranslater;
+import geo.gdal.SpatialReader;
+import geo.gdal.SpatialWriter;
 
 public class test {
 
-	public static void main(String[] args) throws IOException, ParseException {
+	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		AsciiBasicControl originalAscii = new AsciiBasicControl(
-				"E:\\mapReduce\\報告用-別刪\\20181201_Pintung_FEWS_12_3_plis1.5\\OriginalDEM\\lowResolutionDem.asc");
+		String fileList[] = new String[] { "H:/SHP/南崁集水區(下水道)20190205.shp", "H:/SHP/97南崁集水分區(明渠)2.0.shp",
+				"H:/SHP/97東門溪集水分區(明渠)(222個分區).shp" };
 
-		double topY =2505914.5;
-		double botY = 2504314.5;
-		double differ = topY - botY;
+		SpatialWriter spWrite = new SpatialWriter();
+		Map<String, String> attributeTitle = new TreeMap<>();
 
-		double temptTopY = topY;
-		int count = 0;
-		while (temptTopY >= originalAscii.getBoundary().get("minY")) {
-			Map<String, Double> temptClip = originalAscii.getBoundary();
-			double temptBot = temptTopY - differ;
-			temptClip.put("maxY", temptTopY);
-			temptClip.put("minY", temptBot);
-			new AtFileWriter(originalAscii.getClipAsciiFile(temptClip).getAsciiFile(),
-					"E:\\mapReduce\\報告用-別刪\\20181201_Pintung_FEWS_12_3_plis1.5\\test\\" + count + ".asc")
-							.textWriter(" ");
+		attributeTitle.put("Polygon_ID", "String");
+		spWrite.setCoordinateSystem(SpatialWriter.TWD97_121);
+		spWrite.setField(attributeTitle);
 
-			temptTopY = temptBot;
-			count++;
+		for (String fileAdd : fileList) {
+			SpatialReader shp = new SpatialReader(fileAdd,"UTF-8");
+			List<Geometry> temptList = shp.getGeometryList();
+			List<Map<String, String>> temptAttribute = shp.getAttributeTable();
+
+			for (int index = 0; index < temptList.size(); index++) {
+				Map<String, Object> attributeValue = new TreeMap<>();
+				attributeValue.put("Polygon_ID", temptAttribute.get(index).get("Polygon_ID"));
+				spWrite.addFeature(temptList.get(index), attributeValue);
+			}
 		}
+
+		spWrite.saveAsShp("H:/SHP/dongman_merge(Sobek).shp");
 
 	}
 

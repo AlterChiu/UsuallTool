@@ -25,7 +25,7 @@ public class SpatialReader {
 	public SpatialReader(String fileAdd) {
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", "UTF8");
+		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-8");
 		this.dataSource = ogr.Open(fileAdd);
 		getAttrubuteTable();
 		getFeature();
@@ -43,7 +43,7 @@ public class SpatialReader {
 	public SpatialReader(DataSource dataSource) {
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", "UTF8");
+		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-");
 		this.dataSource = dataSource;
 		getAttrubuteTable();
 		getFeature();
