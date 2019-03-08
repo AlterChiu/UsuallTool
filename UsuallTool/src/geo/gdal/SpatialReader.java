@@ -18,6 +18,7 @@ public class SpatialReader {
 	private List<String> attributeTitles = new ArrayList<String>();
 	private List<Geometry> geometryList = new ArrayList<Geometry>();
 	private List<Map<String, String>> featureTable = new ArrayList<>();
+	private Map<String, String> attributeTitleType = new TreeMap<>();
 
 	// <=========================================>
 	// <constructor>
@@ -27,8 +28,9 @@ public class SpatialReader {
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
 		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-8");
 		this.dataSource = ogr.Open(fileAdd);
-		getAttrubuteTable();
-		getFeature();
+		detectAttributeTitle();
+		detectAttributeTable();
+		detectAttributeTitleType();
 	}
 
 	public SpatialReader(String fileAdd, String encode) {
@@ -36,17 +38,19 @@ public class SpatialReader {
 		gdal.SetConfigOption("GDAL_FILENAME_IS_" + encode, "YES");
 		gdal.SetConfigOption("SHAPE_ENCODING", encode);
 		this.dataSource = ogr.Open(fileAdd);
-		getAttrubuteTable();
-		getFeature();
+		detectAttributeTitle();
+		detectAttributeTable();
+		detectAttributeTitleType();
 	}
 
 	public SpatialReader(DataSource dataSource) {
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-");
+		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-8");
 		this.dataSource = dataSource;
-		getAttrubuteTable();
-		getFeature();
+		detectAttributeTitle();
+		detectAttributeTable();
+		detectAttributeTitleType();
 	}
 
 	public SpatialReader(DataSource dataSource, String encode) {
@@ -54,8 +58,9 @@ public class SpatialReader {
 		gdal.SetConfigOption("GDAL_FILENAME_IS_" + encode, "YES");
 		gdal.SetConfigOption("SHAPE_ENCODING", encode);
 		this.dataSource = dataSource;
-		getAttrubuteTable();
-		getFeature();
+		detectAttributeTitle();
+		detectAttributeTable();
+		detectAttributeTitleType();
 	}
 
 	// <===========================================>
@@ -80,6 +85,10 @@ public class SpatialReader {
 	public DataSource getSpatitalDataSource() {
 		return this.dataSource;
 	}
+
+	public Map<String, String> getAttributeTitleType() {
+		return this.attributeTitleType;
+	}
 	// <============================================>
 
 	/*
@@ -88,14 +97,22 @@ public class SpatialReader {
 	 */
 	// <===========================================>
 	// <get the name of attribute titles>
-	private void getAttrubuteTable() {
+	private void detectAttributeTitle() {
 		FeatureDefn layerDefn = this.dataSource.GetLayer(0).GetLayerDefn();
 		for (int index = 0; index < layerDefn.GetFieldCount(); index++) {
 			attributeTitles.add(layerDefn.GetFieldDefn(index).GetName());
 		}
 	}
 
-	private void getFeature() {
+	private void detectAttributeTitleType() {
+		FeatureDefn layerDefn = this.dataSource.GetLayer(0).GetLayerDefn();
+		for (int index = 0; index < layerDefn.GetFieldCount(); index++) {
+			attributeTitleType.put(layerDefn.GetFieldDefn(index).GetName(),
+					layerDefn.GetFieldDefn(index).GetTypeName());
+		}
+	}
+
+	private void detectAttributeTable() {
 		Layer layer = this.dataSource.GetLayer(0);
 		for (int index = 0; index < layer.GetFeatureCount(); index++) {
 			Feature feature = layer.GetFeature(index);
@@ -112,8 +129,8 @@ public class SpatialReader {
 				} catch (Exception e) {
 					temptMap.put(key, "");
 				}
-				this.featureTable.add(temptMap);
 			}
+			this.featureTable.add(temptMap);
 		}
 	}
 	// <==============================================>
