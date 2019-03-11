@@ -10,12 +10,8 @@ public class test {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		SpatialReader spReader = new SpatialReader("H:/SHP/dongman_merge(Sobek).shp");
-		Geometry polygon = spReader.getGeometryList().get(0);
-
-		for (double[] point : polygon.GetBoundary().GetPoints()) {
-			System.out.println(point[0] + "\t" + point[1]);
-		}
+		SpatialReader spReader = new SpatialReader("H:\\SHP\\東門溪測試/dongman_merge(Sobek).shp");
+		System.out.println(spReader.getGeometryList().get(0).ExportToJson());
 
 	}
 
