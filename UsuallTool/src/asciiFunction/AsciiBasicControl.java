@@ -1,6 +1,8 @@
 package asciiFunction;
 
+import java.awt.Rectangle;
 import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import geo.gdal.GdalGlobal;
 import geo.path.IntersectLine;
 import usualTool.AtCommonMath;
 import usualTool.AtFileReader;
@@ -176,6 +179,58 @@ public class AsciiBasicControl {
 			return this.asciiGrid[row][column];
 		} catch (Exception e) {
 			return this.property.get("noData");
+		}
+	}
+
+	public String getNullValue() {
+		return this.getProperty().get("noData");
+	}
+
+	public String getValue(Path2D path) {
+		Rectangle pathBoundary = path.getBounds();
+		double maxX = pathBoundary.getMaxX();
+		double minX = pathBoundary.getMinX();
+		double maxY = pathBoundary.getMaxY();
+		double minY = pathBoundary.getMinY();
+
+		/*
+		 * get the mean value in the
+		 */
+		List<Double> valueList = new ArrayList<Double>();
+		String nullValue = this.getNullValue();
+		int[] startPosition = this.getPosition(minX, maxY);
+		int[] endPosition = this.getPosition(maxX, minY);
+		for (int row = startPosition[1]; row <= endPosition[1]; row++) {
+			for (int column = startPosition[0]; column <= endPosition[0]; column++) {
+				String temptValue = this.getValue(column, row);
+				if (!temptValue.equals(nullValue)) {
+
+					// if the grid center is inside the polygon
+					double[] temptCoordinate = this.getCoordinate(column, row);
+					if (path.contains(temptCoordinate[0], temptCoordinate[1])) {
+						valueList.add(Double.parseDouble(temptValue));
+					}
+				}
+			}
+		}
+
+		/*
+		 * if there isn't any grid center is inside the polygon
+		 */
+		if (valueList.size() > 0) {
+			return String.valueOf(new AtCommonMath(valueList).getMean());
+		} else {
+			PathIterator pathIt = path.getPathIterator(null);
+			float[] temptCoordinate = new float[6];
+			List<Double> xList = new ArrayList<Double>();
+			List<Double> yList = new ArrayList<Double>();
+
+			for (; pathIt.isDone(); pathIt.next()) {
+				pathIt.currentSegment(temptCoordinate);
+				xList.add((double) temptCoordinate[0]);
+				yList.add((double) temptCoordinate[1]);
+			}
+			return this.getValue(new AtCommonMath(xList).getMean(), new AtCommonMath(yList).getMean());
 		}
 	}
 
