@@ -215,7 +215,7 @@ public class AsciiBasicControl {
 		}
 
 		/*
-		 * if there isn't any grid center is inside the polygon
+		 * if there isn't any grid center is inside the polygo
 		 */
 		if (valueList.size() > 0) {
 			return String.valueOf(new AtCommonMath(valueList).getMean());
