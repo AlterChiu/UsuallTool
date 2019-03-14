@@ -225,7 +225,7 @@ public class AsciiBasicControl {
 			List<Double> xList = new ArrayList<Double>();
 			List<Double> yList = new ArrayList<Double>();
 
-			for (; pathIt.isDone(); pathIt.next()) {
+			for (; !pathIt.isDone(); pathIt.next()) {
 				pathIt.currentSegment(temptCoordinate);
 				xList.add((double) temptCoordinate[0]);
 				yList.add((double) temptCoordinate[1]);

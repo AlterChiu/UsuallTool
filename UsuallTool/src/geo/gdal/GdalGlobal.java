@@ -22,7 +22,7 @@ public class GdalGlobal {
 			/*
 			 * single polygon type
 			 */
-			JsonArray coordinates = geoJson.get("coordinate").getAsJsonArray().get(0).getAsJsonArray();
+			JsonArray coordinates = geoJson.get("coordinates").getAsJsonArray().get(0).getAsJsonArray();
 			double startX = coordinates.get(0).getAsJsonArray().get(0).getAsDouble();
 			double startY = coordinates.get(0).getAsJsonArray().get(1).getAsDouble();
 			outPath.moveTo(startX, startY);

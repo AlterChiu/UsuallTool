@@ -1,5 +1,7 @@
 package testFolder;
 
+import java.io.File;
+
 import org.gdal.ogr.Geometry;
 
 import geo.gdal.SpatialFileTranslater;
@@ -10,8 +12,10 @@ public class test {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		SpatialReader spReader = new SpatialReader("H:\\SHP\\東門溪測試/dongman_merge(Sobek).shp");
-		System.out.println(spReader.getGeometryList().get(0).ExportToJson());
+		String fileAdd = "H:\\RainfallData\\catchment\\119.9687_23.4562\\";
+		for(String fileName : new File(fileAdd).list()) {
+			System.out.println("\"" + fileName + "\",");
+		}
 
 	}
 

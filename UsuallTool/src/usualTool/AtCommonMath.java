@@ -149,7 +149,6 @@ public class AtCommonMath {
 	}
 
 	public final void clear() {
-		this.valueList.clear();
 		this.ds.clear();
 	}
 }
