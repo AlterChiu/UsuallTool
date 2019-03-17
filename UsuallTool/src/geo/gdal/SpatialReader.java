@@ -7,6 +7,7 @@ import java.util.TreeMap;
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.DataSource;
+import org.gdal.ogr.Driver;
 import org.gdal.ogr.Feature;
 import org.gdal.ogr.FeatureDefn;
 import org.gdal.ogr.Geometry;
@@ -90,6 +91,67 @@ public class SpatialReader {
 		return this.attributeTitleType;
 	}
 	// <============================================>
+
+	/*
+	 * translate function
+	 */
+	public void saveAsGeoJson(String saveAdd, int importCoordinate, int outputCoordinate) {
+		SpatialWriter spWriter = getSpatialWriter(saveAdd, importCoordinate, outputCoordinate);
+		spWriter.saveAsGeoJson(saveAdd);
+	}
+
+	public void saveAsShp(String saveAdd, int importCoordinate, int outputCoordinate) {
+		SpatialWriter spWriter = getSpatialWriter(saveAdd, importCoordinate, outputCoordinate);
+		spWriter.saveAsShp(saveAdd);
+	}
+
+	public void saveAsCsv(String saveAdd, int importCoordinate, int outputCoordinate) {
+		SpatialWriter spWriter = getSpatialWriter(saveAdd, importCoordinate, outputCoordinate);
+		spWriter.saveAsCsv(saveAdd);
+	}
+
+	public void saveAsTopoJson(String saveAdd, int importCoordinate, int outputCoordinate) {
+		SpatialWriter spWriter = getSpatialWriter(saveAdd, importCoordinate, outputCoordinate);
+		spWriter.saveAsTopoJson(saveAdd);
+	}
+
+	public void saveAsCAD(String saveAdd, int importCoordinate, int outputCoordinate) {
+		SpatialWriter spWriter = getSpatialWriter(saveAdd, importCoordinate, outputCoordinate);
+		spWriter.saveAsCAD(saveAdd);
+	}
+
+	public void saveAsDWG(String saveAdd, int importCoordinate, int outputCoordinate) {
+		SpatialWriter spWriter = getSpatialWriter(saveAdd, importCoordinate, outputCoordinate);
+		spWriter.saveAsDWG(saveAdd);
+	}
+
+	public void saveAsKML(String saveAdd, int importCoordinate, int outputCoordinate) {
+		SpatialWriter spWriter = getSpatialWriter(saveAdd, importCoordinate, outputCoordinate);
+		spWriter.saveAsKML(saveAdd);
+	}
+
+	private SpatialWriter getSpatialWriter(String saveAdd, int importCoordinate, int outputCoordinate) {
+		SpatialWriter spWriter = new SpatialWriter();
+		spWriter.setField(this.attributeTitleType);
+
+		List<Geometry> temptGeoList = new ArrayList<>();
+		this.geometryList.forEach(geo -> {
+			temptGeoList.add(GdalGlobal.geometryTranlster(geo, importCoordinate, outputCoordinate));
+		});
+		spWriter.setGeoList(temptGeoList);
+
+		List<Map<String, Object>> temptList = new ArrayList<>();
+		this.featureTable.forEach(feature -> {
+			Map<String, Object> temptMap = new TreeMap<>();
+			for (String key : feature.keySet()) {
+				temptMap.put(key, feature.get(key));
+			}
+			temptList.add(temptMap);
+		});
+		spWriter.setAttributeTable(temptList);
+		spWriter.setCoordinateSystem(outputCoordinate);
+		return spWriter;
+	}
 
 	/*
 	 * 

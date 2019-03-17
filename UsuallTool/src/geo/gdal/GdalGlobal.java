@@ -6,14 +6,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gdal.ogr.Geometry;
+import org.gdal.osr.CoordinateTransformation;
+import org.gdal.osr.SpatialReference;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class GdalGlobal {
+	public static int WGS84 = 4326;
+	public static int TWD97_121 = 3826;
+	public static int TWD97_119 = 3825;
+	public static int TWD67_121 = 3828;
+	public static int TWD67_119 = 3827;
 
 	public static String gdalBinFolder = "C:\\code\\JAVA library\\gdal\\bin\\";
+
+	public static Geometry geometryTranlster(Geometry geo, int importCoordinate, int outputCoordinate) {
+		SpatialReference inputSpatital = new SpatialReference();
+		inputSpatital.ImportFromEPSG(importCoordinate);
+
+		SpatialReference outputSpatital = new SpatialReference();
+		outputSpatital.ImportFromEPSG(outputCoordinate);
+
+		CoordinateTransformation geoTrans = new CoordinateTransformation(inputSpatital, outputSpatital);
+		Geometry temptGeo = geo.Clone();
+		temptGeo.Transform(geoTrans);
+
+		return temptGeo;
+	}
 
 	public static List<Path2D> GeomertyToPath2D(Geometry geometry) {
 		List<Path2D> outList = new ArrayList<>();
