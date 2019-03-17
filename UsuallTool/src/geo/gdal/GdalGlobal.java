@@ -2,6 +2,8 @@ package geo.gdal;
 
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.gdal.ogr.Geometry;
 
@@ -13,7 +15,9 @@ public class GdalGlobal {
 
 	public static String gdalBinFolder = "C:\\code\\JAVA library\\gdal\\bin\\";
 
-	public static Path2D GeomertyToPath2D(Geometry geometry) {
+	public static List<Path2D> GeomertyToPath2D(Geometry geometry) {
+		List<Path2D> outList = new ArrayList<>();
+
 		JsonObject geoJson = new JsonParser().parse(geometry.ExportToJson()).getAsJsonObject();
 		String polygonType = geoJson.get("type").getAsString();
 
@@ -32,16 +36,31 @@ public class GdalGlobal {
 				double temptY = coordinates.get(index).getAsJsonArray().get(1).getAsDouble();
 				outPath.lineTo(temptX, temptY);
 			}
-			return outPath;
+			outList.add(outPath);
 
+			/*
+			 * for multi polygon
+			 */
 		} else if (polygonType.toUpperCase().equals("MULTIPOLYGON")) {
-			System.out.println("MULTIPOLYGON");
-			return null;
+			JsonArray polygons = geoJson.get("coordinates").getAsJsonArray();
+
+			for (int polygon = 0; polygon < polygons.size(); polygon++) {
+				JsonArray coordinates = geoJson.get("coordinates").getAsJsonArray().get(polygon).getAsJsonArray();
+				double startX = coordinates.get(0).getAsJsonArray().get(0).getAsDouble();
+				double startY = coordinates.get(0).getAsJsonArray().get(1).getAsDouble();
+				outPath.moveTo(startX, startY);
+
+				for (int index = 1; index < coordinates.size() - 1; index++) {
+					double temptX = coordinates.get(index).getAsJsonArray().get(0).getAsDouble();
+					double temptY = coordinates.get(index).getAsJsonArray().get(1).getAsDouble();
+					outPath.lineTo(temptX, temptY);
+				}
+				outList.add(outPath);
+			}
 		} else {
 			System.out.println("notPOLYGON");
-			return null;
 		}
-
+		return outList;
 	}
 
 	public static Geometry Path2DToGeometry(Path2D path) {

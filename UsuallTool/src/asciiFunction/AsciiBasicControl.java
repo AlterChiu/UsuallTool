@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.gdal.ogr.Geometry;
+
 import geo.gdal.GdalGlobal;
 import geo.path.IntersectLine;
 import usualTool.AtCommonMath;
@@ -232,6 +234,26 @@ public class AsciiBasicControl {
 			}
 			return this.getValue(new AtCommonMath(xList).getMean(), new AtCommonMath(yList).getMean());
 		}
+	}
+
+	public String getValue(Geometry geometry) {
+		List<Double> polygonValueList = new ArrayList<Double>();
+		List<Path2D> pathList = GdalGlobal.GeomertyToPath2D(geometry);
+
+		for (int index = 0; index < pathList.size(); index++) {
+			String temptValue = getValue(pathList.get(index));
+			if (temptValue.equals(this.getNullValue())) {
+				polygonValueList.add(Double.parseDouble(temptValue));
+			}
+		}
+
+		try {
+			return new BigDecimal(new AtCommonMath(polygonValueList).getMean()).setScale(3, BigDecimal.ROUND_HALF_UP)
+					.toString();
+		} catch (Exception e) {
+			return this.getNullValue();
+		}
+
 	}
 
 	public AsciiBasicControl setValue(double x, double y, String value) {

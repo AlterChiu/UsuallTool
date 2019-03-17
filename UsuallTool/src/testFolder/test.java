@@ -1,22 +1,22 @@
 package testFolder;
 
+import java.awt.geom.Path2D;
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.gdal.ogr.Geometry;
 
-import geo.gdal.SpatialFileTranslater;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
 
 public class test {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		String fileAdd = "H:\\RainfallData\\catchment\\119.9687_23.4562\\";
-		for(String fileName : new File(fileAdd).list()) {
-			System.out.println("\"" + fileName + "\",");
-		}
-
 	}
 
 }

@@ -3,90 +3,47 @@ package testFolder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import org.gdal.ogr.Geometry;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import asciiFunction.AsciiBasicControl;
 import asciiFunction.XYZToAscii;
+import geo.gdal.GdalGlobal;
+import geo.gdal.SpatialReader;
 import usualTool.AtFileReader;
 
 public class testAtCommon {
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		String model = "20181201_Pintung_FEWS_12_3_plis1.5";
-		String delicateAsciiAdd = "E:\\mapReduce\\OriginalDEM\\PintongZone2\\highResolutionDem.asc";
-		String roughAsciiAsdd = "E:\\mapReduce\\OriginalDEM\\PintongZone2\\lowResolutionDem.asc";
+		SpatialReader shpFile = new SpatialReader("H:\\SHP\\水文分析一維\\MergeAll.shp");
+		List<Geometry> geoList = shpFile.getGeometryList();
+		List<Map<String, String>> shpAttr = shpFile.getAttributeTable();
 
-		JsonObject property = new AtFileReader("E:\\mapReduce\\報告用-別刪\\" + model + "\\property.json").getJsonObject();
+		List<String> outList = new ArrayList<>();
 
-		AsciiBasicControl delicate = new AsciiBasicControl(delicateAsciiAdd);
-		AsciiBasicControl rough = new AsciiBasicControl(roughAsciiAsdd);
+		for (int index = 0; index < geoList.size(); index++) {
+			if (GdalGlobal.GeomertyToPath2D(geoList.get(index)) == null) {
+				JsonObject json = new JsonParser().parse(geoList.get(index).ExportToJson()).getAsJsonObject();
 
-		// <+++++++++++++++++++++++++++++++++++++++++++++>
-		// <+++++++++++++++++++++ TOTAL +++++++++++++++++++>
-		// <+++++++++++++++++++++++++++++++++++++++++++++>
-		int delicateGrids = getActiveCell(delicateAsciiAdd);
-		int delicateCellSize = (int) Double.parseDouble(delicate.getProperty().get("cellSize"));
-		int delicateArea = delicateGrids * delicateCellSize * delicateCellSize;
-
-		int roughGrids = getActiveCell(roughAsciiAsdd);
-		int roughCellSize = (int) Double.parseDouble(rough.getProperty().get("cellSize"));
-		int roughArea = roughGrids * roughCellSize * roughCellSize;
-
-		System.out.println("delicateTotal\t" + property.get("SpendTime_delicateTotal").getAsString() + "\t"
-				+ delicateCellSize + "\t" + delicateGrids + "\t" + delicateArea);
-		System.out.println("roughTotal\t" + property.get("SpendTime_roughTotal").getAsString() + "\t" + roughCellSize
-				+ "\t" + roughGrids + "\t" + roughArea);
-
-		// <+++++++++++++++++++++++++++++++++++++++++++++>
-		// <+++++++++++++++++++ delicateSplit +++++++++++++++++>
-		// <+++++++++++++++++++++++++++++++++++++++++++++>
-		for (int index = 0; index < 2; index++) {
-			System.out.println();
-
-			JsonObject temptJson = property.get("mergeSplit_" + index).getAsJsonObject();
-			JsonObject temptDelicate = temptJson.get("DelicateBoundary").getAsJsonObject();
-			JsonArray temptRoughArray = temptJson.get("RoughBoundary").getAsJsonArray();
-			int delicateAcitiveGrids = getActiveCell(
-					"E:\\mapReduce\\報告用-別刪\\" + model + "\\split\\" + index + "\\delicateDem.asc");
-
-			System.out.println("delicate\t" + temptDelicate.get("spendTime").getAsString() + "\t\t\t" + delicateCellSize
-					+ "\t" + delicateAcitiveGrids + "\t" + delicateCellSize * delicateCellSize * delicateAcitiveGrids
-					+ "\t" + temptDelicate.get("minX").getAsString() + "\t" + temptDelicate.get("maxX").getAsString()
-					+ "\t" + temptDelicate.get("minY").getAsString() + "\t" + temptDelicate.get("maxX").getAsString()
-					+ "\t");
-
-			for (int arrayNo = 0; arrayNo < temptRoughArray.size(); arrayNo++) {
-				int roughAcitiveGrids = getActiveCell("E:\\mapReduce\\報告用-別刪\\" + model + "\\convergence\\" + index
-						+ "\\" + arrayNo + "\\roughDem.asc");
-
-				JsonObject temptRough = temptRoughArray.get(arrayNo).getAsJsonObject();
-				System.out.println(" \t" + temptRough.get("spendTime").getAsString() + "\t"
-						+ temptRough.get("FloodTimesError").getAsString() + "\t"
-						+ temptRough.get("FloodDepthError").getAsString() + "\t" + roughCellSize + "\t"
-						+ roughAcitiveGrids + "\t" + roughCellSize * roughCellSize * roughAcitiveGrids + "\t"
-						+ temptRough.get("minX").getAsString() + "\t" + temptRough.get("maxX").getAsString() + "\t"
-						+ temptRough.get("minY").getAsString() + "\t" + temptRough.get("maxX").getAsString());
-			}
-		}
-	}
-
-	private static int getActiveCell(String fileAdd) throws IOException {
-		AsciiBasicControl ascii = new AsciiBasicControl(fileAdd);
-		String nullValue = ascii.getProperty().get("noData");
-		int count = 0;
-
-		for (String[] line : ascii.getAsciiGrid()) {
-			for (String content : line) {
-				if (!content.equals(nullValue)) {
-					count++;
+				System.out.print(shpAttr.get(index).get("ID"));
+				JsonArray polygons = json.get("coordinates").getAsJsonArray();
+				for (int polygon = 0; polygon < polygons.size(); polygon++) {
+					for (int point = 0; point < polygons.get(polygon).getAsJsonArray().size(); point++) {
+						System.out.print("\t"
+								+ polygons.get(polygon).getAsJsonArray().get(point).getAsJsonArray().size() + "\t");
+					}
 				}
+				System.out.println();
 			}
 		}
-		return count;
+
 	}
 
 }
