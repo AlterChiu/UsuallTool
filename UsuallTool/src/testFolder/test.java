@@ -16,7 +16,7 @@ import geo.gdal.SpatialWriter;
 public class test {
 
 	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stu
 	}
 
 }
