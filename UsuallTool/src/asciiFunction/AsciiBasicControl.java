@@ -242,7 +242,7 @@ public class AsciiBasicControl {
 
 		for (int index = 0; index < pathList.size(); index++) {
 			String temptValue = getValue(pathList.get(index));
-			if (temptValue.equals(this.getNullValue())) {
+			if (!temptValue.equals(this.getNullValue())) {
 				polygonValueList.add(Double.parseDouble(temptValue));
 			}
 		}

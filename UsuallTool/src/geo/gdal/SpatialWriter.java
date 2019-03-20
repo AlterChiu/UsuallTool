@@ -195,7 +195,7 @@ public class SpatialWriter {
 		}
 		DataSource outDataSource = dataSourceDriver.CreateDataSource(saveAdd);
 		Layer outLayer = outDataSource.CreateLayer(this.layerName, this.outputSpatitalSystem);
-		
+
 		// create field
 		List<String> fieldName = new ArrayList<String>(this.fieldType.keySet());
 		for (String name : fieldName) {
@@ -215,7 +215,7 @@ public class SpatialWriter {
 				field.SetPrecision(5);
 				outLayer.CreateField(field);
 
-			} else if (type.equals("INT") || type.equals("INTEGER")) {
+			} else if (type.equals("INT") || type.equals("INTEGER") || type.equals("INTEGER64")) {
 				field.SetType(ogr.OFTInteger);
 				field.SetName(name);
 				field.SetWidth(20);

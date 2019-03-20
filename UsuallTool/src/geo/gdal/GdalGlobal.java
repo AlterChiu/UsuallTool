@@ -42,11 +42,12 @@ public class GdalGlobal {
 		JsonObject geoJson = new JsonParser().parse(geometry.ExportToJson()).getAsJsonObject();
 		String polygonType = geoJson.get("type").getAsString();
 
-		Path2D outPath = new Path2D.Double();
 		if (polygonType.toUpperCase().equals("POLYGON")) {
 			/*
 			 * single polygon type
 			 */
+			Path2D outPath = new Path2D.Double();
+
 			JsonArray coordinates = geoJson.get("coordinates").getAsJsonArray().get(0).getAsJsonArray();
 			double startX = coordinates.get(0).getAsJsonArray().get(0).getAsDouble();
 			double startY = coordinates.get(0).getAsJsonArray().get(1).getAsDouble();
@@ -65,8 +66,9 @@ public class GdalGlobal {
 		} else if (polygonType.toUpperCase().equals("MULTIPOLYGON")) {
 			JsonArray polygons = geoJson.get("coordinates").getAsJsonArray();
 
-			for (int polygon = 0; polygon < polygons.size(); polygon++) {
-				JsonArray coordinates = geoJson.get("coordinates").getAsJsonArray().get(polygon).getAsJsonArray();
+			for (int polygonIndex = 0; polygonIndex < polygons.size(); polygonIndex++) {
+				Path2D outPath = new Path2D.Double();
+				JsonArray coordinates = polygons.get(polygonIndex).getAsJsonArray().get(0).getAsJsonArray();
 				double startX = coordinates.get(0).getAsJsonArray().get(0).getAsDouble();
 				double startY = coordinates.get(0).getAsJsonArray().get(1).getAsDouble();
 				outPath.moveTo(startX, startY);
