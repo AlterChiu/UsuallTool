@@ -22,6 +22,11 @@ public class GdalGlobal {
 
 	public static String gdalBinFolder = "C:\\code\\JAVA library\\gdal\\bin\\";
 
+	public static String sagaBinFolder = "F:/Qgis/apps/saga-ltr/";
+	
+	public static String temptFolder = "F:/Qgis/test/";
+	public static String temptFile = temptFolder + "tempt";
+
 	public static Geometry geometryTranlster(Geometry geo, int importCoordinate, int outputCoordinate) {
 		SpatialReference inputSpatital = new SpatialReference();
 		inputSpatital.ImportFromEPSG(importCoordinate);

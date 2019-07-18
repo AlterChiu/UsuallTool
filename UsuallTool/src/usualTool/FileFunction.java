@@ -7,10 +7,7 @@ import java.nio.file.StandardCopyOption;
 
 public class FileFunction {
 
-	public FileFunction() {
-	}
-
-	public void newFolder(String folderPath) {
+	public static void newFolder(String folderPath) {
 		try {
 			String filePath = folderPath;
 			filePath = filePath.toString();
@@ -23,7 +20,7 @@ public class FileFunction {
 		}
 	}
 
-	public void delete(String path) {
+	public static void delete(String path) {
 		File file = new File(path);
 		try {
 			for (File childFile : file.listFiles()) {
@@ -41,7 +38,7 @@ public class FileFunction {
 		}
 	}
 
-	public void copyFile(String oldPath, String newPath) {
+	public static void copyFile(String oldPath, String newPath) {
 		try {
 			Files.copy(new File(oldPath).toPath(), new File(newPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
@@ -50,7 +47,7 @@ public class FileFunction {
 		}
 	}
 
-	public void copyFolder(String oldPath, String newPath) {
+	public static void copyFolder(String oldPath, String newPath) {
 		newFolder(newPath);
 		oldPath = oldPath + "\\";
 		newPath = newPath + "\\";
@@ -65,17 +62,17 @@ public class FileFunction {
 		}
 	}
 
-	public void moveFile(String oldPath, String newPath) {
+	public static void moveFile(String oldPath, String newPath) {
 		copyFile(oldPath, newPath);
 		delete(oldPath);
 	}
 
-	public void moveFolder(String oldPath, String newPath) {
+	public static void moveFolder(String oldPath, String newPath) {
 		copyFolder(oldPath, newPath);
 		delete(oldPath);
 	}
 
-	public void reNameFile(String oldPath, String newPath) {
+	public static void reNameFile(String oldPath, String newPath) {
 		File oldFile = new File(oldPath);
 		oldFile.renameTo(new File(newPath));
 	}

@@ -272,6 +272,10 @@ public class AsciiBasicControl {
 		return this;
 	}
 
+	public double getCellSize() {
+		return Double.parseDouble(this.property.get("cellSize"));
+	}
+
 	/*
 	 * 
 	 */
@@ -737,6 +741,24 @@ public class AsciiBasicControl {
 		return boundary;
 	}
 	// <==================================================================>
+
+	/*
+	 * Converting function
+	 */
+	public List<Double[]> converToXYZ() {
+		List<Double[]> outList = new ArrayList<>();
+
+		for (int row = 0; row < Integer.parseInt(this.property.get("row")); row++) {
+			for (int column = 0; column < Integer.parseInt(this.property.get("column")); column++) {
+				String temptValue = this.getValue(column, row);
+				if (!temptValue.equals(this.getNullValue())) {
+					double[] coordinate = this.getCoordinate(column, row);
+					outList.add(new Double[] { coordinate[0], coordinate[1], Double.parseDouble(temptValue) });
+				}
+			}
+		}
+		return outList;
+	}
 
 	// <=================>
 	// < replace the noData value>

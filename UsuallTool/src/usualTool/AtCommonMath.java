@@ -148,6 +148,28 @@ public class AtCommonMath {
 		return sortedList;
 	}
 
+	public double getClosestValue(double targetValue) {
+		double dis = Double.POSITIVE_INFINITY;
+		double outValue = Double.NaN;
+
+		for (double temptValue : this.valueList) {
+			double temptDis = Math.abs(targetValue - temptValue);
+			if (temptDis < dis) {
+				dis = temptDis;
+				outValue = temptValue;
+			}
+		}
+
+		return outValue;
+	}
+
+	public List<Double> getRatio() {
+		double sum = this.getSum();
+		List<Double> ratio = new ArrayList<>();
+		this.valueList.forEach(e -> ratio.add(e / sum));
+		return ratio;
+	}
+
 	public final void clear() {
 		this.ds.clear();
 	}

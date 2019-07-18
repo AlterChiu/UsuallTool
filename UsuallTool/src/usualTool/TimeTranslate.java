@@ -38,6 +38,16 @@ public class TimeTranslate {
 		return dateFormat.parse(time).getTime();
 	}
 
+	static public String addMinute(String time, String format) throws ParseException {
+		long milliTime = StringToLong(time, format) + 60000;
+		return milliToDate(milliTime, format);
+	}
+
+	static public String addMinute(String time, String format, int delay) throws ParseException {
+		long milliTime = StringToLong(time, format) + 60000 * delay;
+		return milliToDate(milliTime, format);
+	}
+
 	static public String addDay(String time, String format) throws ParseException {
 		long milliTime = StringToLong(time, format) + 3600000 * 24;
 		return milliToDate(milliTime, format);

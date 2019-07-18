@@ -14,7 +14,7 @@ import usualTool.AtFileWriter;
 public class XYZToAscii {
 	private TreeMap<String, String> property = new TreeMap<String, String>();
 
-	private ArrayList<String[]> xyzContent;
+	private List<Double[]> xyzContent;
 	// y,x,z
 	private TreeMap<Integer, TreeMap<Integer, List<Double>>> outTree = new TreeMap<Integer, TreeMap<Integer, List<Double>>>();
 	private List<String[]> outList = new ArrayList<>();
@@ -32,14 +32,31 @@ public class XYZToAscii {
 	private List<Double> yList = new ArrayList<Double>();
 	private List<Double> zList = new ArrayList<Double>();
 
+	public XYZToAscii(List<Double[]> xyzContent) throws IOException {
+		this.xyzContent = xyzContent;
+		this.setXYZList();
+	}
+
 	public XYZToAscii(String fileAdd) throws IOException {
-		this.xyzContent = new ArrayList<String[]>(Arrays.asList(new AtFileReader(fileAdd).getCsv()));
+		List<String[]> temptContent = new ArrayList<String[]>(Arrays.asList(new AtFileReader(fileAdd).getCsv(1, 0)));
+		xyzContent.clear();
+		xyzContent = new ArrayList<>();
+		for (String[] temptLine : temptContent) {
+			xyzContent.add(new Double[] { Double.parseDouble(temptLine[0]), Double.parseDouble(temptLine[1]),
+					Double.parseDouble(temptLine[2]) });
+		}
+
 		this.setXYZList();
 	}
 
 	public XYZToAscii(String[][] content) {
-		this.xyzContent = new ArrayList<String[]>(Arrays.asList(content));
-		this.setXYZList();
+		List<String[]> temptContent = new ArrayList<String[]>(Arrays.asList(content));
+		xyzContent.clear();
+		xyzContent = new ArrayList<>();
+		for (String[] temptLine : temptContent) {
+			xyzContent.add(new Double[] { Double.parseDouble(temptLine[0]), Double.parseDouble(temptLine[1]),
+					Double.parseDouble(temptLine[2]) });
+		}
 	}
 
 	// <===============================================>
@@ -79,14 +96,14 @@ public class XYZToAscii {
 	// < private function >
 	// <================================================>
 	private void setXYZList() {
-		Double minX = Double.parseDouble(this.xyzContent.get(0)[0]);
-		Double maxX = Double.parseDouble(this.xyzContent.get(0)[0]);
-		Double minY = Double.parseDouble(this.xyzContent.get(0)[1]);
-		Double maxY = Double.parseDouble(this.xyzContent.get(0)[1]);
+		Double minX = this.xyzContent.get(0)[0];
+		Double maxX = this.xyzContent.get(0)[0];
+		Double minY = this.xyzContent.get(0)[1];
+		Double maxY = this.xyzContent.get(0)[1];
 
 		while (this.xyzContent.size() > 0) {
-			double temptX = Double.parseDouble(this.xyzContent.get(0)[0]);
-			double temptY = Double.parseDouble(this.xyzContent.get(0)[1]);
+			double temptX = this.xyzContent.get(0)[0];
+			double temptY = this.xyzContent.get(0)[1];
 
 			// get the boundary of the xyList
 			if (temptX > maxX) {
@@ -104,10 +121,9 @@ public class XYZToAscii {
 			// get the xyzList
 			this.xList.add(temptX);
 			this.yList.add(temptY);
-			this.zList.add(Double.parseDouble(this.xyzContent.get(0)[2]));
+			this.zList.add(this.xyzContent.get(0)[2]);
 			this.xyzContent.remove(0);
 		}
-		System.out.println("xyzList complete");
 	}
 
 	private void setProperty() {
@@ -115,16 +131,16 @@ public class XYZToAscii {
 		AtCommonMath xMath = new AtCommonMath(this.xList);
 		AtCommonMath yMath = new AtCommonMath(this.yList);
 
-		this.maxX = new BigDecimal(xMath.getMax()).setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
-		this.minY = new BigDecimal(yMath.getMin()).setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
+		this.maxX = new BigDecimal(xMath.getMax() + 0.5 * this.cellSize)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+		this.minY = new BigDecimal(yMath.getMin() - 0.5 * this.cellSize)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
 		// if the startXY is extinct pass it
 		// or recalculate it
 		if (Math.abs(this.minX + 9999) < 1 || Math.abs(this.maxY + 9999) < 1) {
-			this.minX = new BigDecimal(new AtCommonMath(this.xList).getMin())
+			this.minX = new BigDecimal(new AtCommonMath(this.xList).getMin() - 0.5 * this.cellSize)
 					.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
-			this.maxY = new BigDecimal(new AtCommonMath(this.yList).getMax())
+			this.maxY = new BigDecimal(new AtCommonMath(this.yList).getMax() + 0.5 * this.cellSize)
 					.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
 		}
 		xMath.clear();
@@ -133,22 +149,22 @@ public class XYZToAscii {
 		// set the column and row
 		// reBoundary the xyList
 		int row = new BigDecimal((this.maxY - this.minY) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP)
-				.intValue();
+				.intValue() + 1;
 		int column = new BigDecimal((this.maxX - this.minX) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP)
-				.intValue();
-		this.maxX = new BigDecimal(column * this.cellSize + this.minX)
+				.intValue() + 1;
+		this.maxX = new BigDecimal((column - 1) * this.cellSize + this.minX)
 				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
-		this.minY = new BigDecimal(this.maxY - row * this.cellSize)
+		this.minY = new BigDecimal(this.maxY - (row - 1) * this.cellSize)
 				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
 
-		this.property.put("bottomX", this.minX - this.cellSize / 2 + "");
-		this.property.put("bottomY", this.minY - this.cellSize / 2 + "");
-		this.property.put("topX", this.maxX + this.cellSize / 2 + "");
-		this.property.put("topY", this.maxY + this.cellSize / 2 + "");
+		this.property.put("bottomX", this.minX + this.cellSize / 2 + "");
+		this.property.put("bottomY", this.minY + this.cellSize / 2 + "");
+		this.property.put("topX", this.maxX - this.cellSize / 2 + "");
+		this.property.put("topY", this.maxY - this.cellSize / 2 + "");
 		this.property.put("cellSize", this.cellSize + "");
 		this.property.put("noData", this.noData);
-		this.property.put("row", row + 1 + "");
-		this.property.put("column", column + 1 + "");
+		this.property.put("row", row + "");
+		this.property.put("column", column + "");
 	}
 
 	// the order of tree , y,x,z
@@ -210,13 +226,9 @@ public class XYZToAscii {
 	// <=======================================>
 	public void start() {
 		setProperty();
-		System.out.println("complete set property");
 		initialTreeMap();
-		System.out.println("complete initial treeMap");
 		getSortedTree();
-		System.out.println("complete storeTree");
 		setAsciiContent();
-		System.out.println("complete ascii Content");
 	}
 	// <================================================>
 

@@ -7,7 +7,6 @@ import java.util.TreeMap;
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.DataSource;
-import org.gdal.ogr.Driver;
 import org.gdal.ogr.Feature;
 import org.gdal.ogr.FeatureDefn;
 import org.gdal.ogr.Geometry;
@@ -132,7 +131,7 @@ public class SpatialReader {
 
 	private SpatialWriter getSpatialWriter(String saveAdd, int importCoordinate, int outputCoordinate) {
 		SpatialWriter spWriter = new SpatialWriter();
-		spWriter.setField(this.attributeTitleType);
+		spWriter.setFieldType(this.attributeTitleType);
 
 		List<Geometry> temptGeoList = new ArrayList<>();
 		this.geometryList.forEach(geo -> {
@@ -148,7 +147,7 @@ public class SpatialReader {
 			}
 			temptList.add(temptMap);
 		});
-		spWriter.setAttributeTable(temptList);
+		spWriter.setAttribute(temptList);
 		spWriter.setCoordinateSystem(outputCoordinate);
 		return spWriter;
 	}

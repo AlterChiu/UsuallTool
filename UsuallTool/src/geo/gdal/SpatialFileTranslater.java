@@ -130,7 +130,7 @@ public class SpatialFileTranslater {
 		getTransformedDataSource(saveAdd, dr);
 	}
 
-	private DataSource getTransformedDataSource(String saveAdd, Driver dataSourceDriver) {
+	private void getTransformedDataSource(String saveAdd, Driver dataSourceDriver) {
 		// get input layer
 		DataSource temptDataSource = this.dataSource;
 		Layer inputLayer = temptDataSource.GetLayer(0);
@@ -159,7 +159,6 @@ public class SpatialFileTranslater {
 			for (int field = 0; field < feature.GetFieldCount(); field++) {
 				outFeature.SetField(inputField.GetFieldDefn(field).GetName(), feature.GetFieldAsString(field));
 			}
-			System.out.println(index);
 			// geometry translate
 			Geometry geometry = feature.GetGeometryRef();
 			geometry.Transform(geoTrans);
@@ -168,8 +167,7 @@ public class SpatialFileTranslater {
 			// add a new feature to field
 			outLayer.CreateFeature(outFeature);
 		}
-	
-		return outDataSource;
+		outDataSource.delete();
 	}
 	// <=======================================================>
 }

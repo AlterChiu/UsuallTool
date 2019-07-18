@@ -147,7 +147,7 @@ public class AtKmeans {
 		// renew the startPoint
 		List<Double[]> renewStartPoint = new ArrayList<Double[]>();
 		for (int index = 0; index < this.classData.size(); index++) {
-			renewStartPoint.add(getClassMeanPosint(this.classData.get(index)));
+			renewStartPoint.add(getClassMeanPosint(this.classData.get(index), this.startPoint.get(index)));
 		}
 		return renewStartPoint;
 	}
@@ -160,14 +160,18 @@ public class AtKmeans {
 	 * @return
 	 */
 	// get the mean point of the class, for renew the startPoint
-	public Double[] getClassMeanPosint(List<Double[]> values) {
+	public Double[] getClassMeanPosint(List<Double[]> values, Double[] oldStartPoint) {
 		List<Double> xList = new ArrayList<Double>();
 		List<Double> yList = new ArrayList<Double>();
-		values.forEach(cordinate -> {
-			xList.add(cordinate[0]);
-			yList.add(cordinate[1]);
-		});
-		return new Double[] { new AtCommonMath(xList).getMean(), new AtCommonMath(yList).getMean() };
+		if (values.size() > 0) {
+			values.forEach(cordinate -> {
+				xList.add(cordinate[0]);
+				yList.add(cordinate[1]);
+			});
+			return new Double[] { new AtCommonMath(xList).getMean(), new AtCommonMath(yList).getMean() };
+		} else {
+			return oldStartPoint;
+		}
 	}
 
 	/**

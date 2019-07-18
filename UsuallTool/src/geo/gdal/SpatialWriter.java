@@ -19,9 +19,9 @@ import org.gdal.ogr.ogr;
 import org.gdal.osr.SpatialReference;
 
 public class SpatialWriter {
-	private List<Geometry> geometryList = new ArrayList<Geometry>();
-	private List<Map<String, Object>> attribute = new ArrayList<Map<String, Object>>();
-	private Map<String, String> fieldType = new TreeMap<String, String>();
+	protected List<Geometry> geometryList = new ArrayList<Geometry>();
+	protected List<Map<String, Object>> attribute = new ArrayList<Map<String, Object>>();
+	protected Map<String, String> fieldType = new TreeMap<String, String>();
 
 	// projection
 	public static int WGS84 = 4326;
@@ -31,13 +31,21 @@ public class SpatialWriter {
 	public static int TWD67_119 = 3827;
 	private SpatialReference outputSpatitalSystem = new SpatialReference();
 
+	// geometry
+	private static String geoType_Polygon = "\"polygon\"";
+	private static String geoType_Point = "\"point\"";
+	private static String outGeoType = geoType_Polygon;
+
 	private String layerName = "temptFile";
 
 	// <=========================================>
 	// <constructor>
 	// <=========================================>
-	public SpatialWriter setPathList(List<Path2D> pathList) {
+	public SpatialWriter() {
 		gdal.AllRegister();
+	}
+
+	public SpatialWriter setPathList(List<Path2D> pathList) {
 		// translate path to geometry
 		pathList.forEach(e -> {
 			this.geometryList.add(getGeometry(e));
@@ -49,7 +57,6 @@ public class SpatialWriter {
 	}
 
 	public SpatialWriter setPathList(Path2D path) {
-		gdal.AllRegister();
 		// translate path to geometry
 		this.geometryList.add(getGeometry(path));
 
@@ -59,7 +66,6 @@ public class SpatialWriter {
 	}
 
 	public SpatialWriter setGeoList(List<Geometry> getList) {
-		gdal.AllRegister();
 		// translate path to geometry
 		this.geometryList = getList;
 
@@ -76,9 +82,9 @@ public class SpatialWriter {
 	// <==========================================>
 	// <output setting>
 	// <==========================================>
-	public SpatialWriter setAttributeTable(List<Map<String, Object>> attributeTatle) {
+	public SpatialWriter setAttribute(List<Map<String, Object>> attributeTable) {
 		this.attribute.clear();
-		this.attribute = attributeTatle;
+		this.attribute = attributeTable;
 		return this;
 	}
 
@@ -92,7 +98,7 @@ public class SpatialWriter {
 		return this;
 	}
 
-	public SpatialWriter setField(Map<String, String> type) {
+	public SpatialWriter setFieldType(Map<String, String> type) {
 		this.fieldType = type;
 		return this;
 	}
@@ -160,7 +166,7 @@ public class SpatialWriter {
 	// <===========================================>
 	// <private function>
 	// <===========================================>
-	private Geometry getGeometry(Path2D path) {
+	protected Geometry getGeometry(Path2D path) {
 		PathIterator temptPathIteratore = path.getPathIterator(null);
 		float coordinate[] = new float[2];
 
@@ -171,7 +177,7 @@ public class SpatialWriter {
 
 		// output geometry ,start point
 		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"Polygon\" , \"coordinates\" : [[");
+		sb.append("{\"type\" :" + outGeoType + " , \"coordinates\" : [[");
 		sb.append("[" + startX + "," + startY + "],");
 		temptPathIteratore.next();
 
@@ -262,7 +268,13 @@ public class SpatialWriter {
 			// geometry
 			feature.SetGeometry(this.geometryList.get(index));
 			outLayer.CreateFeature(feature);
+			feature.delete();
 		}
+		dataSourceDriver.delete();
+		outDataSource.delete();
+	}
 
+	protected static void pointGeometry() {
+		outGeoType = geoType_Point;
 	}
 }

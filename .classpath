@@ -10,5 +10,8 @@
 	<classpathentry kind="lib" path="F:/JAVA library/commonTool.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JChart"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/POI"/>
+	<classpathentry kind="lib" path="F:/JAVA library/gdal/gdal-2.2.0.jar"/>
+	<classpathentry kind="lib" path="F:/JAVA library/gdal/gdal-2.3.2-sources.jar"/>
+	<classpathentry kind="lib" path="F:/JAVA library/gdal/jGDAL/gdal.jar"/>
 	<classpathentry kind="output" path="UsuallTool/bin"/>
 </classpath>
