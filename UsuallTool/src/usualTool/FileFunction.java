@@ -18,6 +18,7 @@ public class FileFunction {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	
 	}
 
 	public static void delete(String path) {
@@ -27,14 +28,18 @@ public class FileFunction {
 				if (childFile.isDirectory()) {
 					delete(childFile.getAbsolutePath());
 				} else {
+					System.gc();
 					childFile.delete();
 				}
 			}
 		} catch (Exception e) {
+			e.getStackTrace();
 		}
 		try {
+			System.gc();
 			file.delete();
 		} catch (Exception e) {
+			e.getStackTrace();
 		}
 	}
 

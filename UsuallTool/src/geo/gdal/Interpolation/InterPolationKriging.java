@@ -186,13 +186,17 @@ public class InterPolationKriging implements AtInterpolation {
 
 		// target boundary
 		sagaCmd.add("-TARGET_USER_XMIN");
-		sagaCmd.add(new BigDecimal(this.targetBoundary.get("minX")).setScale(5, BigDecimal.ROUND_HALF_UP).toString());
+		sagaCmd.add(new BigDecimal(this.targetBoundary.get("minX") + 0.5 * this.cellSize)
+				.setScale(5, BigDecimal.ROUND_HALF_UP).toString());
 		sagaCmd.add("-TARGET_USER_XMAX");
-		sagaCmd.add(new BigDecimal(this.targetBoundary.get("maxX")).setScale(5, BigDecimal.ROUND_HALF_UP).toString());
+		sagaCmd.add(new BigDecimal(this.targetBoundary.get("maxX") - 0.5 * this.cellSize)
+				.setScale(5, BigDecimal.ROUND_HALF_UP).toString());
 		sagaCmd.add("-TARGET_USER_YMIN");
-		sagaCmd.add(new BigDecimal(this.targetBoundary.get("minY")).setScale(5, BigDecimal.ROUND_HALF_UP).toString());
+		sagaCmd.add(new BigDecimal(this.targetBoundary.get("minY") + 0.5 * this.cellSize)
+				.setScale(5, BigDecimal.ROUND_HALF_UP).toString());
 		sagaCmd.add("-TARGET_USER_YMAX");
-		sagaCmd.add(new BigDecimal(this.targetBoundary.get("maxY")).setScale(5, BigDecimal.ROUND_HALF_UP).toString());
+		sagaCmd.add(new BigDecimal(this.targetBoundary.get("maxY") - 0.5 * this.cellSize)
+				.setScale(5, BigDecimal.ROUND_HALF_UP).toString());
 
 		// cellSize
 		sagaCmd.add("-TARGET_USER_SIZE");
@@ -276,6 +280,10 @@ public class InterPolationKriging implements AtInterpolation {
 
 	public void setCellSize(double cellSize) {
 		this.cellSize = cellSize;
+	}
+
+	public void setRadius(double radius) {
+		this.SEARCH_RADIUS = radius;
 	}
 
 	@Override

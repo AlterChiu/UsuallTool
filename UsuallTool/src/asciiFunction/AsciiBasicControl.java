@@ -189,6 +189,33 @@ public class AsciiBasicControl {
 	}
 
 	public String getValue(Path2D path) {
+		List<Double> valueList = getPolygonValueList(path);
+
+		/*
+		 * if there isn't any grid center is inside the polygo
+		 */
+		if (valueList.size() > 0) {
+			return String.valueOf(new AtCommonMath(valueList).getMean());
+		} else {
+			PathIterator pathIt = path.getPathIterator(null);
+			float[] temptCoordinate = new float[6];
+			List<Double> xList = new ArrayList<Double>();
+			List<Double> yList = new ArrayList<Double>();
+
+			for (; !pathIt.isDone(); pathIt.next()) {
+				pathIt.currentSegment(temptCoordinate);
+				xList.add((double) temptCoordinate[0]);
+				yList.add((double) temptCoordinate[1]);
+			}
+			return this.getValue(new AtCommonMath(xList).getMean(), new AtCommonMath(yList).getMean());
+		}
+	}
+
+	public int getCount(Path2D path) {
+		return getPolygonValueList(path).size();
+	}
+
+	public List<Double> getPolygonValueList(Path2D path) {
 		Rectangle pathBoundary = path.getBounds();
 		double maxX = pathBoundary.getMaxX();
 		double minX = pathBoundary.getMinX();
@@ -215,37 +242,11 @@ public class AsciiBasicControl {
 				}
 			}
 		}
-
-		/*
-		 * if there isn't any grid center is inside the polygo
-		 */
-		if (valueList.size() > 0) {
-			return String.valueOf(new AtCommonMath(valueList).getMean());
-		} else {
-			PathIterator pathIt = path.getPathIterator(null);
-			float[] temptCoordinate = new float[6];
-			List<Double> xList = new ArrayList<Double>();
-			List<Double> yList = new ArrayList<Double>();
-
-			for (; !pathIt.isDone(); pathIt.next()) {
-				pathIt.currentSegment(temptCoordinate);
-				xList.add((double) temptCoordinate[0]);
-				yList.add((double) temptCoordinate[1]);
-			}
-			return this.getValue(new AtCommonMath(xList).getMean(), new AtCommonMath(yList).getMean());
-		}
+		return valueList;
 	}
 
 	public String getValue(Geometry geometry) {
-		List<Double> polygonValueList = new ArrayList<Double>();
-		List<Path2D> pathList = GdalGlobal.GeomertyToPath2D(geometry);
-
-		for (int index = 0; index < pathList.size(); index++) {
-			String temptValue = getValue(pathList.get(index));
-			if (!temptValue.equals(this.getNullValue())) {
-				polygonValueList.add(Double.parseDouble(temptValue));
-			}
-		}
+		List<Double> polygonValueList = getPolygonValueList(geometry);
 
 		try {
 			return new BigDecimal(new AtCommonMath(polygonValueList).getMean()).setScale(3, BigDecimal.ROUND_HALF_UP)
@@ -254,6 +255,21 @@ public class AsciiBasicControl {
 			return this.getNullValue();
 		}
 
+	}
+
+	public int getCount(Geometry geometry) {
+		return this.getPolygonValueList(geometry).size();
+	}
+
+	public List<Double> getPolygonValueList(Geometry geometry) {
+		List<Double> polygonValueList = new ArrayList<Double>();
+		List<Path2D> pathList = GdalGlobal.GeomertyToPath2D(geometry);
+
+		for (int index = 0; index < pathList.size(); index++) {
+			List<Double> temptValueList = this.getPolygonValueList(pathList.get(index));
+			temptValueList.forEach(e -> polygonValueList.add(e));
+		}
+		return polygonValueList;
 	}
 
 	public AsciiBasicControl setValue(double x, double y, String value) {

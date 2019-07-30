@@ -1,22 +1,2 @@
-[2018/10/30 13:40:39][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\observed.xml
-[2018/10/30 13:40:39][DEBUG] (FileUtils:1511) : File read in 0.3s IO 0.0s 6.5 MB 446 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\observed.xml
-[2018/10/30 13:42:14][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:42:15][DEBUG] (FileUtils:1511) : File read in 0.1s IO 0.0s 928 kB 248 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:46:38][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:46:38][DEBUG] (FileUtils:1511) : File read in 0.1s IO 0.0s 928 kB 201 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:47:32][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:47:32][DEBUG] (FileUtils:1511) : File read in 0.1s IO 0.0s 928 kB 217 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:48:16][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\observed.xml
-[2018/10/30 13:48:17][DEBUG] (FileUtils:1511) : File read in 0.2s IO 0.0s 6.5 MB 465 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\observed.xml
-[2018/10/30 13:50:02][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\observed.xml
-[2018/10/30 13:50:02][DEBUG] (FileUtils:1511) : File read in 0.2s IO 0.0s 6.5 MB 461 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\observed.xml
-[2018/10/30 13:50:53][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:50:53][DEBUG] (FileUtils:1511) : File read in 0.1s IO 0.0s 928 kB 196 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:51:45][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:51:45][DEBUG] (FileUtils:1511) : File read in 0.1s IO 0.0s 928 kB 190 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:52:01][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\observed.xml
-[2018/10/30 13:52:01][DEBUG] (FileUtils:1511) : File read in 0.3s IO 0.0s 6.5 MB 388 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\observed.xml
-[2018/10/30 13:52:50][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\observed.xml
-[2018/10/30 13:52:50][DEBUG] (FileUtils:1511) : File read in 0.3s IO 0.0s 6.5 MB 428 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\observed.xml
-[2018/10/30 13:53:07][DEBUG] (FileUtils:1471) : Open file for read F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
-[2018/10/30 13:53:07][DEBUG] (FileUtils:1511) : File read in 0.1s IO 0.0s 928 kB 198 MB/s F:\FEWS\FEWS_Taiwan_2017\Taiwan\Export\Alter\simulation.xml
+[2019/07/29 19:45:10][DEBUG] (FileUtils:1471) : Open file for read E:\LittleProject\IotSensorComparision\20190702 - 桃園\modelRainfall.xml
+[2019/07/29 19:45:10][DEBUG] (FileUtils:1511) : File read in 0.2s IO 0.0s 1.3 MB 194 MB/s E:\LittleProject\IotSensorComparision\20190702 - 桃園\modelRainfall.xml

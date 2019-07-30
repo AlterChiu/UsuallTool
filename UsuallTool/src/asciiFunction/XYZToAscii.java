@@ -25,7 +25,7 @@ public class XYZToAscii {
 	private double cellSize = 1.0;
 	private String noData = "-99";
 
-	private int coordinateScale = 4;
+	private int coordinateScale = 5;
 	private int valeuScale = 3;
 
 	private List<Double> xList = new ArrayList<Double>();
@@ -39,7 +39,6 @@ public class XYZToAscii {
 
 	public XYZToAscii(String fileAdd) throws IOException {
 		List<String[]> temptContent = new ArrayList<String[]>(Arrays.asList(new AtFileReader(fileAdd).getCsv(1, 0)));
-		xyzContent.clear();
 		xyzContent = new ArrayList<>();
 		for (String[] temptLine : temptContent) {
 			xyzContent.add(new Double[] { Double.parseDouble(temptLine[0]), Double.parseDouble(temptLine[1]),
@@ -51,12 +50,12 @@ public class XYZToAscii {
 
 	public XYZToAscii(String[][] content) {
 		List<String[]> temptContent = new ArrayList<String[]>(Arrays.asList(content));
-		xyzContent.clear();
 		xyzContent = new ArrayList<>();
 		for (String[] temptLine : temptContent) {
 			xyzContent.add(new Double[] { Double.parseDouble(temptLine[0]), Double.parseDouble(temptLine[1]),
 					Double.parseDouble(temptLine[2]) });
 		}
+		this.setXYZList();
 	}
 
 	// <===============================================>
@@ -135,45 +134,54 @@ public class XYZToAscii {
 				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
 		this.minY = new BigDecimal(yMath.getMin() - 0.5 * this.cellSize)
 				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
-		// if the startXY is extinct pass it
-		// or recalculate it
-		if (Math.abs(this.minX + 9999) < 1 || Math.abs(this.maxY + 9999) < 1) {
-			this.minX = new BigDecimal(new AtCommonMath(this.xList).getMin() - 0.5 * this.cellSize)
-					.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
-			this.maxY = new BigDecimal(new AtCommonMath(this.yList).getMax() + 0.5 * this.cellSize)
-					.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
-		}
+
+		this.minX = new BigDecimal(new AtCommonMath(this.xList).getMin() - 0.5 * this.cellSize)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+		this.maxY = new BigDecimal(new AtCommonMath(this.yList).getMax() + 0.5 * this.cellSize)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+
 		xMath.clear();
 		yMath.clear();
 
 		// set the column and row
 		// reBoundary the xyList
-		int row = new BigDecimal((this.maxY - this.minY) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP)
-				.intValue() + 1;
-		int column = new BigDecimal((this.maxX - this.minX) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP)
-				.intValue() + 1;
-		this.maxX = new BigDecimal((column - 1) * this.cellSize + this.minX)
+		int row = new BigDecimal((this.maxY - this.minY) / this.cellSize)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_UP).intValue() + 2;
+		int column = new BigDecimal((maxX - minX) / this.cellSize).setScale(this.coordinateScale, BigDecimal.ROUND_UP)
+				.intValue() + 2;
+		this.maxX = new BigDecimal((column ) * this.cellSize + this.minX)
 				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
-		this.minY = new BigDecimal(this.maxY - (row - 1) * this.cellSize)
+		this.minY = new BigDecimal(this.maxY - (row ) * this.cellSize)
 				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
 
-		this.property.put("bottomX", this.minX + this.cellSize / 2 + "");
-		this.property.put("bottomY", this.minY + this.cellSize / 2 + "");
-		this.property.put("topX", this.maxX - this.cellSize / 2 + "");
-		this.property.put("topY", this.maxY - this.cellSize / 2 + "");
+		this.property.put("bottomX", new BigDecimal(this.minX + this.cellSize / 2)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).toString());
+		this.property.put("bottomY", new BigDecimal(this.minY + this.cellSize / 2)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).toString());
+		this.property.put("topX", new BigDecimal(this.maxX - this.cellSize / 2)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).toString());
+		this.property.put("topY", new BigDecimal(this.maxY - this.cellSize / 2)
+				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).toString());
 		this.property.put("cellSize", this.cellSize + "");
 		this.property.put("noData", this.noData);
 		this.property.put("row", row + "");
 		this.property.put("column", column + "");
+
+		System.out.println("XYZ");
+		System.out.println("MinX " + this.property.get("bottomX"));
+		System.out.println("MinY " + property.get("bottomY"));
+		System.out.println("MaxX " + property.get("topX"));
+		System.out.println("MaxY " + property.get("topY"));
+
+		System.out.println();
+
 	}
 
 	// the order of tree , y,x,z
 	private void initialTreeMap() {
 		this.outTree.clear();
-		int row = new BigDecimal((this.maxY - this.minY) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP)
-				.intValue() + 1;
-		int column = new BigDecimal((this.maxX - this.minX) / this.cellSize).setScale(0, BigDecimal.ROUND_HALF_UP)
-				.intValue() + 1;
+		int row = Integer.parseInt(this.property.get("row"));
+		int column = Integer.parseInt(this.property.get("column"));
 		for (int temptRow = 0; temptRow < row; temptRow++) {
 			TreeMap<Integer, List<Double>> rowTree = new TreeMap<>();
 			for (int temptColumn = 0; temptColumn < column; temptColumn++) {
@@ -189,9 +197,9 @@ public class XYZToAscii {
 
 		for (int index = 0; index < this.xList.size(); index++) {
 			int temptRow = new BigDecimal((boundaryMaxY - this.yList.get(index)) / this.cellSize)
-					.setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+					.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).intValue();
 			int temptColumn = new BigDecimal((this.xList.get(index) - boundaryMinX) / this.cellSize)
-					.setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+					.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).intValue();
 			this.outTree.get(temptRow).get(temptColumn).add(this.zList.get(index));
 		}
 	}
@@ -199,6 +207,7 @@ public class XYZToAscii {
 	private void setAsciiContent() {
 		Integer[] rowList = this.outTree.keySet().parallelStream().toArray(Integer[]::new);
 		for (int row : rowList) {
+
 			List<String> temptList = new ArrayList<String>();
 			Integer[] columnList = this.outTree.get(row).keySet().parallelStream().toArray(Integer[]::new);
 			for (int column : columnList) {
