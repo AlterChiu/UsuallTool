@@ -1,42 +1,47 @@
 package testFolder;
 
-import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import javax.naming.OperationNotSupportedException;
 
-import FEWS.Rinfall.BUI.BuiTranslate;
+import org.gdal.gdal.gdal;
+
 import asciiFunction.AsciiBasicControl;
-import asciiFunction.XYZToAscii;
-import geo.gdal.CsvToSpatialFile;
-import geo.gdal.GdalGlobal;
-import geo.gdal.SpatialFileTranslater;
-import geo.gdal.Interpolation.AtInterpolation;
-import geo.gdal.Interpolation.InterPolationKriging;
-import ucar.nc2.NetcdfFile;
-import usualTool.AtFileReader;
+import usualTool.AtCommonMath;
 import usualTool.AtFileWriter;
-import usualTool.AtKmeans;
-import usualTool.FileFunction;
-import usualTool.TimeTranslate;
 
 public class test {
 
 	public static void main(String[] args)
 			throws IOException, InterruptedException, ParseException, OperationNotSupportedException {
 		// TODO Auto-generated method stud
+		String fileAdd = "E:\\LittleProject\\IotSensorComparision\\20190702 - 桃園\\floodResult\\";
 
-		BuiTranslate bui = new BuiTranslate(
-				"E:\\LittleProject\\IotSensorComparision\\20190702 - 桃園\\modelRainfall.xml");
-		new AtFileWriter(bui.getBuiRainfall(),
-				"E:\\LittleProject\\IotSensorComparision\\20190702 - 桃園\\modelRainfall.BUIl").textWriter(" ");
+		List<AsciiBasicControl> asciiList = new ArrayList<>();
+		for (int index = 0; index <= 13; index++) {
+			asciiList.add(new AsciiBasicControl(fileAdd + "dm1d" + String.format("%04d", index) + ".asc"));
+		}
+
+		AsciiBasicControl maxAscii = asciiList.get(0);
+		for (int row = 0; row < Integer.parseInt(maxAscii.getProperty().get("row")); row++) {
+			for (int column = 0; column < Integer.parseInt(maxAscii.getProperty().get("column")); column++) {
+
+				String temptValue = maxAscii.getValue(column, row);
+				if (!temptValue.equals(maxAscii.getNullValue())) {
+
+					List<Double> temptList = new ArrayList<>();
+					for (AsciiBasicControl ascii : asciiList) {
+						temptList.add(Double.parseDouble(ascii.getValue(column, row)));
+					}
+					maxAscii.setValue(column, row, new AtCommonMath(temptList).getMax(3) + "");
+				}
+			}
+		}
+
+		new AtFileWriter(maxAscii.getAsciiFile(), fileAdd + "maxd0.asc").textWriter(" ");
 	}
 
 }

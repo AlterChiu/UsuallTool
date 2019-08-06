@@ -11,7 +11,6 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.version>4.12</junit.version>
-		<gdal.version>2.3.2</gdal.version>
 
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<!--++++++++++++ AtCommon +++++++++++ -->
@@ -177,17 +176,6 @@
 			<groupId>com.github.cloudecho</groupId>
 			<artifactId>xmlbean</artifactId>
 			<version>${xmlBean.version}</version>
-		</dependency>
-
-		<!-- +++++++++++++++++++++++++++++++ -->
-		<!-- ++++++++++++ GDAL +++++++++++++++ -->
-		<!-- +++++++++++++++++++++++++++++++ -->
-		<!--gdal -->
-		<dependency>
-			<groupId>org.gdal</groupId>
-			<artifactId>gdal</artifactId>
-			<version>${gdal.version}</version>
-			<type>pom</type>
 		</dependency>
 
 
