@@ -23,6 +23,8 @@ public class AtLineIntersection {
 	// <==============================================================>
 	// < Contructor >
 	// <==============================================================>
+
+	// ax + by + c = 0 , equaltion[] = {a , b ,c}
 	public AtLineIntersection(Double[] equaltion1, Double[] equaltion2) {
 		this.a1 = equaltion1[0];
 		this.b1 = equaltion1[1];
@@ -33,6 +35,7 @@ public class AtLineIntersection {
 		this.c2 = equaltion2[2];
 	}
 
+	// ax + by + c = 0 ,{ A = a , B=b , C=c}
 	public AtLineIntersection(double coefficientA1, double coefficientB1, double coefficientC1, double coefficientA2,
 			double coefficientB2, double coefficientC2) {
 		this.a1 = coefficientA1;
@@ -44,6 +47,7 @@ public class AtLineIntersection {
 		this.c2 = coefficientC2;
 	}
 
+	// y = ax + b , {slope = a , intercept = b}
 	public AtLineIntersection(double slope1, double intercept1, double slope2, double intercept2) {
 		this.a1 = slope1 * -1;
 		this.c1 = intercept1 * -1;
@@ -84,7 +88,7 @@ public class AtLineIntersection {
 
 	public Boolean isIntersect() {
 		double determinant = AtDeterminant.getValue(new Double[][] { { a1, b1 }, { a2, b2 } });
-		if (Math.abs(determinant) < 0.00001) {
+		if (Math.abs(determinant) < 0.000000001) {
 			return false;
 		} else {
 			return true;

@@ -3,7 +3,6 @@ package usualTool.MathEqualtion.Distribution;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.apache.commons.math3.distribution.GammaDistribution;
 import org.apache.commons.math3.distribution.GumbelDistribution;
 
 import usualTool.AtCommonMath;

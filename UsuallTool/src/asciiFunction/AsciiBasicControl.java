@@ -22,7 +22,6 @@ public class AsciiBasicControl {
 	private String[][] asciiContent = null;
 	private Map<String, String> property;
 	private Map<String, Double> boundary;
-	private String[][] asciiGrid;
 
 	/*
 	 * 
@@ -37,7 +36,6 @@ public class AsciiBasicControl {
 		cutFirstColumn();
 		setProperty();
 		setBoundary();
-		this.asciiGrid = this.getAsciiGrid();
 
 	}
 
@@ -46,7 +44,6 @@ public class AsciiBasicControl {
 		cutFirstColumn();
 		setProperty();
 		setBoundary();
-		this.asciiGrid = this.getAsciiGrid();
 	}
 
 	// < using while ascii file start by a space >
@@ -170,7 +167,7 @@ public class AsciiBasicControl {
 		int row = new BigDecimal((startY - y) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
 		int column = new BigDecimal((x - startX) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
 		try {
-			return this.asciiGrid[row][column];
+			return this.asciiContent[row + 6][column];
 		} catch (Exception e) {
 			return this.property.get("noData");
 		}
@@ -178,7 +175,7 @@ public class AsciiBasicControl {
 
 	public String getValue(int column, int row) {
 		try {
-			return this.asciiGrid[row][column];
+			return this.asciiContent[row + 6][column];
 		} catch (Exception e) {
 			return this.property.get("noData");
 		}
@@ -276,7 +273,6 @@ public class AsciiBasicControl {
 		int[] position = this.getPosition(x, y);
 		try {
 			this.asciiContent[position[1] + 6][position[0]] = value;
-			this.asciiGrid[position[1]][position[0]] = value;
 		} catch (Exception e) {
 		}
 		return this;
@@ -284,7 +280,25 @@ public class AsciiBasicControl {
 
 	public AsciiBasicControl setValue(int x, int y, String value) {
 		this.asciiContent[y + 6][x] = value;
-		this.asciiGrid[y][x] = value;
+		return this;
+	}
+
+	public AsciiBasicControl setStartPoint(String[] coordinate) {
+		this.asciiContent[2][1] = coordinate[0];
+		this.asciiContent[3][1] = coordinate[1];
+
+		setProperty();
+		setBoundary();
+		return this;
+	}
+
+	public AsciiBasicControl setStartPoint(String[] coordinate, String cellSize) {
+		this.asciiContent[2][1] = coordinate[0];
+		this.asciiContent[3][1] = coordinate[1];
+		this.asciiContent[4][1] = cellSize;
+
+		setProperty();
+		setBoundary();
 		return this;
 	}
 
@@ -474,10 +488,10 @@ public class AsciiBasicControl {
 				for (int targetRow = originalStartPoint[1]; targetRow <= originalEndPoint[1]; targetRow++) {
 					for (int targetColumn = originalStartPoint[0]; targetColumn <= originalEndPoint[0]; targetColumn++) {
 						double cordinate[] = this.getCoordinate(targetColumn, targetRow);
-						if (!this.asciiGrid[targetRow][targetColumn].equals(this.property.get("noData"))
+						if (!this.asciiContent[targetRow + 6][targetColumn].equals(this.property.get("noData"))
 								&& temptPath.contains(cordinate[0], cordinate[1])) {
 							try {
-								cellValueList.add(Double.parseDouble(this.asciiGrid[targetRow][targetColumn]));
+								cellValueList.add(Double.parseDouble(this.asciiContent[targetRow + 6][targetColumn]));
 								selectimes++;
 							} catch (Exception e) {
 							}
