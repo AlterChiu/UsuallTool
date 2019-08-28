@@ -25,6 +25,11 @@ public class NetcdfBasicControl {
 		constructProcess();
 	}
 
+	public NetcdfBasicControl(NetcdfFile netFile) {
+		this.netFile = netFile;
+		constructProcess();
+	}
+
 	private void constructProcess() {
 		// get variable keys
 		try {

@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import ucar.ma2.Array;
 import ucar.ma2.DataType;
+import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriter;
@@ -14,7 +16,6 @@ import ucar.nc2.Variable;
 
 public class NetcdfWriter {
 	private NetcdfFileWriter writer;
-	private Map<String, Object> globalAttribute = new TreeMap<>();
 	private Map<String, Variable> Variables = new TreeMap<>();
 	private Map<String, Integer> dimensionMap = new TreeMap<>();
 
@@ -22,24 +23,32 @@ public class NetcdfWriter {
 		this.writer = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, saveAdd);
 	}
 
-	public void addGlobalAttribute(String key, Object value) {
-		this.globalAttribute.put(key, value);
+	public void addGlobalAttribute(String key, int value) {
+		this.writer.addGroupAttribute(null, new Attribute(key, value));
 	}
 
-	public void addGlobalAttribute(Map<String, Object> attribubteMap) {
-		attribubteMap.keySet().forEach(key -> {
-			this.globalAttribute.put(key, attribubteMap.get(key));
-		});
+	public void addGlobalAttribute(String key, String value) {
+		this.writer.addGroupAttribute(null, new Attribute(key, value));
+	}
+
+	public void addGlobalAttribute(String key, double value) {
+		this.writer.addGroupAttribute(null, new Attribute(key, value));
 	}
 
 	public void addDimension(String name, int length) {
 		this.dimensionMap.put(name, length);
+		this.writer.addDimension(null, name, length);
 	}
 
 	public void addDimension(Map<String, Integer> dimensionMap) {
 		dimensionMap.keySet().forEach(key -> {
 			this.dimensionMap.put(key, dimensionMap.get(key));
+			this.writer.addDimension(null, key, dimensionMap.get(key));
 		});
+	}
+
+	public void addVariable(String name, DataType type) {
+		this.Variables.put(name, this.writer.addVariable(null, name, type, new ArrayList<Dimension>()));
 	}
 
 	public void addVariable(String name, DataType type, String dimensionString) {
@@ -62,12 +71,20 @@ public class NetcdfWriter {
 		this.Variables.get(varaibleName).addAttribute(new Attribute(attributeKey, attributeValue));
 	}
 
+	public void addVariableAttribute(String varaibleName, String attributeKey, int attributeValue) {
+		this.Variables.get(varaibleName).addAttribute(new Attribute(attributeKey, attributeValue));
+	}
+
 	public void addVariableAttribute(String varaibleName, String attributeKey, List attributeValue) {
 		this.Variables.get(varaibleName).addAttribute(new Attribute(attributeKey, attributeValue));
 	}
 
 	public void addVariableAttribute(String varaibleName, Attribute attribute) {
 		this.Variables.get(varaibleName).addAttribute(attribute);
+	}
+
+	public void addValue(String variableName, Array values) throws IOException, InvalidRangeException {
+		this.writer.write(this.Variables.get(variableName), values);
 	}
 
 	public Map<String, Integer> getDimensionMap() {
@@ -92,6 +109,9 @@ public class NetcdfWriter {
 
 	public void create() throws IOException {
 		this.writer.create();
+	}
+
+	public void close() throws IOException {
 		this.writer.close();
 	}
 }
