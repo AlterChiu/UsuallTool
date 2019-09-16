@@ -129,7 +129,7 @@ public class GdalGlobal {
 
 	public static Geometry lineToGeometry(List<Double[]> points) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"LineString\" , \"coordinate\" : [");
+		sb.append("{\"type\" : \"LineString\" , \"coordinates\" : [");
 		sb.append("[" + points.get(0)[0] + "," + points.get(0)[1] + "]");
 		for (int index = 1; index < points.size(); index++) {
 			sb.append(",[" + points.get(index)[0] + "," + points.get(index)[1] + "]");

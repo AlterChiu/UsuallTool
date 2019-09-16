@@ -149,9 +149,9 @@ public class XYZToAscii {
 				.setScale(this.coordinateScale, BigDecimal.ROUND_UP).intValue() + 2;
 		int column = new BigDecimal((maxX - minX) / this.cellSize).setScale(this.coordinateScale, BigDecimal.ROUND_UP)
 				.intValue() + 2;
-		this.maxX = new BigDecimal((column ) * this.cellSize + this.minX)
+		this.maxX = new BigDecimal((column) * this.cellSize + this.minX)
 				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
-		this.minY = new BigDecimal(this.maxY - (row ) * this.cellSize)
+		this.minY = new BigDecimal(this.maxY - (row) * this.cellSize)
 				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
 
 		this.property.put("bottomX", new BigDecimal(this.minX + this.cellSize / 2)
@@ -271,5 +271,9 @@ public class XYZToAscii {
 		return this;
 	}
 
+	public XYZToAscii setNullValue(String nullValue) {
+		this.noData = nullValue;
+		return this;
+	}
 	// <================================================>
 }

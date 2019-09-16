@@ -1,14 +1,19 @@
 package testFolder;
 
 import java.awt.geom.Path2D;
+import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.naming.OperationNotSupportedException;
+
 import com.google.common.collect.FluentIterable;
 
+import FEWS.Rinfall.BUI.BuiTranslate;
 import FEWS.netcdf.DflowNetcdfTranslator;
 import asciiFunction.AsciiBasicControl;
 import geo.gdal.GdalGlobal;
@@ -24,33 +29,30 @@ import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.Variable;
 import usualTool.AtFileReader;
+import usualTool.AtFileWriter;
 
 public class test {
-	public static void main(String[] args) throws IOException, ParseException, InvalidRangeException {
+	public static void main(String[] args)
+			throws IOException, ParseException, InvalidRangeException, OperationNotSupportedException, InterruptedException {
 		// TODO Auto-generated method stub
+		long startTime = System.currentTimeMillis();
+		List<String> command = new ArrayList<String>();
+		command.add("cmd");
+		command.add("/c");
+		command.add("start");
+		command.add("/wait");
+		command.add("F:\\Sobek213\\MapReduce_Batch_TainanZ1.bat");
+		command.add("exit");
 
-		String testAdd = "E:\\LittleProject\\Dflow-FM\\sobek\\adaptor\\sobek\\testAscii.asc";
-		String testSave = "E:\\LittleProject\\Dflow-FM\\sobek\\adaptor\\sobek\\testAscii.nc";
-		String originalAdd = "E:\\LittleProject\\Dflow-FM\\test\\case netCdfCreation\\Project1.dsproj_data\\FlowFM\\input\\2X2Grid.nc";
+		ProcessBuilder builder = new ProcessBuilder();
+		builder.directory(new File("F:\\Sobek213"));
+		builder.command(command);
+		Process process = builder.start();
+		process.waitFor();
 
-		DflowNetcdfTranslator dflow = new DflowNetcdfTranslator(new AsciiBasicControl(testAdd));
-		dflow.saveAs(testSave);
+		long endTime = System.currentTimeMillis();
+		System.out.print(endTime - startTime);
 
-		NetcdfBasicControl testNc = new NetcdfBasicControl(originalAdd);
-		testNc.getNetFile().getVariables().forEach(e -> {
-			System.out.println(e);
-		});
-
-//		String[] content_or = new AtFileReader("E:\\LittleProject\\Dflow-FM\\sobek\\adaptor\\sobek\\or.txt")
-//				.getContain();
-//		String[] content_te = new AtFileReader("E:\\LittleProject\\Dflow-FM\\sobek\\adaptor\\sobek\\test.text")
-//				.getContain();
-//		for (int index = 0; index < content_or.length; index++) {
-//			if (!content_or[index].equals(content_te[index])) {
-//				System.out.println(index + "\t" + content_or[index]);
-//			}
-//		}
-		
 	}
 
 }
