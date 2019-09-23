@@ -43,7 +43,6 @@ public class test {
 		// TODO Auto-generated method stub
 		String folder = "F:\\DFX\\DevRelease\\DFX\\Video\\1568779670\\";
 		SpatialReader sr = new SpatialReader("E:\\download\\SHP\\94193096_poly.shp");
-		sr.getGeometryList().get(0).
 
 	}
 
