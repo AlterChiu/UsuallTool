@@ -41,10 +41,10 @@
 		<!-- ++++++++++++++ POI +++++++++++++ -->
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<commonCollection.version>4.4</commonCollection.version>
-		<poi.version>4.1.0</poi.version>
-		<poiOoxml.version>4.1.0</poiOoxml.version>
-		<poiOoxmlSchemas.version>4.1.0</poiOoxmlSchemas.version>
-		<poiScratchpad.version>4.1.0</poiScratchpad.version>
+		<poi.version>3.17</poi.version>
+		<poiOoxml.version>3.17</poiOoxml.version>
+		<poiOoxmlSchemas.version>3.17</poiOoxmlSchemas.version>
+		<poiScratchpad.version>3.17</poiScratchpad.version>
 		<staxApi.version>1.0-2</staxApi.version>
 		<xmlBean.version>1.5.5</xmlBean.version>
 
@@ -182,12 +182,6 @@
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<!-- ++++++++++++ NETCDF +++++++++++++ -->
 		<!-- +++++++++++++++++++++++++++++++ -->
-		<!-- Strman -->
-		<dependency>
-			<groupId>com.shekhargulati</groupId>
-			<artifactId>strman</artifactId>
-			<version>${string.version}</version>
-		</dependency>
 
 		<!-- NetCDF -->
 		<dependency>
@@ -204,44 +198,6 @@
 					<artifactId>guava</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-
-		<!-- GRIB -->
-		<dependency>
-			<groupId>edu.ucar</groupId>
-			<artifactId>grib</artifactId>
-			<version>${netcdf.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<!-- Google Guava -->
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
-		</dependency>
-
-		<!-- Joda-time -->
-		<dependency>
-			<groupId>joda-time</groupId>
-			<artifactId>joda-time</artifactId>
-			<version>${jodatime.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-
-
-		<!-- JUnit -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
