@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.Geometry;
@@ -133,7 +134,7 @@ public class DflowNetcdfTranslator {
 			 * get points
 			 */
 			// polygon link point
-			temptGeo = temptGeo.GetBoundary();
+			temptGeo = temptGeo.Boundary();
 			List<Integer> temptPolygonPointsIndex = new ArrayList<>();
 
 			// link start point // direct to point index
@@ -555,7 +556,6 @@ public class DflowNetcdfTranslator {
 		writer.addVariableAttribute("mesh2d_face_y", "mesh", "mesh2d");
 		writer.addVariableAttribute("mesh2d_face_y", "location", "face");
 		writer.addVariableAttribute("mesh2d_face_y", "bounds", "mesh2d_face_y_bnd");
-
 	}
 
 	private void set_mesh2d_face_xy_bnd_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
@@ -566,7 +566,7 @@ public class DflowNetcdfTranslator {
 			List<Double> temptXList = new ArrayList<>();
 			List<Double> temptYList = new ArrayList<>();
 
-			for (int index = 0; index < pointsIndex.size(); index++) {
+			for (int index = 0; index < this.maxPolygonNodeNum; index++) {
 				try {
 					String[] pointCoordinate = this.points.get(pointsIndex.get(index)).split("_");
 					temptXList.add(Double.parseDouble(pointCoordinate[0]));
@@ -579,10 +579,11 @@ public class DflowNetcdfTranslator {
 			polygonXList.add(temptXList.parallelStream().toArray(Double[]::new));
 			polygonYList.add(temptYList.parallelStream().toArray(Double[]::new));
 		});
+
 		writer.addValue("mesh2d_face_x_bnd",
-				ArrayDouble.factory(this.DoubltTodouble(polygonXList.parallelStream().toArray(Double[][]::new))));
+				Array.factory(this.DoubltTodouble(polygonXList.parallelStream().toArray(Double[][]::new))));
 		writer.addValue("mesh2d_face_y_bnd",
-				ArrayDouble.factory(this.DoubltTodouble(polygonYList.parallelStream().toArray(Double[][]::new))));
+				Array.factory(this.DoubltTodouble(polygonYList.parallelStream().toArray(Double[][]::new))));
 	}
 
 	private void set_mesh2d_face_xy_bnd(NetcdfWriter writer) throws IOException, InvalidRangeException {
