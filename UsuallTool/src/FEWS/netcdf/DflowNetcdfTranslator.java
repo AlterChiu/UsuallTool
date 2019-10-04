@@ -1,20 +1,17 @@
 package FEWS.netcdf;
 
+import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.gdal.gdal.gdal;
@@ -29,6 +26,7 @@ import ucar.ma2.ArrayDouble;
 import ucar.ma2.ArrayInt;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
+import usualTool.AtCommonMath;
 import usualTool.TimeTranslate;
 
 public class DflowNetcdfTranslator {
@@ -37,17 +35,32 @@ public class DflowNetcdfTranslator {
 	// <++++++++++++++++++++++++++++++++++++++++++++++>
 	// original data set
 	private List<Geometry> geoList = new ArrayList<>();
+	private NetcdfWriter writer;
 
 	// points
 	private List<String> points = new ArrayList<>();// String = x_y
+	private List<Double> points_Z_Value = new ArrayList<>();
 
 	// polygon
 	private List<List<Integer>> polygonPointsIndex = new ArrayList<>();
 	private List<Double[]> polygonCentroid = new ArrayList<>();
+	private List<Double> polygonLevel = new ArrayList<>();
 	private int maxPolygonNodeNum = 0;
 
 	// edge
 	private Map<String, List<Integer>> edgeFaceIndex = new LinkedHashMap<>();
+
+	// user optional
+	private Boolean Mesh2D_Cell_BedLevel = false;
+
+	/*********** TimeSeries *******/
+	private Boolean TimeSeriesOutput = false;
+	private double timeStep = 0;
+	private List<Double> timeSeries = new ArrayList<>();
+
+	/************ Water level output ********/
+	private Boolean waterLevelOutput = false;
+	private List<Double[]> polygonTimeSeries = new ArrayList<>();;
 
 	// <++++++++++++++++++++++++++++++++++++++++++++++>
 	// <++++++++++++++++++ Netcdf Object ++++++++++++++++++>
@@ -98,7 +111,14 @@ public class DflowNetcdfTranslator {
 	}
 
 	public DflowNetcdfTranslator(SpatialReader shpFile) {
-		this.geoList = shpFile.getGeometryList();
+		shpFile.getGeometryList().forEach(geo -> {
+			try {
+				if (geo.GetGeometryType() == 3) {
+					this.geoList.add(geo);
+				}
+			} catch (Exception e) {
+			}
+		});
 		this.process();
 	}
 
@@ -181,81 +201,112 @@ public class DflowNetcdfTranslator {
 	// <++++++++++++++++++ Netcdf Writer ++++++++++++++++++>
 	// <++++++++++++++++++++++++++++++++++++++++++++++>
 	public void saveAs(String saveAdd) throws IOException, InvalidRangeException {
-		NetcdfWriter writer = new NetcdfWriter(saveAdd);
+		this.writer = new NetcdfWriter(saveAdd);
 
 		// set dimension
-		System.out.println("setDimension");
-		this.setDimension(writer);
+		this.setDimension();
 
 		// set globalAttribute
-		System.out.println("setGlobalAttribute");
-		this.setGlobalAttribute(writer);
+		this.setGlobalAttribute();
 
 		// set mesh2d
-		System.out.println("set_Mesh2D");
-		this.setMesh2D(writer);
+		this.setMesh2D();
 
 		// set projection
-		System.out.println("set_Projection");
-		this.setProjection(writer);
+		this.setProjection();
 
 		// set nodeXYZ
-		System.out.println("set_mesh2d_node_xyz");
-		this.set_mesh2d_node_xyz(writer);
+		this.set_mesh2d_node_xyz();
 
 		// set mesh2d_edge_xy
-		System.out.println("set_mesh2d_edge_xy");
-		this.set_mesh2d_edge_xy(writer);
+		this.set_mesh2d_edge_xy();
 
 		// set mesh2d edge xy_bnd
-		System.out.println("set_mesh2d_edge_xy_bnd");
-		this.set_mesh2d_edge_xy_bnd(writer);
+		this.set_mesh2d_edge_xy_bnd();
 
 		// set edge nodes
-		System.out.println("set_mesh2d_edge_nodes");
-		this.set_mesh2d_edge_nodes(writer);
+		this.set_mesh2d_edge_nodes();
 
 		// set mesh2d_face_nodes
-		System.out.println("set_mesh2d_face_nodes");
-		this.set_mesh2d_face_nodes(writer);
+		this.set_mesh2d_face_nodes();
 
 		// set mesh2d edge faces
-		System.out.println("set_mesh2d_edge_faces");
-		this.set_mesh2d_edge_faces(writer);
+		this.set_mesh2d_edge_faces();
 
 		// set mesh2d_face_xy
-		System.out.println("set_mesh2d_face_xy");
-		this.set_mesh2d_face_xy(writer);
+		this.set_mesh2d_face_xy();
 
 		// set mesh2d_face_xy_bnd
-		System.out.println("set_mesh2d_face_xy_bnd");
-		this.set_mesh2d_face_xy_bnd(writer);
+		this.set_mesh2d_face_xy_bnd();
+
+		// set mesh2d_cell_Area
+		this.set_mesh2d_Cell_Area();
+
+		// set mesh2d cell bedLevel
+		this.set_mesh2d_flowelem_bl();
+
+		// series time output
+		if (this.TimeSeriesOutput) {
+			this.set_Time();
+			this.set_TimeStep();
+		}
+
+		// output timeSeries value
+		if (this.waterLevelOutput) {
+			this.set_mesh2d_waterDepth();
+			this.set_mesh2d_waterLevel();
+		}
 
 		// set value
 		writer.create();
-		System.out.println("set_values");
-		this.setProjection_Value(writer);
-		this.setmesh2D_Value(writer);
-		this.set_mesh2d_edge_nodes_Value(writer);
-		this.set_mesh2d_edge_xy_bnd_Value(writer);
-		this.set_mesh2d_edge_xy_Value(writer);
-		this.set_mesh2d_node_xyz_Value(writer);
-		this.set_mesh2d_face_nodes_Value(writer);
-		this.set_mesh2d_edge_faces_Value(writer);
-		this.set_mesh2d_face_xy_Value(writer);
-		this.set_mesh2d_face_xy_bnd_Value(writer);
+		this.set_Projection_Value();
+		this.set_mesh2D_Value();
+		this.set_mesh2d_edge_nodes_Value();
+		this.set_mesh2d_edge_xy_bnd_Value();
+		this.set_mesh2d_edge_xy_Value();
+		this.set_mesh2d_node_xy_Value();
+		this.set_mesh2d_face_nodes_Value();
+		this.set_mesh2d_edge_faces_Value();
+		this.set_mesh2d_face_xy_Value();
+		this.set_mesh2d_face_xy_bnd_Value();
+		this.set_mesh2d_Cell_Area_Value();
+
+		// node-z value
+		if (!this.Mesh2D_Cell_BedLevel) {
+			this.set_mesh2d_node_zNull_Value();
+			this.set_mesh2d_flowelem_blNULL_value();
+		} else {
+			this.set_mesh2d_node_z_Value();
+			this.set_mesh2d_flowelem_bl_value();
+		}
+
+		// series time output
+		if (this.TimeSeriesOutput) {
+			this.set_Time_Value();
+			this.set_TimeStep_Value();
+		}
+
+		// output timeSeries value
+		if (this.waterLevelOutput) {
+			this.set_mesh2d_waterLevel_waterDepth_value();
+		}
+
 		writer.close();
 	}
 
-	private void setDimension(NetcdfWriter writer) {
+	private void setDimension() {
 		writer.addDimension("Two", 2);
 		writer.addDimension("nmesh2d_edge", this.edgeFaceIndex.keySet().size());
 		writer.addDimension("nmesh2d_node", this.points.size());
 		writer.addDimension("nmesh2d_face", this.polygonPointsIndex.size());
 		writer.addDimension("max_nmesh2d_face_nodes", this.maxPolygonNodeNum);
+
+		if (this.TimeSeriesOutput) {
+			writer.addDimension("time", this.timeSeries.size());
+		}
 	}
 
-	private void setGlobalAttribute(NetcdfWriter writer) {
+	private void setGlobalAttribute() {
 		writer.addGlobalAttribute("institution", "Deltares");
 		writer.addGlobalAttribute("references", "http://www.deltares.n");
 		writer.addGlobalAttribute("source", "RGFGRID 6.00.01.61844. Model: ---");
@@ -266,7 +317,7 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void setMesh2D(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void setMesh2D() throws IOException, InvalidRangeException {
 		writer.addVariable("mesh2d", DataType.INT);
 
 		writer.addVariableAttribute("mesh2d", "cf_role ", "mesh_topology");
@@ -284,7 +335,7 @@ public class DflowNetcdfTranslator {
 		writer.addVariableAttribute("mesh2d", "face_coordinates ", "mesh2d_face_x mesh2d_face_y");
 	}
 
-	private void setProjection(NetcdfWriter writer) {
+	private void setProjection() {
 		writer.addVariable("projected_coordinate_system", DataType.INT);
 		writer.addVariableAttribute("projected_coordinate_system", "name ", "Unknown projected");
 		writer.addVariableAttribute("projected_coordinate_system", "epsg ", (int) 0);
@@ -297,7 +348,23 @@ public class DflowNetcdfTranslator {
 		writer.addVariableAttribute("projected_coordinate_system", "value ", "value is equal to EPSG code");
 	}
 
-	private void set_mesh2d_node_xyz_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_node_zNull_Value() throws IOException, InvalidRangeException {
+		// setZ
+		List<Double> nodeLevel = new ArrayList<>();
+		this.points.forEach(nodeXY -> nodeLevel.add(-999.0));
+
+		// write to netCdf
+		writer.addValue("mesh2d_node_z",
+				Array.factory(nodeLevel.parallelStream().mapToDouble(Double::doubleValue).toArray()));
+	}
+
+	private void set_mesh2d_node_z_Value() throws IOException, InvalidRangeException {
+		// write to netCdf
+		writer.addValue("mesh2d_node_z",
+				Array.factory(this.points_Z_Value.parallelStream().mapToDouble(Double::doubleValue).toArray()));
+	}
+
+	private void set_mesh2d_node_xy_Value() throws IOException, InvalidRangeException {
 		// get cordinate from point list
 		List<Double> xList = new ArrayList<>();
 		List<Double> yList = new ArrayList<>();
@@ -314,12 +381,9 @@ public class DflowNetcdfTranslator {
 
 		writer.addValue("mesh2d_node_y",
 				ArrayDouble.factory(yList.parallelStream().mapToDouble(Double::doubleValue).toArray()));
-
-		writer.addValue("mesh2d_node_z",
-				ArrayDouble.factory(zList.parallelStream().mapToDouble(Double::doubleValue).toArray()));
 	}
 
-	private void set_mesh2d_node_xyz(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_node_xyz() throws IOException, InvalidRangeException {
 
 		// x
 		writer.addVariable("mesh2d_node_x", DataType.DOUBLE, "nmesh2d_node");
@@ -350,7 +414,7 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void set_mesh2d_edge_xy_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_edge_xy_Value() throws IOException, InvalidRangeException {
 		// get coordinate from edge mid points list
 		List<Double> xList = new ArrayList<>();
 		List<Double> yList = new ArrayList<>();
@@ -371,7 +435,7 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void set_mesh2d_edge_xy(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_edge_xy() throws IOException, InvalidRangeException {
 
 		// edge x
 		writer.addVariable("mesh2d_edge_x", DataType.DOUBLE, "nmesh2d_edge");
@@ -395,7 +459,7 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void set_mesh2d_edge_xy_bnd_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_edge_xy_bnd_Value() throws IOException, InvalidRangeException {
 		// get coordinate from edge points index
 		List<Double[]> xList = new ArrayList<>();
 		List<Double[]> yList = new ArrayList<>();
@@ -409,12 +473,12 @@ public class DflowNetcdfTranslator {
 		});
 
 		writer.addValue("mesh2d_edge_x_bnd",
-				ArrayDouble.factory(DoubltTodouble(xList.parallelStream().toArray(Double[][]::new))));
+				ArrayDouble.factory(DoubleTodouble(xList.parallelStream().toArray(Double[][]::new))));
 		writer.addValue("mesh2d_edge_y_bnd",
-				ArrayDouble.factory(DoubltTodouble(yList.parallelStream().toArray(Double[][]::new))));
+				ArrayDouble.factory(DoubleTodouble(yList.parallelStream().toArray(Double[][]::new))));
 	}
 
-	private void set_mesh2d_edge_xy_bnd(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_edge_xy_bnd() throws IOException, InvalidRangeException {
 
 		// x
 		writer.addVariable("mesh2d_edge_x_bnd", DataType.DOUBLE, "nmesh2d_edge Two");
@@ -436,7 +500,7 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void set_mesh2d_edge_nodes_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_edge_nodes_Value() throws IOException, InvalidRangeException {
 		// get the point index from edge nodes index
 		List<Integer[]> outList = new ArrayList<>();
 		this.edgeFaceIndex.keySet().forEach(edgePointsIndex -> {
@@ -448,7 +512,7 @@ public class DflowNetcdfTranslator {
 				ArrayInt.factory(IntegerToint(outList.parallelStream().toArray(Integer[][]::new))));
 	}
 
-	private void set_mesh2d_edge_nodes(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_edge_nodes() throws IOException, InvalidRangeException {
 		//
 		writer.addVariable("mesh2d_edge_nodes", DataType.INT, "nmesh2d_edge Two");
 		writer.addVariableAttribute("mesh2d_edge_nodes", "cf_role", "edge_node_connectivity");
@@ -461,7 +525,7 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void set_mesh2d_face_nodes_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_face_nodes_Value() throws IOException, InvalidRangeException {
 		// get points index from polygon point index
 		List<Integer[]> outList = new ArrayList<>();
 		for (List<Integer> temptPolygonPoints : this.polygonPointsIndex) {
@@ -480,7 +544,7 @@ public class DflowNetcdfTranslator {
 				ArrayInt.factory(this.IntegerToint(outList.parallelStream().toArray(Integer[][]::new))));
 	}
 
-	private void set_mesh2d_face_nodes(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_face_nodes() throws IOException, InvalidRangeException {
 		//
 		writer.addVariable("mesh2d_face_nodes", DataType.INT, "nmesh2d_face max_nmesh2d_face_nodes");
 		writer.addVariableAttribute("mesh2d_face_nodes", "cf_role", "face_node_connectivity");
@@ -493,7 +557,7 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void set_mesh2d_edge_faces_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_edge_faces_Value() throws IOException, InvalidRangeException {
 		// get edge index from edgeFaceIndex
 		List<Integer[]> outList = new ArrayList<>();
 		this.edgeFaceIndex.keySet().forEach(edgePointsIndex -> {
@@ -512,7 +576,7 @@ public class DflowNetcdfTranslator {
 				ArrayInt.factory(this.IntegerToint(outList.parallelStream().toArray(Integer[][]::new))));
 	}
 
-	private void set_mesh2d_edge_faces(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_edge_faces() throws IOException, InvalidRangeException {
 		//
 		writer.addVariable("mesh2d_edge_faces", DataType.INT, "nmesh2d_edge Two");
 		writer.addVariableAttribute("mesh2d_edge_faces", "cf_role", "edge_face_connectivity");
@@ -523,7 +587,7 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void set_mesh2d_face_xy_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_face_xy_Value() throws IOException, InvalidRangeException {
 		// get the centroid of polygon
 		List<Double> xList = new ArrayList<>();
 		List<Double> yList = new ArrayList<>();
@@ -537,7 +601,7 @@ public class DflowNetcdfTranslator {
 				ArrayDouble.factory(yList.parallelStream().mapToDouble(Double::doubleValue).toArray()));
 	}
 
-	private void set_mesh2d_face_xy(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_face_xy() throws IOException, InvalidRangeException {
 
 		// x
 		writer.addVariable("mesh2d_face_x", DataType.DOUBLE, "nmesh2d_face");
@@ -558,7 +622,7 @@ public class DflowNetcdfTranslator {
 		writer.addVariableAttribute("mesh2d_face_y", "bounds", "mesh2d_face_y_bnd");
 	}
 
-	private void set_mesh2d_face_xy_bnd_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_face_xy_bnd_Value() throws IOException, InvalidRangeException {
 		// get points coordinate of polygons
 		List<Double[]> polygonXList = new ArrayList<>();
 		List<Double[]> polygonYList = new ArrayList<>();
@@ -581,12 +645,12 @@ public class DflowNetcdfTranslator {
 		});
 
 		writer.addValue("mesh2d_face_x_bnd",
-				Array.factory(this.DoubltTodouble(polygonXList.parallelStream().toArray(Double[][]::new))));
+				Array.factory(this.DoubleTodouble(polygonXList.parallelStream().toArray(Double[][]::new))));
 		writer.addValue("mesh2d_face_y_bnd",
-				Array.factory(this.DoubltTodouble(polygonYList.parallelStream().toArray(Double[][]::new))));
+				Array.factory(this.DoubleTodouble(polygonYList.parallelStream().toArray(Double[][]::new))));
 	}
 
-	private void set_mesh2d_face_xy_bnd(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_face_xy_bnd() throws IOException, InvalidRangeException {
 		// x
 		writer.addVariable("mesh2d_face_x_bnd", DataType.DOUBLE, "nmesh2d_face max_nmesh2d_face_nodes");
 		writer.addVariableAttribute("mesh2d_face_x_bnd", "units", "m");
@@ -609,19 +673,254 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void setProjection_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2d_Cell_Area() {
+		writer.addVariable("mesh2d_flowelem_ba", DataType.DOUBLE, "nmesh2d_face");
+		writer.addVariableAttribute("mesh2d_flowelem_ba", "mesh", "mesh2d");
+		writer.addVariableAttribute("mesh2d_flowelem_ba", "location", "face");
+		writer.addVariableAttribute("mesh2d_flowelem_ba", "coordinates", "mesh2d_face_x mesh2d_face_y");
+		writer.addVariableAttribute("mesh2d_flowelem_ba", "cell_methods", "nmesh2d_face: mean");
+		writer.addVariableAttribute("mesh2d_flowelem_ba", "cell_measures", "area: mesh2d_flowelem_ba");
+		writer.addVariableAttribute("mesh2d_flowelem_ba", "standard_name", "cell_area");
+		writer.addVariableAttribute("mesh2d_flowelem_ba", "long_name", "");
+		writer.addVariableAttribute("mesh2d_flowelem_ba", "units", "m2");
+		writer.addVariableAttribute("mesh2d_flowelem_ba", "grid_mapping", "projected_coordinate_system");
+		writer.addVariableAttribute("mesh2d_flowelem_ba", "_FillValue", -999.0);
+	}
+
+	private void set_mesh2d_Cell_Area_Value() throws IOException, InvalidRangeException {
+		List<Double> cellArea = new ArrayList<>();
+		this.geoList.forEach(geo -> {
+			cellArea.add(geo.GetArea());
+		});
+		writer.addValue("mesh2d_flowelem_ba",
+				Array.factory(cellArea.parallelStream().mapToDouble(Double::doubleValue).toArray()));
+	}
+
+	private void set_mesh2d_flowelem_bl() {
+		writer.addVariable("mesh2d_flowelem_bl", DataType.DOUBLE, "nmesh2d_face");
+		writer.addVariableAttribute("mesh2d_flowelem_bl", "mesh", "mesh2d");
+		writer.addVariableAttribute("mesh2d_flowelem_bl", "location", "face");
+		writer.addVariableAttribute("mesh2d_flowelem_bl", "coordinates", "mesh2d_face_x mesh2d_face_y");
+		writer.addVariableAttribute("mesh2d_flowelem_bl", "cell_methods", "nmesh2d_face: mean");
+		writer.addVariableAttribute("mesh2d_flowelem_bl", "cell_measures", "area: mesh2d_flowelem_ba");
+		writer.addVariableAttribute("mesh2d_flowelem_bl", "standard_name", "altitude");
+		writer.addVariableAttribute("mesh2d_flowelem_bl", "long_name", "flow element center bedlevel (bl)");
+		writer.addVariableAttribute("mesh2d_flowelem_bl", "units", "m");
+		writer.addVariableAttribute("mesh2d_flowelem_bl", "grid_mapping", "projected_coordinate_system");
+		writer.addVariableAttribute("mesh2d_flowelem_bl", "_FillValue", -999.0);
+	}
+
+	private void set_mesh2d_flowelem_blNULL_value() throws IOException, InvalidRangeException {
+		List<Double> cellBedLevel = new ArrayList<>();
+		this.polygonPointsIndex.forEach(polygon -> {
+			cellBedLevel.add(-999.0);
+		});
+		writer.addValue("mesh2d_flowelem_bl",
+				Array.factory(cellBedLevel.parallelStream().mapToDouble(Double::doubleValue).toArray()));
+	}
+
+	private void set_mesh2d_flowelem_bl_value() throws IOException, InvalidRangeException {
+		this.polygonLevel.clear();
+		this.polygonPointsIndex.forEach(polygon -> {
+
+			List<Double> temptValue = new ArrayList<>();
+			polygon.forEach(pointIndex -> {
+				temptValue.add(this.points_Z_Value.get(pointIndex));
+			});
+			polygonLevel.add(new AtCommonMath(temptValue).getMean());
+		});
+
+		writer.addValue("mesh2d_flowelem_bl",
+				Array.factory(polygonLevel.parallelStream().mapToDouble(Double::doubleValue).toArray()));
+	}
+
+	private void set_Time() {
+		writer.addVariable("time", DataType.DOUBLE, "time");
+		writer.addVariableAttribute("time", "standard_name", "time");
+		writer.addVariableAttribute("time", "units", "seconds since 2001-01-01 00:00:00");
+	}
+
+	private void set_Time_Value() throws IOException, InvalidRangeException {
+		writer.addValue("time",
+				Array.factory(this.timeSeries.parallelStream().mapToDouble(Double::doubleValue).toArray()));
+	}
+
+	private void set_TimeStep() {
+		writer.addVariable("timestep", DataType.DOUBLE, "time");
+		writer.addVariableAttribute("timestep", "long_name",
+				"Latest computational timestep size in each output interval");
+		writer.addVariableAttribute("timestep", "units", "s");
+	}
+
+	private void set_TimeStep_Value() throws IOException, InvalidRangeException {
+		List<Double> outList = new ArrayList<>();
+		this.timeSeries.forEach(e -> outList.add(this.timeStep + 0.));
+		writer.addValue("timestep", Array.factory(outList.parallelStream().mapToDouble(Double::doubleValue).toArray()));
+	}
+
+	private void set_mesh2d_waterDepth() {
+		writer.addVariable("mesh2d_waterdepth", DataType.DOUBLE, "time nmesh2d_face");
+		writer.addVariableAttribute("mesh2d_waterdepth", "mesh", "mesh2d");
+		writer.addVariableAttribute("mesh2d_waterdepth", "location", "face");
+		writer.addVariableAttribute("mesh2d_waterdepth", "coordinates", "mesh2d_face_x mesh2d_face_y");
+		writer.addVariableAttribute("mesh2d_waterdepth", "cell_methods", "nmesh2d_face: mean");
+		writer.addVariableAttribute("mesh2d_waterdepth", "cell_measures", "area: mesh2d_flowelem_ba");
+		writer.addVariableAttribute("mesh2d_waterdepth", "standard_name", "sea_floor_depth_below_sea_surface");
+		writer.addVariableAttribute("mesh2d_waterdepth", "long_name", "Water depth at pressure points");
+		writer.addVariableAttribute("mesh2d_waterdepth", "units", "m");
+		writer.addVariableAttribute("mesh2d_waterdepth", "grid_mapping", "projected_coordinate_system");
+		writer.addVariableAttribute("timestep", "_FillValue", -999.0);
+	}
+
+	private void set_mesh2d_waterLevel() {
+		writer.addVariable("mesh2d_s1", DataType.DOUBLE, "time nmesh2d_face");
+		writer.addVariableAttribute("mesh2d_s1", "mesh", "mesh2d");
+		writer.addVariableAttribute("mesh2d_s1", "location", "face");
+		writer.addVariableAttribute("mesh2d_s1", "coordinates", "mesh2d_face_x mesh2d_face_y");
+		writer.addVariableAttribute("mesh2d_s1", "cell_methods", "nmesh2d_face: mean");
+		writer.addVariableAttribute("mesh2d_s1", "cell_measures", "area: mesh2d_flowelem_ba");
+		writer.addVariableAttribute("mesh2d_s1", "standard_name", "sea_surface_height");
+		writer.addVariableAttribute("mesh2d_s1", "long_name", "Water level");
+		writer.addVariableAttribute("mesh2d_s1", "units", "m");
+		writer.addVariableAttribute("mesh2d_s1", "grid_mapping", "projected_coordinate_system");
+		writer.addVariableAttribute("timestep", "_FillValue", -999.0);
+	}
+
+	private void set_mesh2d_waterLevel_waterDepth_value() throws IOException, InvalidRangeException {
+		// set water depth value;
+		writer.addValue("mesh2d_waterdepth",
+				Array.factory(DoubleTodouble(this.polygonTimeSeries.parallelStream().toArray(Double[][]::new))));
+
+		// set water level value
+		List<Double[]> timeSeriesWaterLevel = new ArrayList<>();
+		for (int time = 0; time < this.polygonTimeSeries.size(); time++) {
+
+			List<Double> waterLevel = new ArrayList<>();
+			for (int polygon = 0; polygon < this.polygonPointsIndex.size(); polygon++) {
+				if (this.polygonLevel.get(polygon) > -990) {
+					waterLevel.add(this.polygonTimeSeries.get(time)[polygon] + this.polygonLevel.get(polygon));
+				} else {
+					waterLevel.add(this.polygonTimeSeries.get(time)[polygon]);
+				}
+			}
+			timeSeriesWaterLevel.add(polygonLevel.parallelStream().toArray(Double[]::new));
+		}
+		writer.addValue("mesh2d_s1",
+				Array.factory(DoubleTodouble(timeSeriesWaterLevel.parallelStream().toArray(Double[][]::new))));
+	}
+
+	private void set_Projection_Value() throws IOException, InvalidRangeException {
 		ArrayInt.D0 array = new ArrayInt.D0();
 		array.set(-2147483647);
 		writer.addValue("mesh2d", array);
 	}
 
-	private void setmesh2D_Value(NetcdfWriter writer) throws IOException, InvalidRangeException {
+	private void set_mesh2D_Value() throws IOException, InvalidRangeException {
 		ArrayInt.D0 array = new ArrayInt.D0();
 		array.set(-2147483647);
 		writer.addValue("projected_coordinate_system", array);
 	}
 
-	private double[][] DoubltTodouble(Double[][] temptDouble) {
+	// <++++++++++++++++++++++++++++++++++++++++++++++>
+	// <++++++++++++++++++ User Optional ++++++++++++++++++>
+	// <++++++++++++++++++++++++++++++++++++++++++++++>
+
+	public void set_node_Z_value(AsciiBasicControl ascii) {
+		// setZ
+		this.points_Z_Value = new ArrayList<>();
+		this.points.forEach(nodeXY -> {
+			double[] coordinate = Arrays.asList(nodeXY.split("_")).parallelStream().map(s -> Double.parseDouble(s))
+					.mapToDouble(Double::doubleValue).toArray();
+
+			String temptValue = ascii.getValue(coordinate[0], coordinate[1]);
+			if (!temptValue.equals(ascii.getNullValue())) {
+				points_Z_Value.add(Double.parseDouble(temptValue));
+			} else {
+				points_Z_Value.add(-999.0);
+			}
+		});
+
+		this.Mesh2D_Cell_BedLevel = true;
+	}
+
+	// timeSeries from 2001-01-01 00:00:00 in second
+	// timeStep in secon
+	public void set_outputTimeSeries(int timeStep, List<Double> timeSeries_Second) {
+		this.timeSeries = timeSeries_Second;
+		this.timeStep = timeStep;
+		this.TimeSeriesOutput = true;
+	}
+
+	// add water depth
+	public void addWaterDepth(List<AsciiBasicControl> asciiList) {
+
+		// initialize the global variable
+		this.waterLevelOutput = true;
+		this.polygonTimeSeries.clear();
+		List<List<Integer[]>> polygonValueIndex = new ArrayList<>();
+
+		// initialize the polygonValeIndex
+		this.geoList.forEach(geo -> {
+			polygonValueIndex.add(getIndexFromAscii(geo, asciiList.get(0)));
+		});
+
+		// to check each time series value in asciiList
+		asciiList.forEach(temptAscii -> {
+			List<Double> timeSeriesValues = new ArrayList<>();
+
+			// set timeSeries from asciiList
+			polygonValueIndex.forEach(valueIndexs -> {
+
+				// to check each grid that polygon contains
+				List<Double> temptValue = new ArrayList<>();
+				valueIndexs.forEach(index -> {
+					temptValue.add(Double.parseDouble(temptAscii.getValue(index[0], index[1])));
+				});
+
+				// get mean value of temptValue
+				// if no data in list add null value to list
+				try {
+					timeSeriesValues.add(new AtCommonMath(temptValue).getMean());
+				} catch (Exception e) {
+					timeSeriesValues.add(-999.0);
+				}
+			});
+
+			this.polygonTimeSeries.add(timeSeriesValues.parallelStream().toArray(Double[]::new));
+		});
+	}
+
+	// get the coordinate index which geometry contains from asciiFile
+	private List<Integer[]> getIndexFromAscii(Geometry geo, AsciiBasicControl ascii) {
+		List<Path2D> pathList = GdalGlobal.GeomertyToPath2D(geo);
+		List<Integer[]> coordinateIndex = new ArrayList<>();
+
+		pathList.forEach(path -> {
+			Rectangle rec = path.getBounds();
+
+			int[] bottomLeftCenter = ascii.getPosition(rec.getMinX(), rec.getMinY());
+			int[] topRightCenter = ascii.getPosition(rec.getMaxX(), rec.getMaxY());
+
+			for (int row = topRightCenter[1]; row <= bottomLeftCenter[1]; row++) {
+				for (int column = bottomLeftCenter[0]; column <= topRightCenter[0]; column++) {
+
+					// check for no value grid
+					String temptValue = ascii.getValue(column, row);
+					if (!temptValue.equals(ascii.getNullValue())) {
+
+						// check is inside the path
+						double[] coordinate = ascii.getCoordinate(column, row);
+						if (path.contains(coordinate[0], coordinate[1])) {
+							coordinateIndex.add(new Integer[] { column, row });
+						}
+					}
+				}
+			}
+		});
+		return coordinateIndex;
+	}
+
+	private double[][] DoubleTodouble(Double[][] temptDouble) {
 		double[][] newDouble = new double[temptDouble.length][];
 		for (int index = 0; index < temptDouble.length; index++) {
 			newDouble[index] = Arrays.asList(temptDouble[index]).parallelStream().mapToDouble(Double::doubleValue)

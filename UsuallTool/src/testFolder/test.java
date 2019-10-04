@@ -1,48 +1,58 @@
 package testFolder;
 
+import java.awt.Rectangle;
 import java.awt.geom.Path2D;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
 
 import FEWS.netcdf.DflowNetcdfTranslator;
 import asciiFunction.AsciiBasicControl;
+import asciiFunction.AsciiToPath;
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
+import netCDF.NetcdfBasicControl;
 import ucar.ma2.InvalidRangeException;
 import usualTool.AtCommonMath;
+import usualTool.AtFileWriter;
+import usualTool.FileFunction;
 
 public class test {
-	public static void main(String[] args) throws IOException, InvalidRangeException {
-//		Geometry boundary_40 = new SpatialReader("E:\\LittleProject\\Dflow-FM\\sobek\\asc\\multiLayerBOundary_1.shp")
-//				.getGeometryList().get(0);
+	public static void main(String[] args) throws IOException, InvalidRangeException, CloneNotSupportedException {
 //
-//		Geometry boundary_20 = new SpatialReader("E:\\LittleProject\\Dflow-FM\\sobek\\asc\\multiLayerBOundary_0.shp")
-//				.getGeometryList().get(0);
-//
-//		List<Geometry> outGeoList = new ArrayList<>();
-//		fillBoundary(boundary_40, 40.0).forEach(geo -> outGeoList.add(geo));
-//		fillBoundary(boundary_20, 20.0).forEach(geo -> outGeoList.add(geo));
-//
-//		SpatialWriter sp = new SpatialWriter();
-//		sp.setCoordinateSystem(SpatialWriter.TWD97_121);
-//		sp.setGeoList(outGeoList);
-//		sp.saveAsShp("E:\\LittleProject\\Dflow-FM\\sobek\\asc\\boundaryGrid.shp");
 
+		String fileAdd = "F:\\DFX\\DevRelease\\DFX\\Video\\\\1570182311\\";
+		String[] fileList = new File(fileAdd).list();
 
-//		DflowNetcdfTranslator translate = new DflowNetcdfTranslator(
-//				new SpatialReader("E:\\LittleProject\\Dflow-FM\\sobek\\asc\\meshGridTest.shp"));
-//		translate.saveAs("E:\\LittleProject\\Dflow-FM\\sobek\\asc\\meshGridTest.nc");
-		
-		
-		DflowNetcdfTranslator translate = new DflowNetcdfTranslator(
-				new SpatialReader("E:\\LittleProject\\Dflow-FM\\sobek\\asc\\boundaryGrid.shp"));
-		translate.saveAs("E:\\LittleProject\\Dflow-FM\\sobek\\asc\\boundaryGrid.nc");
+		for (int index = 0; index < fileList.length; index++) {
+			FileFunction.reNameFile(fileAdd + fileList[index],
+					fileAdd + "frame_" + String.format("%04d", index) + ".png");
+		}
+
+//		DflowNetcdfTranslator nc = new DflowNetcdfTranslator(
+//				new AsciiBasicControl("E:\\LittleProject\\新竹SOBEK模型\\成果展示\\20190517案例\\asc\\dm1d0000.asc"));
+//		nc.set_node_Z_value(new AsciiBasicControl("E:\\LittleProject\\新竹SOBEK模型\\成果展示\\20190517案例\\asc\\dm1d0000.asc"));
+//
+//		List<Double> simulationTime = new ArrayList<>();
+//		List<AsciiBasicControl> asciiList = new ArrayList<>();
+//		for (int index = 0; index <= 27; index++) {
+//			simulationTime.add(index * 3600.);
+//			asciiList.add(new AsciiBasicControl("E:\\LittleProject\\新竹SOBEK模型\\成果展示\\20190517案例\\asc\\dm1d"
+//					+ String.format("%04d", index) + ".asc"));
+//		}
+//
+//		nc.set_outputTimeSeries(3600, simulationTime);
+//		nc.addWaterDepth(asciiList);
+//
+//		nc.saveAs("E:\\LittleProject\\新竹SOBEK模型\\成果展示\\20190517案例\\nc\\FlowFM_net.nc");
 
 	}
 

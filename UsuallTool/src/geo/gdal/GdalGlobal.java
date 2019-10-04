@@ -118,6 +118,15 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
+	public static Geometry Path2DToGeometry(List<Path2D> pathList) {
+		Geometry outGeo = Path2DToGeometry(pathList.get(0));
+
+		for (int index = 1; index < pathList.size(); index++) {
+			outGeo.AddGeometry(Path2DToGeometry(pathList.get(index)));
+		}
+		return outGeo;
+	}
+
 	public static Geometry pointToGeometry(Double[] point) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{  \"type\" : \"Point\" , \"coordinates\" : [");

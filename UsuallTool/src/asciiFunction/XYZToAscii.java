@@ -233,11 +233,12 @@ public class XYZToAscii {
 	// <=======================================>
 	// <start working>
 	// <=======================================>
-	public void start() {
+	public XYZToAscii start() {
 		setProperty();
 		initialTreeMap();
 		getSortedTree();
 		setAsciiContent();
+		return this;
 	}
 	// <================================================>
 

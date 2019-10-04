@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
 
@@ -18,7 +19,7 @@ import geo.path.IntersectLine;
 import usualTool.AtCommonMath;
 import usualTool.AtFileReader;
 
-public class AsciiBasicControl {
+public class AsciiBasicControl implements Cloneable {
 	private String[][] asciiContent = null;
 	private Map<String, String> property;
 	private Map<String, Double> boundary;
@@ -42,6 +43,13 @@ public class AsciiBasicControl {
 	public AsciiBasicControl(String fileAdd) throws IOException {
 		this.asciiContent = new AtFileReader(fileAdd).getStr();
 		cutFirstColumn();
+		setProperty();
+		setBoundary();
+	}
+
+	public AsciiBasicControl(AsciiBasicControl ascii) {
+		this.asciiContent = Arrays.asList(ascii.getAsciiFile()).parallelStream().map(stringArray -> stringArray.clone())
+				.collect(Collectors.toList()).parallelStream().toArray(String[][]::new);
 		setProperty();
 		setBoundary();
 	}
@@ -402,6 +410,28 @@ public class AsciiBasicControl {
 		return getClipAsciiFile(ascii.getBoundary());
 	}
 
+	public AsciiBasicControl getClipAsciiFile(Path2D path) throws IOException {
+		
+		List<Double[]> outList = new ArrayList<>();
+		int row = Integer.parseInt(this.getProperty().get("row"));
+		int column = Integer.parseInt(this.getProperty().get("column"));
+		String nullValue = this.getNullValue();
+
+		for (int temptRow = 0; temptRow < row; temptRow++) {
+			for (int temptColumn = 0; temptColumn < column; temptColumn++) {
+				
+				double coordinate[] = this.getCoordinate(temptColumn, temptRow);
+				String temptValue = this.getValue(temptColumn, temptRow);
+				if (!temptValue.equals(nullValue)) {
+					if (path.contains(coordinate[0], coordinate[1])) {
+						outList.add(new Double[] { coordinate[0], coordinate[1], Double.parseDouble(temptValue) });
+					}
+				}
+			}
+		}
+		return new AsciiBasicControl(new XYZToAscii(outList).setCellSize(this.getCellSize()).start().getAsciiFile());
+	}
+
 	public AsciiBasicControl getClipAsciiFile(Map<String, Double> boundary) throws IOException {
 		double minX = boundary.get("minX");
 		double maxX = boundary.get("maxX");
@@ -409,6 +439,10 @@ public class AsciiBasicControl {
 		double maxY = boundary.get("maxY");
 
 		return getClipAsciiFile(minX, minY, maxX, maxY);
+	}
+	
+	public AsciiBasicControl getClipAsciiFile(Rectangle rec) throws IOException {
+		return this.getClipAsciiFile(rec.getMinX(), rec.getMinY(), rec.getMaxX(), rec.getMaxY());
 	}
 
 	public AsciiBasicControl getClipAsciiFile(double minX, double minY, double maxX, double maxY) throws IOException {
@@ -788,6 +822,11 @@ public class AsciiBasicControl {
 			}
 		}
 		return outList;
+	}
+
+	@Override
+	public AsciiBasicControl clone() {
+		return new AsciiBasicControl(this);
 	}
 
 	// <=================>

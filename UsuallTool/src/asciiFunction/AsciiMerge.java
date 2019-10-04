@@ -1,6 +1,5 @@
 package asciiFunction;
 
-import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
