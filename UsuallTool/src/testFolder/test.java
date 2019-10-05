@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
 
+import FEWS.Rinfall.BUI.BuiTranslate;
 import FEWS.netcdf.DflowNetcdfTranslator;
 import asciiFunction.AsciiBasicControl;
 import asciiFunction.AsciiToPath;
@@ -22,11 +23,13 @@ import geo.gdal.SpatialWriter;
 import netCDF.NetcdfBasicControl;
 import ucar.ma2.InvalidRangeException;
 import usualTool.AtCommonMath;
+import netCDF.NetcdfWriter;
+import usualTool.AtFileReader;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class test {
-	public static void main(String[] args) throws IOException, InvalidRangeException, CloneNotSupportedException {
+	public static void main(String[] args) {
 //
 
 		String fileAdd = "F:\\DFX\\DevRelease\\DFX\\Video\\\\1570182311\\";
@@ -110,5 +113,4 @@ public class test {
 
 		return outList;
 	}
-
 }
