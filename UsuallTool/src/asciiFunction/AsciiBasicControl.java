@@ -411,15 +411,17 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public AsciiBasicControl getClipAsciiFile(Path2D path) throws IOException {
-		
-		List<Double[]> outList = new ArrayList<>();
-		int row = Integer.parseInt(this.getProperty().get("row"));
-		int column = Integer.parseInt(this.getProperty().get("column"));
-		String nullValue = this.getNullValue();
 
-		for (int temptRow = 0; temptRow < row; temptRow++) {
-			for (int temptColumn = 0; temptColumn < column; temptColumn++) {
-				
+		List<Double[]> outList = new ArrayList<>();
+		Rectangle rec = path.getBounds();
+
+		int[] bottomLeftPosition = this.getPosition(rec.getMinX(), rec.getMinY());
+		int[] topRightPosition = this.getPosition(rec.getMaxX(), rec.getMaxY());
+		
+		String nullValue = this.getNullValue();
+		for (int temptColumn = bottomLeftPosition[0]; temptColumn <= topRightPosition[0]; temptColumn++) {
+			for (int temptRow = topRightPosition[1]; temptRow <= bottomLeftPosition[1]; temptRow++) {
+
 				double coordinate[] = this.getCoordinate(temptColumn, temptRow);
 				String temptValue = this.getValue(temptColumn, temptRow);
 				if (!temptValue.equals(nullValue)) {
@@ -440,7 +442,7 @@ public class AsciiBasicControl implements Cloneable {
 
 		return getClipAsciiFile(minX, minY, maxX, maxY);
 	}
-	
+
 	public AsciiBasicControl getClipAsciiFile(Rectangle rec) throws IOException {
 		return this.getClipAsciiFile(rec.getMinX(), rec.getMinY(), rec.getMaxX(), rec.getMaxY());
 	}
