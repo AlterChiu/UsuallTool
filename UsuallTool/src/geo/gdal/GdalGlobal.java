@@ -119,12 +119,19 @@ public class GdalGlobal {
 	}
 
 	public static Geometry Path2DToGeometry(List<Path2D> pathList) {
-		Geometry outGeo = Path2DToGeometry(pathList.get(0));
+		Geometry outGeo = createMultipolygon();
 
-		for (int index = 1; index < pathList.size(); index++) {
-			outGeo.AddGeometry(Path2DToGeometry(pathList.get(index)));
-		}
+		pathList.forEach(path -> {
+			outGeo.AddGeometry(Path2DToGeometry(path));
+		});
+
 		return outGeo;
+	}
+
+	public static Geometry createMultipolygon() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"MultiPolygon\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
 	}
 
 	public static Geometry pointToGeometry(Double[] point) {
