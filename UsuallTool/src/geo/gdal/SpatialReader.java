@@ -135,7 +135,7 @@ public class SpatialReader {
 
 		List<Geometry> temptGeoList = new ArrayList<>();
 		this.geometryList.forEach(geo -> {
-			temptGeoList.add(GdalGlobal.geometryTranlster(geo, importCoordinate, outputCoordinate));
+			temptGeoList.add(GdalGlobal.GeometryTranslator(geo, importCoordinate, outputCoordinate));
 		});
 		spWriter.setGeoList(temptGeoList);
 

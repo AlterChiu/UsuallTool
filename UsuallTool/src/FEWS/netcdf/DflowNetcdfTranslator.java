@@ -861,7 +861,12 @@ public class DflowNetcdfTranslator {
 
 		// initialize the polygonValeIndex
 		this.geoList.forEach(geo -> {
-			polygonValueIndex.add(getIndexFromAscii(geo, asciiList.get(0)));
+			try {
+				polygonValueIndex.add(getIndexFromAscii(geo, asciiList.get(0)));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		});
 
 		// to check each time series value in asciiList
@@ -891,7 +896,7 @@ public class DflowNetcdfTranslator {
 	}
 
 	// get the coordinate index which geometry contains from asciiFile
-	private List<Integer[]> getIndexFromAscii(Geometry geo, AsciiBasicControl ascii) {
+	private List<Integer[]> getIndexFromAscii(Geometry geo, AsciiBasicControl ascii) throws IOException {
 		List<Path2D> pathList = GdalGlobal.GeomertyToPath2D(geo);
 		List<Integer[]> coordinateIndex = new ArrayList<>();
 

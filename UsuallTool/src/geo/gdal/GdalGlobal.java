@@ -2,18 +2,18 @@ package geo.gdal;
 
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.gdal.ogr.Geometry;
+import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import usualTool.MathEqualtion.AtLineIntersection;
 
 public class GdalGlobal {
 	public static int WGS84 = 4326;
@@ -30,7 +30,7 @@ public class GdalGlobal {
 	public static String temptFolder = "F:/Qgis/test/";
 	public static String temptFile = temptFolder + "tempt";
 
-	public static Geometry geometryTranlster(Geometry geo, int importCoordinate, int outputCoordinate) {
+	public static Geometry GeometryTranslator(Geometry geo, int importCoordinate, int outputCoordinate) {
 		SpatialReference inputSpatital = new SpatialReference();
 		inputSpatital.ImportFromEPSG(importCoordinate);
 
@@ -44,54 +44,37 @@ public class GdalGlobal {
 		return temptGeo;
 	}
 
-	public static List<Path2D> GeomertyToPath2D(Geometry geometry) {
+	public static List<Path2D> GeomertyToPath2D(Geometry geometry) throws IOException {
 		List<Path2D> outList = new ArrayList<>();
 
-		JsonObject geoJson = new JsonParser().parse(geometry.ExportToJson()).getAsJsonObject();
-		String polygonType = geoJson.get("type").getAsString();
-
-		if (polygonType.toUpperCase().equals("POLYGON")) {
-			/*
-			 * single polygon type
-			 */
-			Path2D outPath = new Path2D.Double();
-
-			JsonArray coordinates = geoJson.get("coordinates").getAsJsonArray().get(0).getAsJsonArray();
-			double startX = coordinates.get(0).getAsJsonArray().get(0).getAsDouble();
-			double startY = coordinates.get(0).getAsJsonArray().get(1).getAsDouble();
-			outPath.moveTo(startX, startY);
-
-			for (int index = 1; index < coordinates.size() - 1; index++) {
-				double temptX = coordinates.get(index).getAsJsonArray().get(0).getAsDouble();
-				double temptY = coordinates.get(index).getAsJsonArray().get(1).getAsDouble();
-				outPath.lineTo(temptX, temptY);
+		if (geometry.GetGeometryType() == ogr.wkbPolygon) {
+			for (int index = 0; index < geometry.GetGeometryCount(); index++) {
+				outList.add(GeomertyToPath2D_Polygon(geometry.GetGeometryRef(index)));
 			}
-			outList.add(outPath);
-
-			/*
-			 * for multi polygon
-			 */
-		} else if (polygonType.toUpperCase().equals("MULTIPOLYGON")) {
-			JsonArray polygons = geoJson.get("coordinates").getAsJsonArray();
-
-			for (int polygonIndex = 0; polygonIndex < polygons.size(); polygonIndex++) {
-				Path2D outPath = new Path2D.Double();
-				JsonArray coordinates = polygons.get(polygonIndex).getAsJsonArray().get(0).getAsJsonArray();
-				double startX = coordinates.get(0).getAsJsonArray().get(0).getAsDouble();
-				double startY = coordinates.get(0).getAsJsonArray().get(1).getAsDouble();
-				outPath.moveTo(startX, startY);
-
-				for (int index = 1; index < coordinates.size() - 1; index++) {
-					double temptX = coordinates.get(index).getAsJsonArray().get(0).getAsDouble();
-					double temptY = coordinates.get(index).getAsJsonArray().get(1).getAsDouble();
-					outPath.lineTo(temptX, temptY);
-				}
-				outList.add(outPath);
-			}
+		} else if (geometry.GetGeometryType() == ogr.wkbMultiPolygon) {
+			outList.add(GeomertyToPath2D_Polygon(geometry));
 		} else {
-			System.out.println("notPOLYGON");
+			throw new IOException("not correct geometry type");
 		}
 		return outList;
+	}
+
+	private static Path2D GeomertyToPath2D_Polygon(Geometry geometry) {
+		Geometry geoBoundary;
+		try {
+			geoBoundary = geometry.Boundary();
+		} catch (Exception e) {
+			geoBoundary = geometry;
+		}
+
+		Path2D outPath = new Path2D.Double();
+		double[][] points = geoBoundary.GetPoints();
+
+		outPath.moveTo(points[0][0], points[0][1]);
+		for (int index = 1; index < points.length; index++) {
+			outPath.lineTo(points[index][0], points[index][1]);
+		}
+		return outPath;
 	}
 
 	public static Geometry Path2DToGeometry(Path2D path) {
@@ -118,20 +101,14 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
-	public static Geometry Path2DToGeometry(List<Path2D> pathList) {
-		Geometry outGeo = createMultipolygon();
+	public static Geometry Path2DToMultiGeometry(List<Path2D> pathList) {
+		Geometry outGeo = CreateMultipolygon();
 
 		pathList.forEach(path -> {
 			outGeo.AddGeometry(Path2DToGeometry(path));
 		});
 
 		return outGeo;
-	}
-
-	public static Geometry createMultipolygon() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"MultiPolygon\" , \"coordinates\" : [  ]}");
-		return Geometry.CreateFromJson(sb.toString());
 	}
 
 	public static Geometry pointToGeometry(Double[] point) {
@@ -143,7 +120,15 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
-	public static Geometry lineToGeometry(List<Double[]> points) {
+	public static Geometry pointToMuliGeometry(List<Double[]> points) {
+		Geometry outGeo = CreateMultiPoint();
+		points.forEach(point -> {
+			outGeo.AddGeometry(pointToGeometry(point));
+		});
+		return outGeo;
+	}
+
+	public static Geometry LineToGeometry(List<Double[]> points) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{\"type\" : \"LineString\" , \"coordinates\" : [");
 		sb.append("[" + points.get(0)[0] + "," + points.get(0)[1] + "]");
@@ -155,12 +140,61 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
-	public static Geometry lineToGeometry(Double[] point1, Double[] point2) {
+	public static Geometry LineToGeometry(Double[] point1, Double[] point2) {
 		List<Double[]> temptList = new ArrayList<>();
 		temptList.add(point1);
 		temptList.add(point2);
 
-		return lineToGeometry(temptList);
+		return LineToGeometry(temptList);
+	}
+
+	public static Geometry LineToGeometry(Path2D path) {
+		List<Double[]> temptList = new ArrayList<>();
+		PathIterator iterator = path.getPathIterator(null);
+		double coordinate[] = new double[2];
+
+		for (; iterator.isDone(); iterator.next()) {
+			iterator.currentSegment(coordinate);
+			temptList.add(new Double[] { coordinate[0], coordinate[1] });
+		}
+
+		return LineToGeometry(temptList);
+	}
+
+	public static Geometry CreateMultipolygon() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"MultiPolygon\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
+	}
+
+	public static Geometry CreatePolygon() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"Polygon\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
+	}
+
+	public static Geometry CreateMultiPoint() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"MultiPoint\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
+	}
+
+	public static Geometry CreatePoint() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"Point\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
+	}
+
+	public static Geometry CreateMultiLine() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"MultiLineString\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
+	}
+
+	public static Geometry CreateLine() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"LineString\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
 	}
 
 	public static List<Double[]> getBreakPoint(Geometry geo) {

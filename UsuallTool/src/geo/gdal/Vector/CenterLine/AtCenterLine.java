@@ -137,7 +137,7 @@ public class AtCenterLine {
 		 */
 		List<Geometry> outList = new ArrayList<>();
 		for (List<Double[]> temptList : linkedPoints) {
-			outList.add(GdalGlobal.lineToGeometry(temptList));
+			outList.add(GdalGlobal.LineToGeometry(temptList));
 		}
 		return outList;
 	}
@@ -150,7 +150,7 @@ public class AtCenterLine {
 
 		points.keySet().forEach(e -> {
 			Double[] temptPoint = points.get(e);
-			Geometry polyLine = GdalGlobal.lineToGeometry(point, temptPoint);
+			Geometry polyLine = GdalGlobal.LineToGeometry(point, temptPoint);
 			if (geo.Contains(polyLine)) {
 				temptList.add(new Double[] { temptPoint[0], temptPoint[1], GeoVector.getDis(temptPoint, point) });
 			}

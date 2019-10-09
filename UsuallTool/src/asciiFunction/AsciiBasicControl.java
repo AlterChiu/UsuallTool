@@ -250,7 +250,7 @@ public class AsciiBasicControl implements Cloneable {
 		return valueList;
 	}
 
-	public String getValue(Geometry geometry) {
+	public String getValue(Geometry geometry) throws IOException {
 		List<Double> polygonValueList = getPolygonValueList(geometry);
 
 		try {
@@ -262,11 +262,11 @@ public class AsciiBasicControl implements Cloneable {
 
 	}
 
-	public int getCount(Geometry geometry) {
+	public int getCount(Geometry geometry) throws IOException {
 		return this.getPolygonValueList(geometry).size();
 	}
 
-	public List<Double> getPolygonValueList(Geometry geometry) {
+	public List<Double> getPolygonValueList(Geometry geometry) throws IOException {
 		List<Double> polygonValueList = new ArrayList<Double>();
 		List<Path2D> pathList = GdalGlobal.GeomertyToPath2D(geometry);
 
