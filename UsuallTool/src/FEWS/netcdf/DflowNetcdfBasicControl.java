@@ -3,9 +3,12 @@ package FEWS.netcdf;
 import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import netCDF.NetcdfBasicControl;
 
@@ -25,6 +28,18 @@ public class DflowNetcdfBasicControl {
 	private List<Double[]> edgesPoints = new ArrayList<>(); // new Double[]{ point1_X , point1_Y , point2_X , point2_Y }
 	private List<Integer[]> edgesPointsLink = new ArrayList<>(); // new Integer[]{point1_Index , point2_index};
 	private List<Double[]> edgesMidPoints = new ArrayList<>(); // new Double[]{midPointX , midPointY}
+
+	// model result
+	private List<Double> timeList = new ArrayList<>();
+	private double timeStep = 0;
+	private List<List<Double>> waterDepthValues = new ArrayList<>();
+	private List<List<Double>> waterLevelValues = new ArrayList<>();
+
+	// variable name
+	private String VARIABLE_Depth = "mesh2d_waterdepth";
+	private String VARIABLE_WaterLevel = "mesh2d_s1";
+	private String VARIABLE_Time = "time";
+	private String VARIABLE_TimeStep = "timestep";
 
 	public DflowNetcdfBasicControl(String netcdfAdd) throws IOException {
 		this.netFile = new NetcdfBasicControl(netcdfAdd);
@@ -64,7 +79,70 @@ public class DflowNetcdfBasicControl {
 	}
 
 	public String getCoordinateSystem() {
-		return this.attribute.get("coordinateSyste");
+		return this.attribute.get("coordinateSystem");
+	}
+
+	public List<Integer> getFaceIndex(double[] cooridnates) {
+		return getFaceIndex(new double[][] { { cooridnates[0], cooridnates[1] } });
+	}
+
+	public List<Integer> getFaceIndex(double[][] cooridnates) {
+		return getFaceIndex(Arrays.asList(cooridnates).parallelStream().collect(Collectors.toList()));
+	}
+
+	public List<Integer> getFaceIndex(List<double[]> cooridnateList) {
+
+		// initail map , tempt store the point coordinates
+		Map<Integer, double[]> pointsCoordinate = new LinkedHashMap<>();
+		for (int index = 0; index < cooridnateList.size(); index++) {
+			pointsCoordinate.put(index, cooridnateList.get(index));
+		}
+
+		// initial map, get the index which polygon contain
+		// if there is match face index, set the number to -1
+		Map<Integer, Integer> faceIndex = new LinkedHashMap<>();
+		for (int index = 0; index < cooridnateList.size(); index++) {
+			faceIndex.put(index, -1);
+		}
+
+		// detect the index of polygon
+		for (int polygonIndex = 0; polygonIndex < this.polygons.size(); polygonIndex++) {
+
+			// detect the point
+			for (Integer keyIndex : pointsCoordinate.keySet()) {
+				if (this.polygons.get(keyIndex).contains(cooridnateList.get(keyIndex)[0],
+						cooridnateList.get(keyIndex)[1])) {
+					faceIndex.put(keyIndex, polygonIndex);
+					pointsCoordinate.remove(keyIndex);
+				}
+			}
+		}
+
+		return new ArrayList<>(faceIndex.keySet());
+	}
+
+	public List<Double> getWaterDepthFromIndex(int index) {
+		List<Double> outList = new ArrayList<>();
+		this.waterDepthValues.forEach(timeValues -> {
+			outList.add(timeValues.get(index));
+		});
+		return outList;
+	}
+
+	public List<Double> getWaterLevelByIndex(int index) {
+		List<Double> outList = new ArrayList<>();
+		this.waterLevelValues.forEach(timeValues -> {
+			outList.add(timeValues.get(index));
+		});
+		return outList;
+	}
+
+	public List<Double> getTimes() {
+		return this.timeList;
+	}
+
+	public double getTimeStep() {
+		return this.timeStep;
 	}
 
 	/*
@@ -72,22 +150,49 @@ public class DflowNetcdfBasicControl {
 	 */
 	private void process() throws IOException {
 		// get all points
-		this.getAllPoints();
+		this.setAllPoints();
 
 		// get all polygons
-		this.getAllPolygons();
+		this.setAllPolygons();
 
 		// get all egdes
-		this.getAllEdges();
+		this.setAllEdges();
 
 		// get all attribute
-		this.getAttribute();
+		this.setAttribute();
+
+		// get time
+		try {
+			this.timeList = this.setTime();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// get timeStep
+		try {
+			this.timeStep = this.setTimeStep();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// get waterLevel
+		try {
+			this.waterLevelValues = this.setWaterLevel();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// get waterDepth
+		try {
+			this.waterDepthValues = this.setWaterDepth();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
 	// <++++++++++++++++++ Get Points++++++++++++++++++++++++++++++>
 	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
-	private void getAllPoints() throws IOException {
+	private void setAllPoints() throws IOException {
 		List<Object> xList = this.netFile.getVariableValues("mesh2d_node_x");
 		List<Object> yList = this.netFile.getVariableValues("mesh2d_node_y");
 		for (int index = 0; index < xList.size(); index++) {
@@ -98,7 +203,7 @@ public class DflowNetcdfBasicControl {
 	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
 	// <++++++++++++++++++ Get Polygons++++++++++++++++++++++++++++>
 	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
-	private void getAllPolygons() throws IOException {
+	private void setAllPolygons() throws IOException {
 		// get points coordinate of polygon
 		List<Object> polygonPointsX = this.netFile.getVariableValues("mesh2d_face_x_bnd");
 		List<Object> polygonPointsY = this.netFile.getVariableValues("mesh2d_face_y_bnd");
@@ -149,7 +254,7 @@ public class DflowNetcdfBasicControl {
 	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
 	// <++++++++++++++++++ Get Edges++++++++++++++++++++++++++++++>
 	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
-	private void getAllEdges() throws IOException {
+	private void setAllEdges() throws IOException {
 		// get coordinate of edge midPoint
 		List<Object> edgeMidX = this.netFile.getVariableValues("mesh2d_edge_x");
 		List<Object> edgeMidY = this.netFile.getVariableValues("mesh2d_edge_y");
@@ -181,11 +286,11 @@ public class DflowNetcdfBasicControl {
 	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
 	// <++++++++++++++++++ Get Attribute++++++++++++++++++++++++++++>
 	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
-	private void getAttribute() {
+	private void setAttribute() {
 		// get coordinate system
 		this.netFile.getVaiable("projected_coordinate_system").getAttributes().forEach(attribute -> {
 			if (attribute.getFullName().contains("code")) {
-				this.attribute.put("coordinateSyste", attribute.getStringValue());
+				this.attribute.put("coordinateSystem", attribute.getStringValue());
 			}
 		});
 
@@ -208,4 +313,49 @@ public class DflowNetcdfBasicControl {
 		});
 	}
 
+	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
+	// <++++++++++++++++++ Get Time ++++++++++++++++++++++++++>
+	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
+	private List<Double> setTime() throws IOException {
+		List<Object> timeValues = this.netFile.getVariableValues(this.VARIABLE_Time);
+		List<Double> outList = new ArrayList<>();
+		timeValues.forEach(time -> {
+			outList.add((Double) time);
+		});
+		return outList;
+	}
+
+	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
+	// <++++++++++++++++++ Get TimeStep ++++++++++++++++++++++++++>
+	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
+	private double setTimeStep() throws IOException {
+		List<Object> timeStep = this.netFile.getVariableValues(this.VARIABLE_TimeStep);
+		return (Double) timeStep.get(0);
+	}
+
+	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
+	// <++++++++++++++++++ Get WaterLevel ++++++++++++++++++++++++++>
+	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
+	private List<List<Double>> setWaterLevel() throws IOException {
+		List<Object> values = this.netFile.getVariableValues(this.VARIABLE_WaterLevel);
+		List<List<Double>> outList = new ArrayList<>();
+
+		values.forEach(timeValues -> {
+			outList.add((ArrayList<Double>) (timeValues));
+		});
+		return outList;
+	}
+
+	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
+	// <++++++++++++++++++ Get WaterDepth +++++++++++++++++++++++++>
+	// <+++++++++++++++++++++++++++++++++++++++++++++++++++++++>
+	private List<List<Double>> setWaterDepth() throws IOException {
+		List<Object> values = this.netFile.getVariableValues(this.VARIABLE_Depth);
+		List<List<Double>> outList = new ArrayList<>();
+
+		values.forEach(timeValues -> {
+			outList.add((ArrayList<Double>) (timeValues));
+		});
+		return outList;
+	}
 }

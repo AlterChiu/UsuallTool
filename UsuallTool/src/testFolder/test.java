@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
 
+import FEWS.DflowFM.Global.GlobalProperty;
 import FEWS.Rinfall.BUI.BuiTranslate;
 import FEWS.netcdf.DflowNetcdfTranslator;
 import asciiFunction.AsciiBasicControl;
@@ -29,16 +30,14 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class test {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException, InterruptedException, InvalidRangeException {
 //
+//		String mduFile = "E:\\Dflow-FM\\test\\case Tainan_Zone1_Tin_0.5m_800m2\\Project1.dsproj_data\\FlowFM\\input\\FlowFM.mdu";
+//		GlobalProperty.runMdu(mduFile);
 
-		String fileAdd = "F:\\DFX\\DevRelease\\DFX\\Video\\\\1570182311\\";
-		String[] fileList = new File(fileAdd).list();
-
-		for (int index = 0; index < fileList.length; index++) {
-			FileFunction.reNameFile(fileAdd + fileList[index],
-					fileAdd + "frame_" + String.format("%04d", index) + ".png");
-		}
+		NetcdfBasicControl nc = new NetcdfBasicControl(
+				"E:\\Dflow-FM\\test\\case Tainan_Zone1_Ascii20m\\Project1.dsproj_data\\FlowFM\\output\\FlowFM_map.nc");
+		nc.getNetFile().getVariables().forEach(v-> System.out.println(v));
 
 //		DflowNetcdfTranslator nc = new DflowNetcdfTranslator(
 //				new AsciiBasicControl("E:\\LittleProject\\新竹SOBEK模型\\成果展示\\20190517案例\\asc\\dm1d0000.asc"));
