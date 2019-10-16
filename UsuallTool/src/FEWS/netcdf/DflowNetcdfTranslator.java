@@ -122,6 +122,11 @@ public class DflowNetcdfTranslator {
 		this.process();
 	}
 
+	public DflowNetcdfTranslator(List<Geometry> geoList) {
+		this.geoList = geoList;
+		this.process();
+	}
+
 	private void process() {
 		gdal.AllRegister();
 

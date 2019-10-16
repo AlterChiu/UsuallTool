@@ -47,11 +47,11 @@ public class GdalGlobal {
 	public static List<Path2D> GeomertyToPath2D(Geometry geometry) throws IOException {
 		List<Path2D> outList = new ArrayList<>();
 
-		if (geometry.GetGeometryType() == ogr.wkbPolygon) {
+		if (geometry.GetGeometryType() == ogr.wkbMultiPolygon) {
 			for (int index = 0; index < geometry.GetGeometryCount(); index++) {
 				outList.add(GeomertyToPath2D_Polygon(geometry.GetGeometryRef(index)));
 			}
-		} else if (geometry.GetGeometryType() == ogr.wkbMultiPolygon) {
+		} else if (geometry.GetGeometryType() == ogr.wkbPolygon) {
 			outList.add(GeomertyToPath2D_Polygon(geometry));
 		} else {
 			throw new IOException("not correct geometry type");

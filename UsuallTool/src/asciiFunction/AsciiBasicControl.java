@@ -182,10 +182,14 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public String getValue(int column, int row) {
-		try {
-			return this.asciiContent[row + 6][column];
-		} catch (Exception e) {
-			return this.property.get("noData");
+		if (row <= 6) {
+			return this.getNullValue();
+		} else {
+			try {
+				return this.asciiContent[row + 6][column];
+			} catch (Exception e) {
+				return this.property.get("noData");
+			}
 		}
 	}
 
@@ -194,10 +198,14 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public String getValue(Path2D path) {
-		List<Double> valueList = getPolygonValueList(path);
+		return getValue(path, Double.MIN_VALUE, Double.MAX_VALUE);
+	}
+
+	public String getValue(Path2D path, double minValue, double maxValue) {
+		List<Double> valueList = getPolygonValueList(path, minValue, maxValue);
 
 		/*
-		 * if there isn't any grid center is inside the polygo
+		 * if there isn't any grid center is inside the polygon
 		 */
 		if (valueList.size() > 0) {
 			return String.valueOf(new AtCommonMath(valueList).getMean());
@@ -220,7 +228,15 @@ public class AsciiBasicControl implements Cloneable {
 		return getPolygonValueList(path).size();
 	}
 
+	public int getCount(Path2D path, double minValue, double maxValue) {
+		return getPolygonValueList(path, minValue, maxValue).size();
+	}
+
 	public List<Double> getPolygonValueList(Path2D path) {
+		return getPolygonValueList(path, Double.MIN_VALUE, Double.MAX_VALUE);
+	}
+
+	public List<Double> getPolygonValueList(Path2D path, double minValue, double maxValue) {
 		Rectangle pathBoundary = path.getBounds();
 		double maxX = pathBoundary.getMaxX();
 		double minX = pathBoundary.getMinX();
@@ -242,7 +258,10 @@ public class AsciiBasicControl implements Cloneable {
 					// if the grid center is inside the polygon
 					double[] temptCoordinate = this.getCoordinate(column, row);
 					if (path.contains(temptCoordinate[0], temptCoordinate[1])) {
-						valueList.add(Double.parseDouble(temptValue));
+						double temptDoubleValue = Double.parseDouble(temptValue);
+						if (temptDoubleValue >= minValue && temptDoubleValue < maxValue) {
+							valueList.add(temptDoubleValue);
+						}
 					}
 				}
 			}
@@ -251,6 +270,10 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public String getValue(Geometry geometry) throws IOException {
+		return getValue(geometry, Double.MIN_VALUE, Double.MAX_VALUE);
+	}
+
+	public String getValue(Geometry geometry, double minValue, double maxValue) throws IOException {
 		List<Double> polygonValueList = getPolygonValueList(geometry);
 
 		try {
@@ -259,19 +282,26 @@ public class AsciiBasicControl implements Cloneable {
 		} catch (Exception e) {
 			return this.getNullValue();
 		}
-
 	}
 
 	public int getCount(Geometry geometry) throws IOException {
 		return this.getPolygonValueList(geometry).size();
 	}
 
+	public int getCount(Geometry geometry, double minValue, double maxValue) throws IOException {
+		return this.getPolygonValueList(geometry, minValue, maxValue).size();
+	}
+
 	public List<Double> getPolygonValueList(Geometry geometry) throws IOException {
+		return getPolygonValueList(geometry, Double.MIN_VALUE, Double.MAX_VALUE);
+	}
+
+	public List<Double> getPolygonValueList(Geometry geometry, double minValue, double maxValue) throws IOException {
 		List<Double> polygonValueList = new ArrayList<Double>();
 		List<Path2D> pathList = GdalGlobal.GeomertyToPath2D(geometry);
 
 		for (int index = 0; index < pathList.size(); index++) {
-			List<Double> temptValueList = this.getPolygonValueList(pathList.get(index));
+			List<Double> temptValueList = this.getPolygonValueList(pathList.get(index), minValue, maxValue);
 			temptValueList.forEach(e -> polygonValueList.add(e));
 		}
 		return polygonValueList;
@@ -417,7 +447,7 @@ public class AsciiBasicControl implements Cloneable {
 
 		int[] bottomLeftPosition = this.getPosition(rec.getMinX(), rec.getMinY());
 		int[] topRightPosition = this.getPosition(rec.getMaxX(), rec.getMaxY());
-		
+
 		String nullValue = this.getNullValue();
 		for (int temptColumn = bottomLeftPosition[0]; temptColumn <= topRightPosition[0]; temptColumn++) {
 			for (int temptRow = topRightPosition[1]; temptRow <= bottomLeftPosition[1]; temptRow++) {

@@ -82,18 +82,18 @@ public class DflowNetcdfBasicControl {
 		return this.attribute.get("coordinateSystem");
 	}
 
-	public List<Integer> getFaceIndex(double[] cooridnates) {
-		return getFaceIndex(new double[][] { { cooridnates[0], cooridnates[1] } });
+	public List<Integer> getFaceIndex(Double[] cooridnates) {
+		return getFaceIndex(new Double[][] { { cooridnates[0], cooridnates[1] } });
 	}
 
-	public List<Integer> getFaceIndex(double[][] cooridnates) {
+	public List<Integer> getFaceIndex(Double[][] cooridnates) {
 		return getFaceIndex(Arrays.asList(cooridnates).parallelStream().collect(Collectors.toList()));
 	}
 
-	public List<Integer> getFaceIndex(List<double[]> cooridnateList) {
+	public List<Integer> getFaceIndex(List<Double[]> cooridnateList) {
 
 		// initail map , tempt store the point coordinates
-		Map<Integer, double[]> pointsCoordinate = new LinkedHashMap<>();
+		Map<Integer, Double[]> pointsCoordinate = new LinkedHashMap<>();
 		for (int index = 0; index < cooridnateList.size(); index++) {
 			pointsCoordinate.put(index, cooridnateList.get(index));
 		}
@@ -129,12 +129,20 @@ public class DflowNetcdfBasicControl {
 		return outList;
 	}
 
+	public List<List<Double>> getWaterDepth() {
+		return this.waterDepthValues;
+	}
+
 	public List<Double> getWaterLevelByIndex(int index) {
 		List<Double> outList = new ArrayList<>();
 		this.waterLevelValues.forEach(timeValues -> {
 			outList.add(timeValues.get(index));
 		});
 		return outList;
+	}
+
+	public List<List<Double>> getWaterLevel() {
+		return this.waterLevelValues;
 	}
 
 	public List<Double> getTimes() {
@@ -224,7 +232,7 @@ public class DflowNetcdfBasicControl {
 			// get points
 			List<Double[]> temptPoints = new ArrayList<>();
 			List<Integer> temptPointsIndex = new ArrayList<>();
-			for (int index = 0; index < points.size(); index++) {
+			for (int index = 0; index < pointsX.size(); index++) {
 				if (pointsIndex.get(index) == -999) {
 					break;
 				} else {
