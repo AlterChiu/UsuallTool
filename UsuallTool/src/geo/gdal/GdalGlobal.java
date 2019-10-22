@@ -197,6 +197,15 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
+	public static Path2D PointsToPath(List<Double[]> points) {
+		Path2D temptPath = new Path2D.Double();
+		temptPath.moveTo(points.get(0)[0], points.get(0)[1]);
+		for (int index = 1; index < points.size(); index++) {
+			temptPath.lineTo(points.get(index)[0], points.get(index)[1]);
+		}
+		return temptPath;
+	}
+
 	public static List<Double[]> getBreakPoint(Geometry geo) {
 		JsonObject geoJson = new JsonParser().parse(geo.ExportToJson()).getAsJsonObject();
 		String polygonType = geoJson.get("type").getAsString();

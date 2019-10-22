@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.gdal.gdal.gdal;
@@ -27,6 +28,7 @@ import ucar.ma2.ArrayInt;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
 import usualTool.AtCommonMath;
+import usualTool.AtFileWriter;
 import usualTool.TimeTranslate;
 
 public class DflowNetcdfTranslator {
@@ -34,24 +36,41 @@ public class DflowNetcdfTranslator {
 	// <++++++++++++++++++ Java Object++++++++++++++++++++>
 	// <++++++++++++++++++++++++++++++++++++++++++++++>
 	// original data set
+	// all polygons
 	private List<Geometry> geoList = new ArrayList<>();
+	// all points in polygons which setting in dataDecimal
+	private List<List<String>> geoPoints = new ArrayList<>();
 	private NetcdfWriter writer;
+	private int dataDecimale = 7;
 
-	// points
-	private List<String> points = new ArrayList<>();// String = x_y
-	private List<Double> points_Z_Value = new ArrayList<>();
+	/*********** points *******/
+	// value : String of coordinate (CoordinateX + "_" + CoordinateY)
+	private List<String> points = new ArrayList<>();
 
-	// polygon
+	// key : String of coordinate (CoordinateX + "_" + CoordinateY)
+	// value : index of points, start from 0;
+	private Map<String, Integer> pointsIndexMap;
+
+	// key : String of coordinate (CoordinateX + "_" + CoordinateY)
+	// value : value of Z;
+	private Map<String, Double> points_Z_Value = new TreeMap<>();
+
+	/*********** polygon *******/
+	// value : list of polygon which build by index of points
 	private List<List<Integer>> polygonPointsIndex = new ArrayList<>();
+
+	// value : list of polygon centroid coordinate
 	private List<Double[]> polygonCentroid = new ArrayList<>();
+
+	// value : list of polygon bedLevel
 	private List<Double> polygonLevel = new ArrayList<>();
+
 	private int maxPolygonNodeNum = 0;
 
-	// edge
+	/*********** edge *******/
+	// key : pointsIndex (point1Indext + "_" + point2Index)
+	// value : faceIndex , size only for 0,1 , start from 0
 	private Map<String, List<Integer>> edgeFaceIndex = new LinkedHashMap<>();
-
-	// user optional
-	private Boolean Mesh2D_Cell_BedLevel = false;
 
 	/*********** TimeSeries *******/
 	private Boolean TimeSeriesOutput = false;
@@ -82,49 +101,96 @@ public class DflowNetcdfTranslator {
 					double[] coordinate = ascii.getCoordinate(column, row);
 					Path2D temptPath = new Path2D.Double();
 					temptPath.moveTo(
-							BigDecimal.valueOf(coordinate[0] - 0.5 * cellSize).setScale(7, BigDecimal.ROUND_HALF_UP)
-									.doubleValue(),
-							BigDecimal.valueOf(coordinate[1] + 0.5 * cellSize).setScale(7, BigDecimal.ROUND_HALF_UP)
-									.doubleValue());
+							BigDecimal.valueOf(coordinate[0] - 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).doubleValue(),
+							BigDecimal.valueOf(coordinate[1] + 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).doubleValue());
 					temptPath.lineTo(
-							BigDecimal.valueOf(coordinate[0] - 0.5 * cellSize).setScale(7, BigDecimal.ROUND_HALF_UP)
-									.doubleValue(),
-							BigDecimal.valueOf(coordinate[1] - 0.5 * cellSize).setScale(7, BigDecimal.ROUND_HALF_UP)
-									.doubleValue());
+							BigDecimal.valueOf(coordinate[0] - 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).doubleValue(),
+							BigDecimal.valueOf(coordinate[1] - 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).doubleValue());
 					temptPath.lineTo(
-							BigDecimal.valueOf(coordinate[0] + 0.5 * cellSize).setScale(7, BigDecimal.ROUND_HALF_UP)
-									.doubleValue(),
-							BigDecimal.valueOf(coordinate[1] - 0.5 * cellSize).setScale(7, BigDecimal.ROUND_HALF_UP)
-									.doubleValue());
+							BigDecimal.valueOf(coordinate[0] + 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).doubleValue(),
+							BigDecimal.valueOf(coordinate[1] - 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).doubleValue());
 					temptPath.lineTo(
-							BigDecimal.valueOf(coordinate[0] + 0.5 * cellSize).setScale(7, BigDecimal.ROUND_HALF_UP)
-									.doubleValue(),
-							BigDecimal.valueOf(coordinate[1] + 0.5 * cellSize).setScale(7, BigDecimal.ROUND_HALF_UP)
-									.doubleValue());
-
+							BigDecimal.valueOf(coordinate[0] + 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).doubleValue(),
+							BigDecimal.valueOf(coordinate[1] + 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).doubleValue());
 					geoList.add(GdalGlobal.Path2DToGeometry(temptPath));
+
+					// make geoPoints
+					List<String> temptGeoPoints = new ArrayList<>();
+					temptGeoPoints.add(BigDecimal.valueOf(coordinate[0] - 0.5 * cellSize)
+							.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString() + "_"
+							+ BigDecimal.valueOf(coordinate[1] + 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString());
+					temptGeoPoints.add(BigDecimal.valueOf(coordinate[0] - 0.5 * cellSize)
+							.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString() + "_"
+							+ BigDecimal.valueOf(coordinate[1] - 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString());
+					temptGeoPoints.add(BigDecimal.valueOf(coordinate[0] + 0.5 * cellSize)
+							.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString() + "_"
+							+ BigDecimal.valueOf(coordinate[1] - 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString());
+					temptGeoPoints.add(BigDecimal.valueOf(coordinate[0] + 0.5 * cellSize)
+							.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString() + "_"
+							+ BigDecimal.valueOf(coordinate[1] + 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString());
+					geoPoints.add(temptGeoPoints);
+
 				}
 			}
 		}
-
 		this.process();
 	}
 
 	public DflowNetcdfTranslator(SpatialReader shpFile) {
-		shpFile.getGeometryList().forEach(geo -> {
-			try {
-				if (geo.GetGeometryType() == 3) {
-					this.geoList.add(geo);
-				}
-			} catch (Exception e) {
-			}
-		});
+		this.setGeoPointsDecimale(shpFile.getGeometryList());
+		this.process();
+	}
+
+	public DflowNetcdfTranslator(SpatialReader shpFile, int decimale) {
+		this.dataDecimale = decimale;
+		this.setGeoPointsDecimale(shpFile.getGeometryList());
 		this.process();
 	}
 
 	public DflowNetcdfTranslator(List<Geometry> geoList) {
-		this.geoList = geoList;
+		this.setGeoPointsDecimale(geoList);
 		this.process();
+	}
+
+	public DflowNetcdfTranslator(List<Geometry> geoList, int decimale) {
+		this.dataDecimale = decimale;
+		this.setGeoPointsDecimale(geoList);
+		this.process();
+	}
+
+	private void setGeoPointsDecimale(List<Geometry> geoList) {
+		geoList.forEach(geo -> {
+			try {
+				if (geo.GetGeometryType() == 3) {
+					// get geoPolygon
+					this.geoList.add(geo);
+
+					// get geoPoints
+					Geometry temptPolygon = geo.Boundary();
+					geoPoints
+							.add(Arrays.asList(temptPolygon.GetPoints()).parallelStream()
+									.map(point -> new BigDecimal(point[0])
+											.setScale(this.dataDecimale, BigDecimal.ROUND_HALF_UP).toString()
+											+ "_"
+											+ new BigDecimal(point[1])
+													.setScale(this.dataDecimale, BigDecimal.ROUND_HALF_UP).toString())
+									.collect(Collectors.toList()));
+				}
+			} catch (Exception e) {
+			}
+		});
 	}
 
 	private void process() {
@@ -133,19 +199,21 @@ public class DflowNetcdfTranslator {
 		System.out.println("order all points");
 		// get all points
 		Set<String> temptPointSet = new LinkedHashSet<>();
-		this.geoList.forEach(polygon -> {
-			Geometry temptPolygon = polygon.Boundary();
-			Arrays.asList(temptPolygon.GetPoints()).forEach(point -> {
-				temptPointSet.add(point[0] + "_" + point[1]);
+		this.geoPoints.forEach(polygonPoints -> {
+			polygonPoints.forEach(polygonPoint -> {
+				temptPointSet.add(polygonPoint);
 			});
 		});
 
 		// order the points
-		Map<String, Integer> pointIndexMap = new LinkedHashMap<>();
-		temptPointSet.iterator().forEachRemaining(point -> {
-			pointIndexMap.put(point, pointIndexMap.size());
+		pointsIndexMap = new LinkedHashMap<>();
+		temptPointSet.iterator().forEachRemaining(point ->
+
+		{
+			pointsIndexMap.put(point, pointsIndexMap.size());
+			points_Z_Value.put(point, -999.0);
 		});
-		this.points = new ArrayList<>(pointIndexMap.keySet());
+		this.points = new ArrayList<>(pointsIndexMap.keySet());
 
 		// order the other variable
 		for (int polygon = 0; polygon < this.geoList.size(); polygon++) {
@@ -159,18 +227,17 @@ public class DflowNetcdfTranslator {
 			 * get points
 			 */
 			// polygon link point
-			temptGeo = temptGeo.Boundary();
 			List<Integer> temptPolygonPointsIndex = new ArrayList<>();
 
 			// link start point // direct to point index
-			String startPointKey = temptGeo.GetX(0) + "_" + temptGeo.GetY(0);
-			int startPointIndex = pointIndexMap.get(startPointKey);
+			String startPointKey = this.geoPoints.get(polygon).get(0);
+			int startPointIndex = pointsIndexMap.get(startPointKey);
 			temptPolygonPointsIndex.add(startPointIndex);
 
 			// link end point // direct to point index
-			for (int point = 1; point < temptGeo.GetPointCount(); point++) {
-				String endPointKey = temptGeo.GetX(point) + "_" + temptGeo.GetY(point);
-				int endPointIndex = pointIndexMap.get(endPointKey);
+			for (int point = 1; point < this.geoPoints.get(polygon).size(); point++) {
+				String endPointKey = this.geoPoints.get(polygon).get(point);
+				int endPointIndex = pointsIndexMap.get(endPointKey);
 				temptPolygonPointsIndex.add(endPointIndex);
 
 				// set edge link nodes
@@ -200,6 +267,65 @@ public class DflowNetcdfTranslator {
 				this.maxPolygonNodeNum = temptPolygonPointsIndex.size();
 			}
 		}
+	}
+
+	public DflowNetcdfTranslator checkQualTreeOverLappingLine() {
+		List<String> temptKeyList = new ArrayList<>(this.edgeFaceIndex.keySet());
+		for (String key : temptKeyList) {
+
+			// if there is only on face is connected
+			if (edgeFaceIndex.get(key).size() == 1) {
+
+				// get face index
+				int faceIndex = edgeFaceIndex.get(key).get(0);
+
+				// get the center of edge points
+				String[] pointIndexs = key.split("_");
+				String[] point1 = this.points.get(Integer.parseInt(pointIndexs[0])).split("_");
+				String[] point2 = this.points.get(Integer.parseInt(pointIndexs[1])).split("_");
+				String[] edgeCenter = new String[] {
+						new BigDecimal((Double.parseDouble(point1[0]) + Double.parseDouble(point2[0])) / 2)
+								.setScale(this.dataDecimale, BigDecimal.ROUND_HALF_UP).toString(),
+						new BigDecimal((Double.parseDouble(point1[1]) + Double.parseDouble(point2[1])) / 2)
+								.setScale(this.dataDecimale, BigDecimal.ROUND_HALF_UP).toString() };
+
+				// if points is exist, remove the logger one
+				if (this.pointsIndexMap.get(edgeCenter[0] + "_" + edgeCenter[1]) != null) {
+					edgeFaceIndex.remove(key);
+
+					// then add another two smaller edge
+					Integer centerPointIndex = this.pointsIndexMap.get(edgeCenter[0] + "_" + edgeCenter[1]);
+
+					// 1
+					List<Integer> edgePointIndexList1 = new ArrayList<>(
+							Arrays.asList(Integer.parseInt(pointIndexs[0]), centerPointIndex));
+					Collections.sort(edgePointIndexList1);
+					this.edgeFaceIndex.get(edgePointIndexList1.get(0) + "_" + edgePointIndexList1.get(1))
+							.add(faceIndex);
+
+					// 2
+					List<Integer> edgePointIndexList2 = new ArrayList<>(
+							Arrays.asList(Integer.parseInt(pointIndexs[1]), centerPointIndex));
+					Collections.sort(edgePointIndexList2);
+					this.edgeFaceIndex.get(edgePointIndexList2.get(0) + "_" + edgePointIndexList2.get(1))
+							.add(faceIndex);
+
+					// add a new point to the face
+					List<Integer> facePoints = this.polygonPointsIndex.get(faceIndex);
+					for (int index = 0; index < facePoints.size(); index++) {
+						if (facePoints.get(index) == Integer.parseInt(pointIndexs[1])
+								|| facePoints.get(index) == Integer.parseInt(pointIndexs[0])) {
+							facePoints.add(index + 1, centerPointIndex);
+							break;
+						}
+					}
+					if (facePoints.size() > this.maxPolygonNodeNum) {
+						this.maxPolygonNodeNum = facePoints.size();
+					}
+				}
+			}
+		}
+		return this;
 	}
 
 	// <++++++++++++++++++++++++++++++++++++++++++++++>
@@ -268,22 +394,14 @@ public class DflowNetcdfTranslator {
 		this.set_mesh2D_Value();
 		this.set_mesh2d_edge_nodes_Value();
 		this.set_mesh2d_edge_xy_bnd_Value();
-		this.set_mesh2d_edge_xy_Value();
-		this.set_mesh2d_node_xy_Value();
+		this.set_mesh2d_edge_xyz_Value();
+		this.set_mesh2d_node_xyz_Value();
 		this.set_mesh2d_face_nodes_Value();
 		this.set_mesh2d_edge_faces_Value();
 		this.set_mesh2d_face_xy_Value();
 		this.set_mesh2d_face_xy_bnd_Value();
 		this.set_mesh2d_Cell_Area_Value();
-
-		// node-z value
-		if (!this.Mesh2D_Cell_BedLevel) {
-			this.set_mesh2d_node_zNull_Value();
-			this.set_mesh2d_flowelem_blNULL_value();
-		} else {
-			this.set_mesh2d_node_z_Value();
-			this.set_mesh2d_flowelem_bl_value();
-		}
+		this.set_mesh2d_flowelem_bl_value();
 
 		// series time output
 		if (this.TimeSeriesOutput) {
@@ -353,23 +471,7 @@ public class DflowNetcdfTranslator {
 		writer.addVariableAttribute("projected_coordinate_system", "value ", "value is equal to EPSG code");
 	}
 
-	private void set_mesh2d_node_zNull_Value() throws IOException, InvalidRangeException {
-		// setZ
-		List<Double> nodeLevel = new ArrayList<>();
-		this.points.forEach(nodeXY -> nodeLevel.add(-999.0));
-
-		// write to netCdf
-		writer.addValue("mesh2d_node_z",
-				Array.factory(nodeLevel.parallelStream().mapToDouble(Double::doubleValue).toArray()));
-	}
-
-	private void set_mesh2d_node_z_Value() throws IOException, InvalidRangeException {
-		// write to netCdf
-		writer.addValue("mesh2d_node_z",
-				Array.factory(this.points_Z_Value.parallelStream().mapToDouble(Double::doubleValue).toArray()));
-	}
-
-	private void set_mesh2d_node_xy_Value() throws IOException, InvalidRangeException {
+	private void set_mesh2d_node_xyz_Value() throws IOException, InvalidRangeException {
 		// get cordinate from point list
 		List<Double> xList = new ArrayList<>();
 		List<Double> yList = new ArrayList<>();
@@ -378,7 +480,7 @@ public class DflowNetcdfTranslator {
 			String[] cordinate = key.split("_");
 			xList.add(Double.parseDouble(cordinate[0]));
 			yList.add(Double.parseDouble(cordinate[1]));
-			zList.add(-999.0);
+			zList.add(this.points_Z_Value.get(key));
 		});
 
 		writer.addValue("mesh2d_node_x",
@@ -386,6 +488,9 @@ public class DflowNetcdfTranslator {
 
 		writer.addValue("mesh2d_node_y",
 				ArrayDouble.factory(yList.parallelStream().mapToDouble(Double::doubleValue).toArray()));
+
+		writer.addValue("mesh2d_node_z",
+				Array.factory(zList.parallelStream().mapToDouble(Double::doubleValue).toArray()));
 	}
 
 	private void set_mesh2d_node_xyz() throws IOException, InvalidRangeException {
@@ -419,7 +524,7 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void set_mesh2d_edge_xy_Value() throws IOException, InvalidRangeException {
+	private void set_mesh2d_edge_xyz_Value() throws IOException, InvalidRangeException {
 		// get coordinate from edge mid points list
 		List<Double> xList = new ArrayList<>();
 		List<Double> yList = new ArrayList<>();
@@ -715,24 +820,21 @@ public class DflowNetcdfTranslator {
 		writer.addVariableAttribute("mesh2d_flowelem_bl", "_FillValue", -999.0);
 	}
 
-	private void set_mesh2d_flowelem_blNULL_value() throws IOException, InvalidRangeException {
-		List<Double> cellBedLevel = new ArrayList<>();
-		this.polygonPointsIndex.forEach(polygon -> {
-			cellBedLevel.add(-999.0);
-		});
-		writer.addValue("mesh2d_flowelem_bl",
-				Array.factory(cellBedLevel.parallelStream().mapToDouble(Double::doubleValue).toArray()));
-	}
-
 	private void set_mesh2d_flowelem_bl_value() throws IOException, InvalidRangeException {
 		this.polygonLevel.clear();
 		this.polygonPointsIndex.forEach(polygon -> {
 
 			List<Double> temptValue = new ArrayList<>();
 			polygon.forEach(pointIndex -> {
-				temptValue.add(this.points_Z_Value.get(pointIndex));
+				if (this.points_Z_Value.get(this.points.get(pointIndex)) > -998) {
+					temptValue.add(this.points_Z_Value.get(this.points.get(pointIndex)));
+				}
 			});
-			polygonLevel.add(new AtCommonMath(temptValue).getMean());
+			try {
+				polygonLevel.add(new AtCommonMath(temptValue).getMean());
+			} catch (Exception e) {
+				polygonLevel.add(-999.0);
+			}
 		});
 
 		writer.addValue("mesh2d_flowelem_bl",
@@ -830,34 +932,41 @@ public class DflowNetcdfTranslator {
 	// <++++++++++++++++++ User Optional ++++++++++++++++++>
 	// <++++++++++++++++++++++++++++++++++++++++++++++>
 
-	public void set_node_Z_value(AsciiBasicControl ascii) {
+	public DflowNetcdfTranslator set_node_Z_value(AsciiBasicControl ascii) throws IOException {
 		// setZ
-		this.points_Z_Value = new ArrayList<>();
+
+		List<String> outList = new ArrayList<>();
 		this.points.forEach(nodeXY -> {
 			double[] coordinate = Arrays.asList(nodeXY.split("_")).parallelStream().map(s -> Double.parseDouble(s))
 					.mapToDouble(Double::doubleValue).toArray();
 
-			String temptValue = ascii.getValue(coordinate[0], coordinate[1]);
-			if (!temptValue.equals(ascii.getNullValue())) {
-				points_Z_Value.add(Double.parseDouble(temptValue));
-			} else {
-				points_Z_Value.add(-999.0);
+			if (ascii.isContain(coordinate[0], coordinate[1])) {
+				String temptValue = ascii.getValue(coordinate[0], coordinate[1]);
+				if (!temptValue.equals(ascii.getNullValue())) {
+					points_Z_Value.put(nodeXY, Double.parseDouble(temptValue));
+				} else {
+					outList.add(coordinate[0] + "," + coordinate[1]);
+				}
 			}
 		});
 
-		this.Mesh2D_Cell_BedLevel = true;
+		new AtFileWriter(outList.parallelStream().toArray(String[]::new), "E:\\download\\coordinate.csv")
+				.textWriter("");
+
+		return this;
 	}
 
 	// timeSeries from 2001-01-01 00:00:00 in second
 	// timeStep in secon
-	public void set_outputTimeSeries(int timeStep, List<Double> timeSeries_Second) {
+	public DflowNetcdfTranslator set_outputTimeSeries(int timeStep, List<Double> timeSeries_Second) {
 		this.timeSeries = timeSeries_Second;
 		this.timeStep = timeStep;
 		this.TimeSeriesOutput = true;
+		return this;
 	}
 
 	// add water depth
-	public void addWaterDepth(List<AsciiBasicControl> asciiList) {
+	public DflowNetcdfTranslator addWaterDepth(List<AsciiBasicControl> asciiList) {
 
 		// initialize the global variable
 		this.waterLevelOutput = true;
@@ -898,6 +1007,7 @@ public class DflowNetcdfTranslator {
 
 			this.polygonTimeSeries.add(timeSeriesValues.parallelStream().toArray(Double[]::new));
 		});
+		return this;
 	}
 
 	// get the coordinate index which geometry contains from asciiFile
