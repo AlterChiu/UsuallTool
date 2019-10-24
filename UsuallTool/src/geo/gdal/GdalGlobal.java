@@ -3,6 +3,7 @@ package geo.gdal;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,11 +48,11 @@ public class GdalGlobal {
 	public static List<Path2D> GeomertyToPath2D(Geometry geometry) throws IOException {
 		List<Path2D> outList = new ArrayList<>();
 
-		if (geometry.GetGeometryType() == ogr.wkbMultiPolygon) {
+		if (geometry.GetGeometryType() == ogr.wkbMultiPolygon || geometry.GetGeometryType() == ogr.wkbMultiLineString) {
 			for (int index = 0; index < geometry.GetGeometryCount(); index++) {
 				outList.add(GeomertyToPath2D_Polygon(geometry.GetGeometryRef(index)));
 			}
-		} else if (geometry.GetGeometryType() == ogr.wkbPolygon) {
+		} else if (geometry.GetGeometryType() == ogr.wkbPolygon || geometry.GetGeometryType() == ogr.wkbLineString) {
 			outList.add(GeomertyToPath2D_Polygon(geometry));
 		} else {
 			throw new IOException("not correct geometry type");
@@ -206,66 +207,67 @@ public class GdalGlobal {
 		return temptPath;
 	}
 
-	public static List<Double[]> getBreakPoint(Geometry geo) {
-		JsonObject geoJson = new JsonParser().parse(geo.ExportToJson()).getAsJsonObject();
-		String polygonType = geoJson.get("type").getAsString();
-		List<Double[]> temptList = new ArrayList<>();
+	public static Geometry mergePolygons(List<Geometry> geoList) {
+		List<Geometry> temptList = new ArrayList<>(geoList);
 
-		if (polygonType.toUpperCase().equals("POLYGON")) {
-			JsonArray coordinates = geoJson.get("coordinates").getAsJsonArray().get(0).getAsJsonArray();
-			for (int index = 0; index < coordinates.size(); index++) {
-				double temptX = coordinates.get(index).getAsJsonArray().get(0).getAsDouble();
-				double temptY = coordinates.get(index).getAsJsonArray().get(1).getAsDouble();
-				temptList.add(new Double[] { temptX, temptY });
+		while (true) {
+			List<Geometry> outList = new ArrayList<>();
+			for (int index = 0; index < temptList.size(); index = index + 2) {
+				try {
+					outList.add(temptList.get(index).Union(temptList.get(index + 1)));
+				} catch (Exception e) {
+					outList.add(temptList.get(index));
+				}
 			}
-			return getBreakPoint(temptList);
-		} else {
-			return null;
+			if (outList.size() == 1) {
+				temptList = outList;
+				break;
+			} else {
+				temptList = outList;
+			}
 		}
+		return temptList.get(0);
 	}
 
-	public static List<Double[]> getBreakPoint(Path2D path) {
-		List<Double[]> temptList = new ArrayList<>();
-		PathIterator temptPathIteratore = path.getPathIterator(null);
-		double[] coordinate = new double[2];
-
-		for (; !temptPathIteratore.isDone(); temptPathIteratore.next()) {
-			temptPathIteratore.currentSegment(coordinate);
-			temptList.add(new Double[] { coordinate[0], coordinate[1] });
-		}
-		return getBreakPoint(temptList);
+	public static List<Path2D> getQualTree_Path(double[] centerPoint, double cellSize) {
+		return getQualTree_Path(centerPoint, cellSize, 4);
 	}
 
-	public static List<Double[]> getBreakPoint(List<Double[]> points) {
-		List<Double[]> outList = new ArrayList<>();
-
-		for (int index = 0; index < points.size(); index++) {
-			Double[] startPoint = points.get(index);
-
-			// point1
-			Double[] point1;
-			try {
-				point1 = points.get(index + 1);
-			} catch (Exception e) {
-				point1 = points.get(index + 1 - points.size());
-			}
-			double slope1 = (point1[1] - startPoint[1]) / (point1[0] - startPoint[0]);
-
-			// point2
-			Double[] point2;
-			try {
-				point2 = points.get(index + 2);
-			} catch (Exception e) {
-				point2 = points.get(index + 2 - points.size());
-			}
-			double slope2 = (point2[1] - point1[1]) / (point2[0] - point1[0]);
-
-			if (Math.abs(slope2 - slope1) > 0.0000000001) {
-				outList.add(point1);
-			}
-		}
-
+	public static List<Path2D> getQualTree_Path(double[] centerPoint, double cellSize, int dataDecimale) {
+		List<Path2D> outList = new ArrayList<>();
+		outList.add(getGrid(new double[] { centerPoint[0] - 0.25 * cellSize, centerPoint[1] - 0.25 * cellSize },
+				0.5 * cellSize, dataDecimale));
+		outList.add(getGrid(new double[] { centerPoint[0] - 0.25 * cellSize, centerPoint[1] + 0.25 * cellSize },
+				0.5 * cellSize, dataDecimale));
+		outList.add(getGrid(new double[] { centerPoint[0] + 0.25 * cellSize, centerPoint[1] + 0.25 * cellSize },
+				0.5 * cellSize, dataDecimale));
+		outList.add(getGrid(new double[] { centerPoint[0] + 0.25 * cellSize, centerPoint[1] - 0.25 * cellSize },
+				0.5 * cellSize, dataDecimale));
 		return outList;
+	}
+
+	public static Path2D getGrid(double[] centerPoint, double cellSize) {
+		return getGrid(centerPoint, cellSize, 4);
+	}
+
+	public static Path2D getGrid(double[] centerPoint, double cellSize, int dataDecima) {
+		Path2D temptPath = new Path2D.Double();
+
+		double minX = new BigDecimal(centerPoint[0] - 0.5 * cellSize).setScale(dataDecima, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
+		double maxX = new BigDecimal(centerPoint[0] + 0.5 * cellSize).setScale(dataDecima, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
+		double minY = new BigDecimal(centerPoint[1] - 0.5 * cellSize).setScale(dataDecima, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
+		double maxY = new BigDecimal(centerPoint[1] + 0.5 * cellSize).setScale(dataDecima, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
+
+		temptPath.moveTo(minX, minY);
+		temptPath.lineTo(maxX, minY);
+		temptPath.lineTo(maxX, maxY);
+		temptPath.lineTo(minX, maxY);
+
+		return temptPath;
 	}
 
 }
