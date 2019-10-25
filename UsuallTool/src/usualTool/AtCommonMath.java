@@ -170,6 +170,103 @@ public class AtCommonMath {
 		return ratio;
 	}
 
+	public static double getDecimal_Double(double value, int scale) {
+		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+	}
+
+	public static double getDecimal_Double(String value, int scale) {
+		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+	}
+
+	public static String getDecimal_String(double value, int scale) {
+		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).toString();
+	}
+
+	public static String getDecimal_String(String value, int scale) {
+		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).toString();
+	}
+
+	public static int getDecimal_Int(double value, int scale) {
+		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).intValue();
+	}
+
+	public static int getDecimal_Int(String value, int scale) {
+		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).intValue();
+	}
+
+	public static double getAzimuth(double[] vector) {
+		return getAzimuth(new double[] { 0, 0 }, vector);
+	}
+
+	public static double getAzimuth(double[] startPoint, double[] endPoint) {
+		return getAzimuth(startPoint[0], startPoint[1], endPoint[0], endPoint[1]);
+	}
+
+	// return azimuth, start from north, clockwise
+	public static double getAzimuth(double startPointX, double startPointY, double endPointX, double endPointY) {
+		double[] vector = new double[] { endPointX - startPointX, endPointY - startPointY };
+
+		int quadrand = getMathQuadrand(vector);
+		if (quadrand == 0) {
+
+			// on coordinate axis
+
+			// +x
+			if (vector[0] > 0) {
+				return 3. / 4 * 2 * Math.PI;
+			}
+			// -x
+			else if (vector[0] < 0) {
+				return 1. / 4 * 2 * Math.PI;
+			}
+			// +y
+			else if (vector[1] > 0) {
+				return 0;
+			}
+			// -y
+			else {
+				return 2. / 4 * 2 * Math.PI;
+			}
+
+			// if not on coordinate
+
+		}
+		// ++
+		else if (quadrand == 1) {
+			return Math.atan(Math.abs(vector[0]) / Math.abs(vector[1]));
+		}
+		// -+
+		else if (quadrand == 2) {
+			return 2 * Math.PI - Math.atan(Math.abs(vector[0]) / Math.abs(vector[1]));
+		}
+		// --
+		else if (quadrand == 3) {
+			return 2. / 4 * 2 * Math.PI + Math.atan(Math.abs(vector[0]) / Math.abs(vector[1]));
+		}
+		// +-
+		else {
+			return 2. / 4 * 2 * Math.PI - Math.atan(Math.abs(vector[0]) / Math.abs(vector[1]));
+		}
+	}
+
+	// return quadrand in math
+	// 2 1
+	// 3 4
+	// if on coordinate axis => return 0
+	public static int getMathQuadrand(double[] vector) {
+		if (vector[0] > 0 && vector[1] > 0) {
+			return 1;
+		} else if (vector[0] > 0 && vector[1] < 0) {
+			return 4;
+		} else if (vector[0] < 0 && vector[1] > 0) {
+			return 3;
+		} else if (vector[0] < 0 && vector[1] < 0) {
+			return 2;
+		} else {
+			return 0;
+		}
+	}
+
 	public final void clear() {
 		this.ds.clear();
 	}

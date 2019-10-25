@@ -148,34 +148,60 @@ public class DflowNetcdfTranslator {
 		this.process();
 	}
 
+	public DflowNetcdfTranslator(SpatialReader shpFile, Boolean checkClockWise) {
+		this.setGeoPointsDecimale(shpFile.getGeometryList(), checkClockWise);
+		this.process();
+	}
+
 	public DflowNetcdfTranslator(SpatialReader shpFile) {
-		this.setGeoPointsDecimale(shpFile.getGeometryList());
+		this.setGeoPointsDecimale(shpFile.getGeometryList(), false);
+		this.process();
+	}
+
+	public DflowNetcdfTranslator(SpatialReader shpFile, int decimale, Boolean checkClockWise) {
+		this.dataDecimale = decimale;
+		this.setGeoPointsDecimale(shpFile.getGeometryList(), checkClockWise);
 		this.process();
 	}
 
 	public DflowNetcdfTranslator(SpatialReader shpFile, int decimale) {
 		this.dataDecimale = decimale;
-		this.setGeoPointsDecimale(shpFile.getGeometryList());
+		this.setGeoPointsDecimale(shpFile.getGeometryList(), false);
+		this.process();
+	}
+
+	public DflowNetcdfTranslator(List<Geometry> geoList, Boolean checkClockWise) {
+		this.setGeoPointsDecimale(geoList, checkClockWise);
 		this.process();
 	}
 
 	public DflowNetcdfTranslator(List<Geometry> geoList) {
-		this.setGeoPointsDecimale(geoList);
+		this.setGeoPointsDecimale(geoList, false);
+		this.process();
+	}
+
+	public DflowNetcdfTranslator(List<Geometry> geoList, int decimale, Boolean checkClockWise) {
+		this.dataDecimale = decimale;
+		this.setGeoPointsDecimale(geoList, checkClockWise);
 		this.process();
 	}
 
 	public DflowNetcdfTranslator(List<Geometry> geoList, int decimale) {
 		this.dataDecimale = decimale;
-		this.setGeoPointsDecimale(geoList);
+		this.setGeoPointsDecimale(geoList, false);
 		this.process();
 	}
 
-	private void setGeoPointsDecimale(List<Geometry> geoList) {
+	private void setGeoPointsDecimale(List<Geometry> geoList, Boolean checkClockWise) {
 		geoList.forEach(geo -> {
 			try {
 				if (geo.GetGeometryType() == 3) {
 					// get geoPolygon
-					this.geoList.add(geo);
+					if (checkClockWise) {
+						this.geoList.add(checkPolygonClockWise(geo));
+					} else {
+						this.geoList.add(geo);
+					}
 
 					// get geoPoints
 					Geometry temptPolygon = geo.Boundary();
@@ -266,6 +292,55 @@ public class DflowNetcdfTranslator {
 			if (temptPolygonPointsIndex.size() > this.maxPolygonNodeNum) {
 				this.maxPolygonNodeNum = temptPolygonPointsIndex.size();
 			}
+		}
+	}
+
+	// convert all polygon to unclockwise
+	private Geometry checkPolygonClockWise(Geometry geo) {
+		Geometry temptBound = geo.Boundary();
+		Geometry centroid = temptBound.Centroid();
+		double centroidX = centroid.GetX();
+		double centroidY = centroid.GetY();
+
+		List<double[]> pointList = Arrays.asList(temptBound.GetPoints());
+		double[] vector1 = new double[] { pointList.get(0)[0] - centroidX, pointList.get(0)[1] - centroidY };
+		double degree1 = AtCommonMath.getAzimuth(vector1);
+
+		double[] vector2 = new double[] { pointList.get(1)[0] - centroidX, pointList.get(1)[1] - centroidY };
+		double degree2 = AtCommonMath.getAzimuth(vector2);
+
+		// clockwise
+		if (degree2 > degree1) {
+			Collections.reverse(pointList);
+			return GdalGlobal.Path2DToGeometry(GdalGlobal.PointsToPath(
+					pointList.parallelStream().map(d -> new Double[] { d[0], d[1] }).collect(Collectors.toList())));
+		} else {
+			return geo;
+		}
+	}
+
+	public DflowNetcdfTranslator checkOverlappingShp() {
+		Map<String, Integer> polygonPoints = new TreeMap<>();
+
+		// check for overlapping by using the same points
+		for (int index = 0; index < polygonPointsIndex.size(); index++) {
+			List<Integer> temptList = new ArrayList<>(polygonPointsIndex.get(index));
+			Collections.sort(temptList);
+			String key = String.join(",",
+					temptList.parallelStream().map(e -> String.valueOf(e)).collect(Collectors.toList()));
+
+			polygonPoints.put(key, index);
+		}
+
+		// if there is overlapping, return a new class
+		if (polygonPoints.size() != this.polygonPointsIndex.size()) {
+			List<Geometry> outList = new ArrayList<>();
+			polygonPoints.keySet().forEach(key -> {
+				outList.add(geoList.get(polygonPoints.get(key)));
+			});
+			return new DflowNetcdfTranslator(outList);
+		} else {
+			return this;
 		}
 	}
 
