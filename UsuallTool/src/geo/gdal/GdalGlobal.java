@@ -48,12 +48,15 @@ public class GdalGlobal {
 	public static List<Path2D> GeomertyToPath2D(Geometry geometry) throws IOException {
 		List<Path2D> outList = new ArrayList<>();
 
-		if (geometry.GetGeometryType() == ogr.wkbMultiPolygon || geometry.GetGeometryType() == ogr.wkbMultiLineString) {
+		if (geometry.GetGeometryName().toUpperCase().equals("POLYGON")
+				|| geometry.GetGeometryName().toUpperCase().equals("POLYLINE")) {
+			outList.add(GeomertyToPath2D_Polygon(geometry));
+
+		} else if (geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYGON")
+				|| geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYLINE")) {
 			for (int index = 0; index < geometry.GetGeometryCount(); index++) {
 				outList.add(GeomertyToPath2D_Polygon(geometry.GetGeometryRef(index)));
 			}
-		} else if (geometry.GetGeometryType() == ogr.wkbPolygon || geometry.GetGeometryType() == ogr.wkbLineString) {
-			outList.add(GeomertyToPath2D_Polygon(geometry));
 		} else {
 			throw new IOException("not correct geometry type");
 		}
@@ -61,26 +64,25 @@ public class GdalGlobal {
 	}
 
 	private static Path2D GeomertyToPath2D_Polygon(Geometry geometry) {
-		Geometry geoBoundary;
+		Geometry temptGeo;
 		try {
-			geoBoundary = geometry.Boundary();
+			temptGeo = geometry.Boundary();
 		} catch (Exception e) {
-			geoBoundary = geometry;
+			temptGeo = geometry;
 		}
 
 		Path2D outPath = new Path2D.Double();
-		double[][] points = geoBoundary.GetPoints();
 
-		outPath.moveTo(points[0][0], points[0][1]);
-		for (int index = 1; index < points.length; index++) {
-			outPath.lineTo(points[index][0], points[index][1]);
+		outPath.moveTo(temptGeo.GetPoint(0)[0], geometry.GetPoint(0)[1]);
+		for (int index = 1; index < temptGeo.GetPointCount(); index++) {
+			outPath.lineTo(temptGeo.GetPoint(index)[0], geometry.GetPoint(index)[1]);
 		}
 		return outPath;
 	}
 
 	public static Geometry Path2DToGeometry(Path2D path) {
 		PathIterator temptPathIteratore = path.getPathIterator(null);
-		float coordinate[] = new float[2];
+		double coordinate[] = new double[2];
 
 		// start coordinate
 		temptPathIteratore.currentSegment(coordinate);

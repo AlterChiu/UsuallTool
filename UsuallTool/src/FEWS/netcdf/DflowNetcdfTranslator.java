@@ -140,6 +140,10 @@ public class DflowNetcdfTranslator {
 							.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString() + "_"
 							+ BigDecimal.valueOf(coordinate[1] + 0.5 * cellSize)
 									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString());
+					temptGeoPoints.add(BigDecimal.valueOf(coordinate[0] - 0.5 * cellSize)
+							.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString() + "_"
+							+ BigDecimal.valueOf(coordinate[1] + 0.5 * cellSize)
+									.setScale(dataDecimale, BigDecimal.ROUND_HALF_UP).toString());
 					geoPoints.add(temptGeoPoints);
 
 				}
@@ -233,9 +237,7 @@ public class DflowNetcdfTranslator {
 
 		// order the points
 		pointsIndexMap = new LinkedHashMap<>();
-		temptPointSet.iterator().forEachRemaining(point ->
-
-		{
+		temptPointSet.iterator().forEachRemaining(point -> {
 			pointsIndexMap.put(point, pointsIndexMap.size());
 			points_Z_Value.put(point, -999.0);
 		});
@@ -248,6 +250,9 @@ public class DflowNetcdfTranslator {
 			// get centroid
 			Geometry centroid = temptGeo.Centroid();
 			this.polygonCentroid.add(new Double[] { centroid.GetX(), centroid.GetY() });
+
+			// set bedLevel with -999
+			this.polygonLevel.add(-999.0);
 
 			/*
 			 * get points
@@ -303,6 +308,7 @@ public class DflowNetcdfTranslator {
 		double centroidY = centroid.GetY();
 
 		List<double[]> pointList = Arrays.asList(temptBound.GetPoints());
+
 		double[] vector1 = new double[] { pointList.get(0)[0] - centroidX, pointList.get(0)[1] - centroidY };
 		double degree1 = AtCommonMath.getAzimuth(vector1);
 
@@ -312,8 +318,9 @@ public class DflowNetcdfTranslator {
 		// clockwise
 		if (degree2 > degree1) {
 			Collections.reverse(pointList);
-			return GdalGlobal.Path2DToGeometry(GdalGlobal.PointsToPath(
+			Geometry temptGeo = GdalGlobal.Path2DToGeometry(GdalGlobal.PointsToPath(
 					pointList.parallelStream().map(d -> new Double[] { d[0], d[1] }).collect(Collectors.toList())));
+			return temptGeo;
 		} else {
 			return geo;
 		}
@@ -469,7 +476,7 @@ public class DflowNetcdfTranslator {
 		this.set_mesh2D_Value();
 		this.set_mesh2d_edge_nodes_Value();
 		this.set_mesh2d_edge_xy_bnd_Value();
-		this.set_mesh2d_edge_xyz_Value();
+		this.set_mesh2d_edge_xy_Value();
 		this.set_mesh2d_node_xyz_Value();
 		this.set_mesh2d_face_nodes_Value();
 		this.set_mesh2d_edge_faces_Value();
@@ -599,7 +606,7 @@ public class DflowNetcdfTranslator {
 
 	}
 
-	private void set_mesh2d_edge_xyz_Value() throws IOException, InvalidRangeException {
+	private void set_mesh2d_edge_xy_Value() throws IOException, InvalidRangeException {
 		// get coordinate from edge mid points list
 		List<Double> xList = new ArrayList<>();
 		List<Double> yList = new ArrayList<>();
@@ -896,21 +903,32 @@ public class DflowNetcdfTranslator {
 	}
 
 	private void set_mesh2d_flowelem_bl_value() throws IOException, InvalidRangeException {
-		this.polygonLevel.clear();
-		this.polygonPointsIndex.forEach(polygon -> {
 
+		for (int index = 0; index < this.polygonPointsIndex.size(); index++) {
 			List<Double> temptValue = new ArrayList<>();
-			polygon.forEach(pointIndex -> {
+
+			// add bedLevel
+			try {
+				if (this.polygonLevel.get(index) > -998) {
+					for (int tempt = 0; tempt < this.polygonPointsIndex.get(index).size(); tempt++) {
+						temptValue.add(this.polygonLevel.get(index));
+					}
+				}
+			} catch (Exception e) {
+			}
+
+			// interpolation by corner points level
+			polygonPointsIndex.get(index).forEach(pointIndex -> {
 				if (this.points_Z_Value.get(this.points.get(pointIndex)) > -998) {
 					temptValue.add(this.points_Z_Value.get(this.points.get(pointIndex)));
 				}
 			});
 			try {
-				polygonLevel.add(new AtCommonMath(temptValue).getMean());
+				polygonLevel.add(index + 1, new AtCommonMath(temptValue).getMean());
+				polygonLevel.remove(index);
 			} catch (Exception e) {
-				polygonLevel.add(-999.0);
 			}
-		});
+		}
 
 		writer.addValue("mesh2d_flowelem_bl",
 				Array.factory(polygonLevel.parallelStream().mapToDouble(Double::doubleValue).toArray()));
@@ -1007,10 +1025,8 @@ public class DflowNetcdfTranslator {
 	// <++++++++++++++++++ User Optional ++++++++++++++++++>
 	// <++++++++++++++++++++++++++++++++++++++++++++++>
 
-	public DflowNetcdfTranslator set_node_Z_value(AsciiBasicControl ascii) throws IOException {
+	public DflowNetcdfTranslator setNodeLevel(AsciiBasicControl ascii) throws IOException {
 		// setZ
-
-		List<String> outList = new ArrayList<>();
 		this.points.forEach(nodeXY -> {
 			double[] coordinate = Arrays.asList(nodeXY.split("_")).parallelStream().map(s -> Double.parseDouble(s))
 					.mapToDouble(Double::doubleValue).toArray();
@@ -1019,16 +1035,70 @@ public class DflowNetcdfTranslator {
 				String temptValue = ascii.getValue(coordinate[0], coordinate[1]);
 				if (!temptValue.equals(ascii.getNullValue())) {
 					points_Z_Value.put(nodeXY, Double.parseDouble(temptValue));
-				} else {
-					outList.add(coordinate[0] + "," + coordinate[1]);
 				}
 			}
 		});
-
-		new AtFileWriter(outList.parallelStream().toArray(String[]::new), "E:\\download\\coordinate.csv")
-				.textWriter("");
-
 		return this;
+	}
+
+	public DflowNetcdfTranslator setFaceCenterLevel(AsciiBasicControl ascii) {
+
+		// set bedLevel
+		for (int index = 0; index < this.polygonCentroid.size(); index++) {
+			if (ascii.isContain(polygonCentroid.get(index)[0], polygonCentroid.get(index)[1])) {
+				String temptValue = ascii.getValue(polygonCentroid.get(index)[0], polygonCentroid.get(index)[1]);
+				if (!temptValue.equals(ascii.getNullValue())) {
+					this.polygonLevel.add(index + 1, Double.parseDouble(temptValue));
+					this.polygonLevel.remove(index);
+				}
+			}
+		}
+		return this;
+	}
+
+	public List<Double[]> getAllPoints() {
+		List<Double[]> outPoints = new ArrayList<>();
+		this.points.forEach(point -> {
+			String[] coordinate = point.split("_");
+			outPoints.add(new Double[] { Double.parseDouble(coordinate[0]), Double.parseDouble(coordinate[1]) });
+		});
+		return outPoints;
+	}
+
+	public List<Double[]> getAllEdge() {
+		List<Double[]> outPoints = new ArrayList<>();
+		this.edgeFaceIndex.keySet().forEach(edgePointsIndex -> {
+			String pointsIndex[] = edgePointsIndex.split("_");
+			String startPoint[] = this.points.get(Integer.parseInt(pointsIndex[0])).split("_");
+			String endPoint[] = this.points.get(Integer.parseInt(pointsIndex[1])).split("_");
+
+			outPoints.add(new Double[] { (Double.parseDouble(startPoint[0]) + Double.parseDouble(endPoint[0])) / 2,
+					(Double.parseDouble(startPoint[1]) + Double.parseDouble(endPoint[1])) / 2 });
+		});
+		return outPoints;
+	}
+
+	public List<Double> getPolygonArea() {
+		return this.geoList.parallelStream().map(geo -> new Double(geo.GetArea())).collect(Collectors.toList());
+	}
+
+	public List<Double> getPolygonBedLevel() {
+		List<Double> polygonBedLevel = new ArrayList<>();
+		this.polygonPointsIndex.forEach(polygon -> {
+
+			List<Double> temptValue = new ArrayList<>();
+			polygon.forEach(pointIndex -> {
+				if (this.points_Z_Value.get(this.points.get(pointIndex)) > -998) {
+					temptValue.add(this.points_Z_Value.get(this.points.get(pointIndex)));
+				}
+			});
+			try {
+				polygonBedLevel.add(new AtCommonMath(temptValue).getMean());
+			} catch (Exception e) {
+				polygonBedLevel.add(-999.0);
+			}
+		});
+		return polygonBedLevel;
 	}
 
 	// timeSeries from 2001-01-01 00:00:00 in second
