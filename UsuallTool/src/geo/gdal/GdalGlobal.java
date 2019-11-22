@@ -182,9 +182,9 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
-	public static Geometry CreatePoint() {
+	public static Geometry CreatePoint(double x, double y) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"Point\" , \"coordinates\" : [  ]}");
+		sb.append("{\"type\" : \"Point\" , \"coordinates\" : [ " + x + "," + y + " ]}");
 		return Geometry.CreateFromJson(sb.toString());
 	}
 

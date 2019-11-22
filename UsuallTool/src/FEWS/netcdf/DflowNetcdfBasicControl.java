@@ -4,6 +4,7 @@ import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,12 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import netCDF.NetcdfBasicControl;
+import netCDF.NetcdfWriter;
+import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.NetcdfFileWriteable;
+import ucar.nc2.NetcdfFileWriter;
 
 public class DflowNetcdfBasicControl {
 	private NetcdfBasicControl netFile;
@@ -44,6 +51,17 @@ public class DflowNetcdfBasicControl {
 	public DflowNetcdfBasicControl(String netcdfAdd) throws IOException {
 		this.netFile = new NetcdfBasicControl(netcdfAdd);
 		this.process();
+	}
+
+	public DflowNetcdfBasicControl(String netcdfAdd, Boolean processing) throws IOException {
+		this.netFile = new NetcdfBasicControl(netcdfAdd);
+		if (processing) {
+			this.process();
+		}
+	}
+
+	public DflowNCmodifier getModifier() throws IOException {
+		return new DflowNCmodifier();
 	}
 
 	public List<Double[]> getPoints() {
@@ -151,6 +169,78 @@ public class DflowNetcdfBasicControl {
 
 	public double getTimeStep() {
 		return this.timeStep;
+	}
+
+	/*
+	 * modifier
+	 */
+
+	public class DflowNCmodifier {
+		private NetcdfWriter writer;
+		private NetcdfFile netcdfFile;
+
+		public DflowNCmodifier() throws IOException {
+			this.netcdfFile = netFile.getNetFile();
+		}
+
+		public void settingCoordinateTWD97() {
+			String project = "+proj=tmerc +lat_0=0 +lon_0=121 +k=0.9999 +x_0=250000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+			String wkt = "PROJCS[\"TWD97 / TM2 zone 121\",\n    GEOGCS[\"TWD97\",\n        DATUM[\"Taiwan_Datum_1997\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101,\n                AUTHORITY[\"EPSG\",\"7019\"]],\n            TOWGS84[0,0,0,0,0,0,0],\n            AUTHORITY[\"EPSG\",\"1026\"]],\n        PRIMEM[\"Greenwich\",0,\n            AUTHORITY[\"EPSG\",\"8901\"]],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]],\n        AUTHORITY[\"EPSG\",\"3824\"]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",121],\n    PARAMETER[\"scale_factor\",0.9999],\n    PARAMETER[\"false_easting\",250000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"metre\",1,\n        AUTHORITY[\"EPSG\",\"9001\"]],\n    AXIS[\"X\",EAST],\n    AXIS[\"Y\",NORTH],\n    AUTHORITY[\"EPSG\",\"3826\"]]";
+
+			settingCoordinateSystem(3826, project, wkt);
+		}
+
+		public void settingCoordinateSystem(int EPSG_CODE, String project, String wktCode) {
+			Attribute epsg = new Attribute("epsg", EPSG_CODE);
+			Attribute EPSG_code = new Attribute("EPSG_code", "EPSG:" + EPSG_CODE);
+			Attribute proj4_params = new Attribute("proj4_params", project);
+			Attribute wkt = new Attribute("wkt", wktCode);
+			Attribute projection_name = new Attribute("projection_name", "unknown");
+
+			this.netcdfFile.findVariable("projected_coordinate_system").removeAttribute("epsg");
+			this.netcdfFile.findVariable("projected_coordinate_system").removeAttribute("EPSG_code");
+			this.netcdfFile.findVariable("projected_coordinate_system").addAttribute(epsg);
+			this.netcdfFile.findVariable("projected_coordinate_system").addAttribute(EPSG_code);
+			this.netcdfFile.findVariable("projected_coordinate_system").addAttribute(proj4_params);
+			this.netcdfFile.findVariable("projected_coordinate_system").addAttribute(projection_name);
+			this.netcdfFile.findVariable("projected_coordinate_system").addAttribute(wkt);
+		}
+
+		public void saveFile(String saveAdd) throws IOException {
+			this.writer = new NetcdfWriter(saveAdd);
+
+			// dimension
+			this.netcdfFile.getDimensions().forEach(d -> writer.addDimension(d.getFullName(), d.getLength()));
+
+			// variable
+			this.netcdfFile.getVariables().forEach(v -> {
+
+				// variable with dimension
+				this.writer.addVariable(v.getFullName(), v.getDataType(),
+						v.getDimensions().parallelStream().map(d -> d.getFullName()).collect(Collectors.toList()));
+
+				// variable with attribute
+				v.getAttributes().forEach(attr -> {
+					this.writer.addVariableAttribute(v.getFullName(), attr);
+				});
+
+			});
+
+			// create
+			this.writer.create();
+
+			// add value
+			this.netcdfFile.getVariables().forEach(v -> {
+				try {
+					this.writer.addValue(v.getFullName(), v.read());
+				} catch (IOException | InvalidRangeException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			});
+
+			this.writer.close();
+		}
 	}
 
 	/*
