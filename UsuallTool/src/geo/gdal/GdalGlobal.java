@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
 import org.gdal.ogr.ogr;
@@ -170,9 +171,16 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
-	public static Geometry CreatePolygon() {
+	public static Geometry CreatePolygon(List<Double[]> points) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"Polygon\" , \"coordinates\" : [  ]}");
+
+		// make sure it will close to start point
+		points.add(points.get(0));
+
+		sb.append("{\"type\" : \"Polygon\" , \"coordinates\" : [[");
+		sb.append(String.join(",", points.parallelStream().map(point -> "[" + point[0] + "," + point[1] + "]")
+				.collect(Collectors.toList())));
+		sb.append("]]}");
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
@@ -194,9 +202,12 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
-	public static Geometry CreateLine() {
+	public static Geometry CreateLine(List<Double[]> points) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"LineString\" , \"coordinates\" : [  ]}");
+		sb.append("{\"type\" : \"LineString\" , \"coordinates\" : [ ");
+		sb.append(String.join(",", points.parallelStream().map(point -> "[" + point[0] + "," + point[1] + "]")
+				.collect(Collectors.toList())));
+		sb.append("]}");
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
@@ -246,6 +257,20 @@ public class GdalGlobal {
 		outList.add(getGrid(new double[] { centerPoint[0] + 0.25 * cellSize, centerPoint[1] - 0.25 * cellSize },
 				0.5 * cellSize, dataDecimale));
 		return outList;
+	}
+
+	public static Geometry lineStringToPolygon(Geometry polyLine) {
+		JsonObject polyLineObject = new JsonParser().parse(polyLine.ExportToJson()).getAsJsonObject();
+		JsonArray pointsArray = polyLineObject.get("coordinates").getAsJsonArray();
+
+		JsonObject outObject = new JsonObject();
+		outObject.addProperty("type", "Polygon");
+
+		JsonArray coordinatesArray = new JsonArray();
+		coordinatesArray.add(pointsArray);
+
+		outObject.add("coordinates", coordinatesArray);
+		return ogr.CreateGeometryFromJson(outObject.toString());
 	}
 
 	public static Path2D getGrid(double[] centerPoint, double cellSize) {

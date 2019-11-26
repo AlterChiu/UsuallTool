@@ -427,6 +427,13 @@ public class AsciiBasicControl implements Cloneable {
 		return temptArray.parallelStream().toArray(String[][]::new);
 	}
 
+	public int getRow() {
+		return Integer.parseInt(this.property.get("row"));
+	}
+
+	public int getColumn() {
+		return Integer.parseInt(this.property.get("column"));
+	}
 	/*
 	 * 
 	 */

@@ -107,7 +107,10 @@ public class AtFileReader {
 
 	public String[][] getContent(String split, int start, int end) {
 		ArrayList<String[]> tempt = new ArrayList<String[]>();
-		this.fileContain.stream().forEach(line -> tempt.add(line.split(split)));
+
+		for (int index = start; index < this.fileContain.size() - end; index++) {
+			tempt.add(this.fileContain.get(index).split(split));
+		}
 		return tempt.parallelStream().toArray(String[][]::new);
 	}
 
@@ -120,13 +123,8 @@ public class AtFileReader {
 
 	public String[][] getStr(int start, int end) {
 		ArrayList<String[]> tempt = new ArrayList<String[]>();
-		this.fileContain.stream().forEach(line -> tempt.add(line.split(" +")));
-
-		for (int i = 0; i < start; i++) {
-			tempt.remove(0);
-		}
-		for (int i = 0; i < end; i++) {
-			tempt.remove(tempt.size() - 1);
+		for (int index = start; index < this.fileContain.size() - end; index++) {
+			tempt.add(this.fileContain.get(index).split(" +"));
 		}
 
 		return tempt.parallelStream().toArray(String[][]::new);

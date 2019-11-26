@@ -38,6 +38,14 @@ public class SpatialWriter {
 
 	private String layerName = "temptFile";
 
+	public static String SAVINGTYPE_GeoJson = "Geojson";
+	public static String SAVINGTYPE_SHP = "Esri Shapefile";
+	public static String SAVINGTYPE_CSV = "CSV";
+	public static String SAVINGTYPE_TopoJson = "TopoJSON";
+	public static String SAVINGTYPE_CAD = "CAD";
+	public static String SAVINGTYPE_DWG = "DWG";
+	public static String SAVINGTYPE_KML = "KML";
+
 	// <=========================================>
 	// <constructor>
 	// <=========================================>
@@ -157,6 +165,12 @@ public class SpatialWriter {
 		Driver dr = ogr.GetDriverByName("KML");
 		createSpatialFile(saveAdd, dr);
 	}
+
+	public void saceAs(String saveAdd, String saceTyping) {
+		Driver dr = ogr.GetDriverByName(saceTyping);
+		createSpatialFile(saveAdd, dr);
+	}
+
 	// <===========================================>
 
 	/*
