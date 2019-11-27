@@ -20,6 +20,16 @@ import com.google.gson.JsonParser;
 public class GdalGlobal {
 
 	/*
+	 * library & temptFolder
+	 */
+	public static String gdalBinFolder = "K:\\Qgis\\3.4.13\\bin\\";
+	public static String sagaBinFolder = "K:\\Qgis\\3.4.13\\apps\\saga-ltr\\";
+	public static String grassBinFolder = "K:\\Qgis\\3.4.13\\apps\\grass\\grass78\\bin\\";
+
+	public static String temptFolder = "K:/Qgis/test/";
+	public static String temptFile = temptFolder + "tempt";
+
+	/*
 	 * Coordinate System
 	 */
 	public static int WGS84 = 4326;
@@ -27,16 +37,6 @@ public class GdalGlobal {
 	public static int TWD97_119 = 3825;
 	public static int TWD67_121 = 3828;
 	public static int TWD67_119 = 3827;
-	
-	/*
-	 * library & temptFolder 
-	 */
-	public static String gdalBinFolder = "F:\\Qgis\\3.4\\bin\\";
-	public static String sagaBinFolder = "F:\\Qgis\\3.4\\apps\\saga-ltr\\";
-	public static String grassBinFolder = "F:\\Qgis\\3.4\\apps\\grass\\grass76\\bin\\";
-
-	public static String temptFolder = "F:/Qgis/test/";
-	public static String temptFile = temptFolder + "tempt";
 
 	public static Geometry GeometryTranslator(Geometry geo, int importCoordinate, int outputCoordinate) {
 		SpatialReference inputSpatital = new SpatialReference();
@@ -303,4 +303,18 @@ public class GdalGlobal {
 		return temptPath;
 	}
 
+	public static List<String> GDAL_EnviromentStarting() {
+		List<String> outList = new ArrayList<>();
+		outList.add("@echo off");
+		outList.add("call \"%~dp0\\o4w_env.bat\"");
+		outList.add("call \"%OSGEO4W_ROOT%\\apps\\grass\\grass78\\etc\\env.bat\"");
+		outList.add("call qt5_env.bat");
+		outList.add("call py3_env.bat");
+		outList.add("@echo off");
+		outList.add(
+				"path %OSGEO4W_ROOT%\\apps\\qgis-ltr\\bin;%OSGEO4W_ROOT%\\apps\\grass\\grass78\\lib;%OSGEO4W_ROOT%\\apps\\grass\\grass78\\bin;%PATH%");
+		outList.add("set QGIS_PREFIX_PATH=%OSGEO4W_ROOT:\\=/%/apps/qgis-ltr");
+		outList.add("set GDAL_FILENAME_IS_UTF8=YES");
+		return outList;
+	}
 }
