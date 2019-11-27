@@ -18,14 +18,20 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class GdalGlobal {
+
+	/*
+	 * Coordinate System
+	 */
 	public static int WGS84 = 4326;
 	public static int TWD97_121 = 3826;
 	public static int TWD97_119 = 3825;
 	public static int TWD67_121 = 3828;
 	public static int TWD67_119 = 3827;
-
+	
+	/*
+	 * library & temptFolder 
+	 */
 	public static String gdalBinFolder = "F:\\Qgis\\3.4\\bin\\";
-
 	public static String sagaBinFolder = "F:\\Qgis\\3.4\\apps\\saga-ltr\\";
 	public static String grassBinFolder = "F:\\Qgis\\3.4\\apps\\grass\\grass76\\bin\\";
 

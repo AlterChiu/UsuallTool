@@ -1,4 +1,4 @@
-package geo.gdal.Interpolation;
+package geo.saga;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,17 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import org.gdal.ogr.Geometry;
-
 import asciiFunction.AsciiBasicControl;
-import asciiFunction.XYZToAscii;
 import geo.gdal.CsvToSpatialFile;
 import geo.gdal.GdalGlobal;
-import usualTool.AtCommonMath;
+import geo.gdal.GdalGlobal_DataFormat;
 import usualTool.FileFunction;
 
-public class InterPolationKriging implements AtInterpolation {
+public class SAGA_Interpolation_Kriging {
 	/*
 	 * krigingFunction parameter
 	 */
@@ -71,15 +67,20 @@ public class InterPolationKriging implements AtInterpolation {
 	 * @ 2. using gisFunction SAGA(in QGIS)
 	 */
 
-	public InterPolationKriging(List<Double[]> xyzList) throws InterruptedException {
+	public SAGA_Interpolation_Kriging(List<Double[]> xyzList) throws InterruptedException {
 		this.xyzList = xyzList;
 		initialize();
 	}
 
-	public InterPolationKriging(List<Double[]> xyzList, String VAR_MODEL_SELECTED) throws InterruptedException {
+	public SAGA_Interpolation_Kriging(List<Double[]> xyzList, String VAR_MODEL_SELECTED) throws InterruptedException {
 		this.VAR_MODEL_SELECTED = VAR_MODEL_SELECTED;
 		this.xyzList = xyzList;
 		initialize();
+	}
+
+	// this method only for shapeFile which attribute table contains xyz(Double)
+	public SAGA_Interpolation_Kriging(String shpFile) {
+		FileFunction.copyFile(shpFile, GdalGlobal.temptFile + ".shp");
 	}
 
 	private void initialize() throws InterruptedException {
@@ -104,29 +105,7 @@ public class InterPolationKriging implements AtInterpolation {
 		csvConverter.saveAsShp(GdalGlobal.temptFile + ".shp");
 	}
 
-	private AsciiBasicControl Krigingmethold() throws IOException, InterruptedException {
-		/*
-		 * 1. clear temptFolder
-		 * 
-		 * 2. run SAGA, to do kriging
-		 * 
-		 * 3. run gdal_translate convert .sdat to .asc
-		 */
-
-		sagaCmd();
-//		while (!new File(GdalGlobal.temptFile + "_pridiction.sdat").exists()) {
-//			sagaCmd();
-//		}
-
-		gdal_translateCmd();
-//		while (!new File(GdalGlobal.temptFile + "_pridiction.asc").exists()) {
-//			gdal_translateCmd();
-//		}
-
-		return new AsciiBasicControl(GdalGlobal.temptFile + "_pridiction.asc");
-	}
-
-	private void gdal_translateCmd() throws InterruptedException, IOException {
+	private void GDAL_Translation(String saveAdd, String dataType) throws InterruptedException, IOException {
 		/*
 		 * GDAL_TANS CommandLine
 		 */
@@ -139,10 +118,9 @@ public class InterPolationKriging implements AtInterpolation {
 		transCmd.add("/wait");
 		transCmd.add("gdal_translate.exe");
 		transCmd.add("-of");
-		// convert .sdat to .asc
-		transCmd.add("AAIGrid");
+		transCmd.add(dataType);
 		transCmd.add(GdalGlobal.temptFile + "_pridiction.sdat");
-		transCmd.add(GdalGlobal.temptFile + "_pridiction.asc");
+		transCmd.add(saveAdd);
 
 		ProcessBuilder trans_builder = new ProcessBuilder();
 		trans_builder.directory(new File(GdalGlobal.sagaBinFolder));
@@ -151,7 +129,14 @@ public class InterPolationKriging implements AtInterpolation {
 		trans_process.waitFor();
 	}
 
-	private void sagaCmd() throws InterruptedException, IOException {
+	private void SAGA_RunKriging() throws InterruptedException, IOException {
+		/*
+		 * clear temptFolder first
+		 */
+		for (String fileName : new File(GdalGlobal.temptFolder).list()) {
+			FileFunction.delete(GdalGlobal.temptFolder + "\\" + fileName);
+		}
+
 		/*
 		 * SAGA CommandLine
 		 */
@@ -286,170 +271,18 @@ public class InterPolationKriging implements AtInterpolation {
 		this.SEARCH_RADIUS = radius;
 	}
 
-	@Override
-	public List<Double[]> getXYZ(List<Double[]> xyList) throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
-
-		// check for the boundary
-		if (this.targetBoundary.isEmpty()) {
-			List<Double> xList = new ArrayList<>();
-			List<Double> yList = new ArrayList<>();
-			xyList.forEach(e -> {
-				xList.add(e[0]);
-				yList.add(e[1]);
-			});
-
-			AtCommonMath xStatics = new AtCommonMath(xList);
-			AtCommonMath yStatics = new AtCommonMath(yList);
-			this.targetBoundary.put("minX", xStatics.getMin() - 0.5 * this.cellSize);
-			this.targetBoundary.put("maxX", xStatics.getMax() + 0.5 * this.cellSize);
-			this.targetBoundary.put("minY", yStatics.getMin() - 0.5 * this.cellSize);
-			this.targetBoundary.put("maxY", yStatics.getMax() + 0.5 * this.cellSize);
-		}
-
-		// get the interpolation
-		AsciiBasicControl zAscii = Krigingmethold();
-		List<Double[]> outList = new ArrayList<>();
-		for (int index = 0; index < xyList.size(); index++) {
-			double temptX = xyList.get(index)[0];
-			double temptY = xyList.get(index)[1];
-			outList.add(new Double[] { temptX, temptY, Double.parseDouble(zAscii.getValue(temptX, temptY)) });
-		}
-
-		return outList;
-	}
-
-	@Override
-	public List<Double[]> getXYZ(Map<String, Double> boundary, double cellSize)
-			throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
-		this.targetBoundary = boundary;
-		this.cellSize = cellSize;
-
-		return this.Krigingmethold().converToXYZ();
-	}
-
-	@Override
-	public List<Double[]> getGeometry(List<Geometry> geometryList) throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
-		List<Double[]> xyList = new ArrayList<>();
-		geometryList.forEach(e -> {
-			Geometry centroid = e.Centroid();
-			xyList.add(new Double[] { centroid.GetX(), centroid.GetY() });
-		});
-
-		return this.getXYZ(xyList);
-	}
-
-	@Override
-	public AsciiBasicControl getAscii(Map<String, Double> boundary, double cellSize)
-			throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
-
-		this.targetBoundary = boundary;
-		this.cellSize = cellSize;
-
-		return this.Krigingmethold();
-	}
-
-	@Override
-	public AsciiBasicControl getAscii(AsciiBasicControl ascii) throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
-		this.targetBoundary = ascii.getBoundary();
-		this.cellSize = ascii.getCellSize();
-
-		return this.Krigingmethold();
-	}
-
-	public AsciiBasicControl getAscii(List<Double[]> xyList) throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
-		if (this.targetBoundary.isEmpty()) {
-			List<Double> xList = new ArrayList<>();
-			List<Double> yList = new ArrayList<>();
-			xyList.forEach(e -> {
-				xList.add(e[0]);
-				yList.add(e[1]);
-			});
-
-			AtCommonMath xStatics = new AtCommonMath(xList);
-			AtCommonMath yStatics = new AtCommonMath(yList);
-			this.targetBoundary.put("minX", xStatics.getMin() - 0.5 * this.cellSize);
-			this.targetBoundary.put("maxX", xStatics.getMax() + 0.5 * this.cellSize);
-			this.targetBoundary.put("minY", yStatics.getMin() - 0.5 * this.cellSize);
-			this.targetBoundary.put("maxY", yStatics.getMax() + 0.5 * this.cellSize);
-		}
-
-		return this.Krigingmethold();
-	}
-
 	/*
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
+	 * user function
 	 */
-//	private List<Double> Krigingmethold(List<Double[]> xyList) {
-//		List<Double[]> propertyList = new ArrayList<>();
-//		for (int index = 0; index < this.xyzList.size(); index++) {
-//
-//			// set regression y = ax + b
-//			List<Double[]> matrixA = new ArrayList<>();
-//			List<Double[]> matrixL = new ArrayList<>();
-//			for (int scan = 0; scan < this.xyzList.size(); scan++) {
-//
-//				// skip the same point
-//				if (index == scan) {
-//					scan++;
-//
-//					// save the differ and distance
-//				} else {
-//					matrixA.add(new Double[] { getDis(xyzList.get(index), xyzList.get(scan)), 1. });
-//					matrixL.add(new Double[] { Math.pow(xyzList.get(index)[2] - xyzList.get(scan)[2], 2) });
-//				}
-//			}
-//
-//			// weight matrix
-//			List<Double[]> matrixW = new ArrayList<>();
-//			for (int scan = 0; scan < matrixA.size(); scan++) {
-//				List<Double> temptRow = new ArrayList<>();
-//				for (int input = 0; input < matrixA.size(); input++) {
-//					if (input == scan) {
-//						temptRow.add(matrixA.get(scan)[0]);
-//					} else {
-//						temptRow.add(0.);
-//					}
-//				}
-//				matrixW.add(temptRow.parallelStream().toArray(Double[]::new));
-//			}
-//
-//			// start regression (A^t * A)^-1 * A^t * L
-//			Double[][] matrixAt = new AtMatrix(matrixA).trans().getMatrix();
-//			AtMatrix regressionFunction = new AtMatrix(matrixAt);
-//
-//			// ans[0] = a , ans[1] = b , y = a*x + b
-//			Double[][] ans = regressionFunction.mult(matrixA).inverse().mult(matrixAt).mult(matrixL).getMatrix();
-//			propertyList.add(new Double[] { ans[0][0], ans[0][1] });
-//		}
-//
-//		// get ratio of each station
-//		List<Double> zList = new ArrayList<>();
-//		for (int target = 0; target < xyList.size(); target++) {
-//			List<Double> ratio = new ArrayList<>();
-//			for (int station = 0; station < propertyList.size(); station++) {
-//				Double[] property = propertyList.get(station);
-//				ratio.add(1. / (property[0] * getDis(xyList.get(target), xyzList.get(station)) + property[1]));
-//			}
-//			ratio = new AtCommonMath(ratio).getRatio();
-//
-//			// get the weighted Value
-//			List<Double> temptValue = new ArrayList<>();
-//			for (int station = 0; station < propertyList.size(); station++) {
-//				temptValue.add(ratio.get(station) * xyzList.get(station)[2]);
-//			}
-//			zList.add(new AtCommonMath(temptValue).getSum());
-//		}
-//		return zList;
-//	}
+	public AsciiBasicControl getAscii() throws IOException, InterruptedException {
+		// TODO Auto-generated method stub
+		SAGA_RunKriging();
+		GDAL_Translation(GdalGlobal.temptFile + "_pridiction.asc", GdalGlobal_DataFormat.DATAFORMAT_RASTER_AAIGrid);
+		return new AsciiBasicControl(GdalGlobal.temptFile + "_pridiction.asc");
+	}
 
+	public void saveAdRaster(String saveAdd, String dataFormat) throws InterruptedException, IOException {
+		SAGA_RunKriging();
+		GDAL_Translation(saveAdd, dataFormat);
+	}
 }

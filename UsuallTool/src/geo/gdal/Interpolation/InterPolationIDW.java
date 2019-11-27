@@ -11,7 +11,7 @@ import asciiFunction.AsciiBasicControl;
 import asciiFunction.XYZToAscii;
 import usualTool.AtCommonMath;
 
-public class InterPolationIDW implements AtInterpolation {
+public class InterPolationIDW {
 	private List<Double[]> xyzList;
 
 	public InterPolationIDW(List<Double[]> xyzList) {
@@ -53,7 +53,6 @@ public class InterPolationIDW implements AtInterpolation {
 	 * 
 	 * @see geo.gdal.Interpolation.AtInterpolation#getAscii(java.util.Map, double)
 	 */
-	@Override
 	public AsciiBasicControl getAscii(Map<String, Double> boundary, double cellSize) throws IOException {
 		// TODO Auto-generated method stub
 
@@ -64,7 +63,6 @@ public class InterPolationIDW implements AtInterpolation {
 		return new AsciiBasicControl(xyzFunction.getAsciiFile());
 	}
 
-	@Override
 	public AsciiBasicControl getAscii(AsciiBasicControl ascii) throws IOException {
 		// TODO Auto-generated method stub
 
@@ -75,7 +73,6 @@ public class InterPolationIDW implements AtInterpolation {
 		return new AsciiBasicControl(xyzFunction.getAsciiFile());
 	}
 
-	@Override
 	public List<Double[]> getXYZ(Map<String, Double> boundary, double cellSize) {
 		// TODO Auto-generated method stub
 		List<Double[]> xyList = new ArrayList<>();
@@ -88,7 +85,6 @@ public class InterPolationIDW implements AtInterpolation {
 		return this.getXYZ(xyList);
 	}
 
-	@Override
 	public List<Double[]> getXYZ(List<Double[]> xyList) {
 		// TODO Auto-generated method stub
 		List<Double> zList = IDWmethold(xyList);
@@ -99,7 +95,6 @@ public class InterPolationIDW implements AtInterpolation {
 		return outList;
 	}
 
-	@Override
 	public List<Double[]> getGeometry(List<Geometry> geometryList) {
 		// TODO Auto-generated method stub
 		List<Double[]> xyList = new ArrayList<>();
