@@ -10,7 +10,7 @@ import geo.gdal.GdalGlobal_DataFormat;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
-public class GDAL_RASTER_MERGE {
+public class GDAL_RASTER_Merge {
 	/*
 	 * variable type
 	 */
@@ -72,7 +72,7 @@ public class GDAL_RASTER_MERGE {
 		 * save .bat file to gdalBin folder
 		 */
 		new AtFileWriter(this.batContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//gdal_merge_tempt.bat").textWriter("");
+				GdalGlobal.gdalBinFolder + "//gdal_merge_tempt.bat").setEncoding(AtFileWriter.ANSI).textWriter("");
 
 		/*
 		 * run bat file

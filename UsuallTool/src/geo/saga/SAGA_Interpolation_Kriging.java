@@ -116,6 +116,7 @@ public class SAGA_Interpolation_Kriging {
 		transCmd.add("/c");
 		transCmd.add("start");
 		transCmd.add("/wait");
+		transCmd.add("/B");
 		transCmd.add("gdal_translate.exe");
 		transCmd.add("-of");
 		transCmd.add(dataType);
