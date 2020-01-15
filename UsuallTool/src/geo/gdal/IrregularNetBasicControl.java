@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.Geometry;
@@ -21,11 +22,11 @@ public class IrregularNetBasicControl {
 	private int dataDecimal = 4;
 
 	// key : Point index , from small to large
-	private Map<String, FaceClass> faceMap = new TreeMap<>();
+	private Map<String, FaceClass> faceMap = new LinkedHashMap<>();
 	private List<String> faceList = new ArrayList<>();
 
 	// key : point index , from small to large
-	private Map<String, EdgeClass> edgeMap = new TreeMap<>();
+	private Map<String, EdgeClass> edgeMap = new LinkedHashMap<>();
 
 	// key : coordinateX + "_" + coodinateY
 	private Map<String, NodeClass> nodeMap = new LinkedHashMap<>();
@@ -180,35 +181,33 @@ public class IrregularNetBasicControl {
 			this.faceMap.put(faceKey, temptFace);
 			this.faceList.add(faceKey);
 		}
-
-		this.nodeMap.keySet().forEach(key -> {
-			NodeClass temptNode = this.nodeMap.get(key);
-			System.out.print(temptNode.getX() + "\t" + temptNode.getY() + "\t");
-			temptNode.getLinkedFace().forEach(face -> System.out.print(face.getIndex() + " "));
-			System.out.println();
-		});
-
 	}
 
 	// <=====================================================>
 	// Function
 	// <=====================================================>
-	public List<NodeClass> getNodes() {
-		List<NodeClass> outList = new ArrayList<>();
-		this.nodeMap.keySet().forEach(key -> outList.add(this.nodeMap.get(key)));
-		return outList;
+	public Map<String, NodeClass> getNodeMap() {
+		return this.nodeMap;
 	}
 
-	public List<EdgeClass> getEdges() {
-		List<EdgeClass> outList = new ArrayList<>();
-		this.edgeMap.keySet().forEach(key -> outList.add(this.edgeMap.get(key)));
-		return outList;
+	public Map<String, EdgeClass> getEdgeMap() {
+		return this.edgeMap;
 	}
 
-	public List<FaceClass> getFaces() {
-		List<FaceClass> outList = new ArrayList<>();
-		this.faceMap.keySet().forEach(key -> outList.add(this.faceMap.get(key)));
-		return outList;
+	public Map<String, FaceClass> getFaceMap() {
+		return this.faceMap;
+	}
+
+	public List<NodeClass> getNodesList() {
+		return this.nodeMap.keySet().parallelStream().map(key -> this.nodeMap.get(key)).collect(Collectors.toList());
+	}
+
+	public List<EdgeClass> getEdgesList() {
+		return this.edgeMap.keySet().parallelStream().map(key -> this.edgeMap.get(key)).collect(Collectors.toList());
+	}
+
+	public List<FaceClass> getFaceList() {
+		return this.faceMap.keySet().parallelStream().map(key -> this.faceMap.get(key)).collect(Collectors.toList());
 	}
 
 	public void exportNodeAsGeoJson(String saveAdd) {
@@ -331,7 +330,7 @@ public class IrregularNetBasicControl {
 		public String getKey() {
 			return this.key;
 		}
-
+		
 		protected void clear() {
 
 			// remove linked
@@ -511,14 +510,14 @@ public class IrregularNetBasicControl {
 				FaceClass newFace = new FaceClass();
 				List<String> faceKeyList = new ArrayList<>();
 
-				List<FaceClass> temptFaceClass = this.getLinkedFace();
-				Geometry newGeo = temptFaceClass.get(0).getGeo().Union(temptFaceClass.get(1).getGeo());
+				Geometry newGeo = this.geo.Union(face.getGeo());
 				Geometry centroid = newGeo.Centroid();
 
 				newFace.setGeometry(newGeo);
+				System.out.println(123);
 				newFace.setArea(newGeo.Area());
-				newFace.setCenterX(centroid.GetX());
-				newFace.setCenterY(centroid.GetY());
+				newFace.setCenterX(centroid.GetX(0));
+				newFace.setCenterY(centroid.GetY(0));
 
 				// seValue
 				List<Double> valueList = new ArrayList<>();
@@ -557,8 +556,8 @@ public class IrregularNetBasicControl {
 
 				/*------------------------------Edge-----------------------------------*/
 				EdgeClass linkedEdge = null;
-				for (EdgeClass edge : this.linkedEdge) {
-					if (edge.getLinkedFace().contains(face)) {
+				for (EdgeClass edge : face.getLinkedEdge()) {
+					if (edge.getLinkedFace().contains(this)) {
 						linkedEdge = edge;
 						break;
 					}

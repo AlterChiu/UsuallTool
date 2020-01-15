@@ -217,6 +217,13 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
+	public static Geometry CreateLine(double x1, double y1, double x2, double y2) {
+		List<Double[]> temptList = new ArrayList<>();
+		temptList.add(new Double[] { x1, y1 });
+		temptList.add(new Double[] { x2, y2 });
+		return CreateLine(temptList);
+	}
+
 	public static Path2D PointsToPath(List<Double[]> points) {
 		Path2D temptPath = new Path2D.Double();
 		temptPath.moveTo(points.get(0)[0], points.get(0)[1]);
@@ -227,25 +234,41 @@ public class GdalGlobal {
 	}
 
 	public static Geometry mergePolygons(List<Geometry> geoList) {
-		List<Geometry> temptList = new ArrayList<>(geoList);
+		/*
+		 * check
+		 */
+		if (geoList.size() <= 0) {
+			new Exception("not able to merge polygon");
+			return null;
+		} else {
 
-		while (true) {
+			/*
+			 * clone
+			 */
 			List<Geometry> outList = new ArrayList<>();
-			for (int index = 0; index < temptList.size(); index = index + 2) {
-				try {
-					outList.add(temptList.get(index).Union(temptList.get(index + 1)));
-				} catch (Exception e) {
-					outList.add(temptList.get(index));
+			for (Geometry geo : geoList) {
+				outList.add(geo);
+			}
+
+			/*
+			 * starting merge
+			 */
+			while (outList.size() != 1) {
+				List<Geometry> temptList = new ArrayList<>();
+
+				for (int index = 0; index < outList.size(); index = index + 2) {
+					try {
+						temptList.add(outList.get(index).Union(outList.get(index + 1)));
+					} catch (Exception e) {
+						temptList.add(outList.get(index));
+					}
 				}
+
+				outList = temptList;
 			}
-			if (outList.size() == 1) {
-				temptList = outList;
-				break;
-			} else {
-				temptList = outList;
-			}
+
+			return outList.get(0);
 		}
-		return temptList.get(0);
 	}
 
 	public static List<Path2D> getQualTree_Path(double[] centerPoint, double cellSize) {
