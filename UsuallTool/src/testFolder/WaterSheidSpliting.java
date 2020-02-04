@@ -60,6 +60,10 @@ public class WaterSheidSpliting {
 		IrregularReachBasicControl otherStream = new IrregularReachBasicControl(otherStreamFile);
 		Map<String, NodeClass> totalNodeMap = otherStream.getNodeMap();
 		Map<String, EdgeClass> totalEdgeMap = otherStream.getEdgeMap();
+		Map<String, NodeClass> mainStreamNodeMap = new HashMap<>();
+		Map<String, EdgeClass> mainStreamEdgeMap = new HashMap<>();
+		Map<String, EdgeClass> crossMainStreamEdgeMap = new HashMap<>();
+		Map<String, EdgeClass> notMainStreamEdgeMap = new HashMap<>();
 
 //		Map<String, NodeClass> remainNodeMap = new HashMap<>();
 //		Map<String, EdgeClass> remainEdgeMap = new HashMap<>();
@@ -67,55 +71,79 @@ public class WaterSheidSpliting {
 		List<Geometry> outGeometry = new ArrayList<>();
 
 		// id will be x(4) + "_" + y(4)
-		Map<String, NodeClass> mainStreamNodeMap = new HashMap<>();
+
 		new SpatialReader(otherStream_IntersectPointInMainStream).getGeometryList().parallelStream().forEach(geo -> {
 			String key = AtCommonMath.getDecimal_String(geo.GetX(), dataDecimale) + "_"
 					+ AtCommonMath.getDecimal_String(geo.GetY(), dataDecimale);
 			mainStreamNodeMap.put(key, totalNodeMap.get(key));
-			remainNodeMap.put(key, totalNodeMap.get(key));
 		});
 
 		/*
-		 * deploy node and edge into "in main stream" or "not in main stream(remain)"
+		 * deploy edge into "in main stream" or "cross main stream"
 		 * 
-		 * check remain reach(edge), which not in main stream buffer area
+		 * (main stream buffer area)
 		 */
 		mainStreamNodeMap.keySet().forEach(key -> {
-			NodeClass temptNode = mainStreamNodeMap.get(key);
-			temptNode.getEdge().forEach(temptEdge -> {
+			NodeClass temptMainStreamNode = mainStreamNodeMap.get(key);
+			temptMainStreamNode.getEdge().forEach(temptEdge -> {
 
 				// check the other node of edge is in the main stream or not
-				Optional<NodeClass> exsistEdge = Optional.of(temptEdge.getOtherNode(temptNode));
-				exsistEdge.ifPresent(edge -> remainEdgeMap.put(temptEdge.getId(), totalEdgeMap.get(temptEdge.getId())));
+				// if the other node is in mainStream
+				// let's this edge to mainStreamEdgeMap
+				// or make it to crossMainStreamEdgeMap
+				try {
+
+					// if in mainStream
+					mainStreamNodeMap.get(temptEdge.getOtherNode(temptMainStreamNode)).getId();
+					mainStreamEdgeMap.put(temptEdge.getId(), temptEdge);
+				} catch (Exception e) {
+
+					// if not in main stream
+					crossMainStreamEdgeMap.put(temptEdge.getId(), temptEdge);
+				}
 			});
+		});
+
+		/*
+		 * pick up remain edges that doesn't in "main stream" and "cross main stream"
+		 * either
+		 * 
+		 * (main stream buffer area)
+		 */
+		totalEdgeMap.keySet().forEach(edgeMapKey -> {
+			EdgeClass temptEdge = totalEdgeMap.get(edgeMapKey);
+
+			try {
+				mainStreamEdgeMap.get(temptEdge.getId()).getId();
+			} catch (Exception e1) {
+				try {
+					crossMainStreamEdgeMap.get(temptEdge.getId()).getId();
+				} catch (Exception e2) {
+					notMainStreamEdgeMap.put(temptEdge.getId(), temptEdge);
+				}
+			}
 		});
 
 		/*
 		 * starting grouping
 		 */
 		// get node from main stream, which is intersection
-		mainStreamNodeMap.keySet().forEach(id_nodeOnMainStream -> {
-			NodeClass temptNode = totalNodeMap.get(id_nodeOnMainStream);
+		crossMainStreamEdgeMap.keySet().forEach(crossMainStreamEdgeKey -> {
+			EdgeClass crossMainStreamEdge = crossMainStreamEdgeMap.get(crossMainStreamEdgeKey);
 
-			// get linked edge from node
-			temptNode.getEdge().forEach(linkedEdge -> {
-				NodeClass otherNode = linkedEdge.getOtherNode(temptNode);
-
-				// check the next node is on main stream or not
+			// get the node that not in main stream
+			crossMainStreamEdge.getNode().forEach(temptNode -> {
 				try {
 
-					// on main stream, no work
-					mainStreamNodeMap.get(otherNode.getId()).getId();
-
-					// not on main stream, start detecting group
+					// if in mainStream, don't work
+					mainStreamNodeMap.get(temptNode.getId()).getId();
 				} catch (Exception e) {
-					List<Geometry> groupedGeometry = getGroupGeometry(temptNode, linkedEdge, remainEdgeMap);
 
-					// merge group polyLine to one geometry
-					if (groupedGeometry.size() > 0) {
-						outGeometry.add(GdalGlobal.mergePolygons(groupedGeometry));
-					}
-
+					// if not in mainStream, starting grouping reaches
+					List<Geometry> groupedGeometry = getGroupGeometry(temptNode, crossMainStreamEdge,
+							notMainStreamEdgeMap);
+					
+					outGeometry.add(GdalGlobal.mergePolygons(groupedGeometry));
 				}
 
 			});
