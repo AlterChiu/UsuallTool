@@ -32,7 +32,7 @@ public class WaterSheidSpliting {
 	private static String otherStreamFile = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_reach.shp";
 	private static String otherStream_EndPointsInMainStream = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_Point_end.shp";
 	private static String otherStream_IntersectPointInMainStream = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_point_intersect.shp";
-	private static String otherStream_groupedByMainNodes = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedReach.shp";.
+	private static String otherStream_groupedByMainNodes = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedReach.shp";
 
 	private static String waterSheidFile = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10.shp";
 
