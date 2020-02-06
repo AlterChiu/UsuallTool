@@ -65,12 +65,37 @@ public class IrregularReachBasicControl {
 		});
 	}
 
+	// make sure each reach is end in EndPoint
+	// (point linked to only 1 reach or more than (>=) 3 );
+	private void geoListRegenerate() {
+		List<Geometry> outList = new ArrayList<>();
+
+		// merge all geometry to multiStringLine
+		while (this.geoList.size() != 1) {
+			List<Geometry> temptGeometryList = new ArrayList<>();
+
+			for (int index = 0; index < this.geoList.size(); index = index + 2) {
+				try {
+					temptGeometryList.add(this.geoList.get(index).Union(this.geoList.get(index + 1)));
+				} catch (Exception e) {
+					temptGeometryList.add(this.geoList.get(index));
+				}
+			}
+			this.geoList = temptGeometryList;
+		}
+
+		// split multiStringLine to several stringLine
+		for (int index = 0; index < this.geoList.get(0).GetGeometryCount(); index++) {
+			outList.add(this.geoList.get(0).get);
+		}
+	}
+
 	private void process() {
 
-		// sorted each points
+		// sorted end point and start point
 		Set<String> pointsSet = new HashSet<>();
 		this.geoList.forEach(geo -> {
-			for (int index = 0; index < geo.GetPointCount(); index++) {
+			for (int index = 0; index < geo.GetPointCount(); index = index + geo.GetPointCount() - 1) {
 				String xString = AtCommonMath.getDecimal_String(geo.GetX(index), dataDecimale);
 				String yString = AtCommonMath.getDecimal_String(geo.GetY(index), dataDecimale);
 				pointsSet.add(xString + "_" + yString);
@@ -115,9 +140,6 @@ public class IrregularReachBasicControl {
 
 	}
 
-	private void groupReachInLine() {
-		
-	}
 	/*
 	 * <=============== UserFunction ==========================>
 	 */
@@ -152,6 +174,19 @@ public class IrregularReachBasicControl {
 		private int groupIndex = -1;
 		private double x = -999;
 		private double y = -999;
+
+		public NodeClass() {
+
+		}
+
+		public NodeClass(double x, double y) {
+			String id1 = AtCommonMath.getDecimal_String(x, dataDecimale) + "_"
+					+ AtCommonMath.getDecimal_String(y, dataDecimale);
+
+			this.id = id1;
+			this.x = x;
+			this.y = y;
+		}
 
 		public void addEdge(EdgeClass edge) {
 			this.edgeList.add(edge);
