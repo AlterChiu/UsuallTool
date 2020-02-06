@@ -115,6 +115,9 @@ public class IrregularReachBasicControl {
 
 	}
 
+	private void groupReachInLine() {
+		
+	}
 	/*
 	 * <=============== UserFunction ==========================>
 	 */
@@ -191,6 +194,19 @@ public class IrregularReachBasicControl {
 
 		public double getY() {
 			return this.y;
+		}
+
+		public Boolean isEndPoint() {
+			if (this.edgeList.size() != 0) {
+				if (this.edgeList.size() != 2) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				new Exception("none edge to detect");
+				return false;
+			}
 		}
 
 		public int getEdgeSize() {

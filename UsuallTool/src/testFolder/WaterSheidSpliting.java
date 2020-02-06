@@ -26,11 +26,10 @@ import usualTool.AtCommonMath;
 public class WaterSheidSpliting {
 
 	private static String mainStreamFile = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\主流.shp";
-	private static String mainStreamMergeFile = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\主流_merge.shp";
 	private static String mainStreamBufferFile = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\主流_buffer.shp";
 
-	private static String otherStreamFile = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_reach.shp";
-	private static String otherStream_EndPointsInMainStream = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_Point_end.shp";
+	private static String streamFile = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_reach.shp";
+	private static String streamFile_EndPointsInMainStream = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_Point_end.shp";
 	private static String otherStream_IntersectPointInMainStream = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_point_intersect.shp";
 	private static String otherStream_groupedByMainNodes = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedReach.shp";
 
@@ -41,18 +40,14 @@ public class WaterSheidSpliting {
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 
-//		mainStreamMerge(mainStreamFile, mainStreamMergeFile);
+		mainStreamBuffer(mainStreamFile, mainStreamBufferFile, 30);
 
-//		mainStreamBuffer(mainStreamMergeFile, mainStreamBufferFile, 30);
-
-//		getMainStreamNode(mainStreamBufferFile, otherStreamFile, otherSteam_IntersectPointInMainStream,
-//				otherSteam_EndPointsInMainStream);
+		getMainStreamNode(mainStreamBufferFile, streamFile, streamFile_EndPointsInMainStream);
 
 		getMainStreamGroup(otherStream_IntersectPointInMainStream, otherStreamFile, otherStream_groupedByMainNodes);
 	}
 
-	public static void getMainStreamGroup(String otherStream_IntersectPointInMainStream, String otherStreamFile,
-			String groupedStreamShp) {
+	public static void getMainStreamGroup(String otherStreamFile, String groupedStreamShp) {
 
 		/*
 		 * initial class
@@ -64,14 +59,9 @@ public class WaterSheidSpliting {
 		Map<String, EdgeClass> mainStreamEdgeMap = new HashMap<>();
 		Map<String, EdgeClass> crossMainStreamEdgeMap = new HashMap<>();
 		Map<String, EdgeClass> notMainStreamEdgeMap = new HashMap<>();
-
-//		Map<String, NodeClass> remainNodeMap = new HashMap<>();
-//		Map<String, EdgeClass> remainEdgeMap = new HashMap<>();
-
 		List<Geometry> outGeometry = new ArrayList<>();
 
 		// id will be x(4) + "_" + y(4)
-
 		new SpatialReader(otherStream_IntersectPointInMainStream).getGeometryList().parallelStream().forEach(geo -> {
 			String key = AtCommonMath.getDecimal_String(geo.GetX(), dataDecimale) + "_"
 					+ AtCommonMath.getDecimal_String(geo.GetY(), dataDecimale);
@@ -94,7 +84,7 @@ public class WaterSheidSpliting {
 				try {
 
 					// if in mainStream
-					mainStreamNodeMap.get(temptEdge.getOtherNode(temptMainStreamNode)).getId();
+					mainStreamNodeMap.get(temptEdge.getOtherNode(temptMainStreamNode).getId()).getId();
 					mainStreamEdgeMap.put(temptEdge.getId(), temptEdge);
 				} catch (Exception e) {
 
@@ -105,7 +95,7 @@ public class WaterSheidSpliting {
 		});
 
 		/*
-		 * pick up remain edges that doesn't in "main stream" and "cross main stream"
+		 * pick up remain edges that doesn't in "main stream" and "cross main stream"s
 		 * either
 		 * 
 		 * (main stream buffer area)
@@ -135,15 +125,14 @@ public class WaterSheidSpliting {
 			crossMainStreamEdge.getNode().forEach(temptNode -> {
 				try {
 
-					// if in mainStream, don't work
+					// if in mainStream, starting grouping reaches
 					mainStreamNodeMap.get(temptNode.getId()).getId();
-				} catch (Exception e) {
 
-					// if not in mainStream, starting grouping reaches
 					List<Geometry> groupedGeometry = getGroupGeometry(temptNode, crossMainStreamEdge,
 							notMainStreamEdgeMap);
-					
 					outGeometry.add(GdalGlobal.mergePolygons(groupedGeometry));
+
+				} catch (Exception e) {
 				}
 
 			});
@@ -152,72 +141,70 @@ public class WaterSheidSpliting {
 		/*
 		 * output shpfiles
 		 */
-		new SpatialWriter().setGeoList(outGeometry).saveAsShp(groupedStreamShp);
+		new SpatialWriter().setGeoList(outGeometry).saveAsGeoJson(groupedStreamShp);
 	}
 
 	private static List<Geometry> getGroupGeometry(NodeClass startNode, EdgeClass directionEdge,
 			Map<String, EdgeClass> remainEdges) {
-		List<Geometry> outList = new ArrayList<>();
+		Set<Geometry> outList = new HashSet<>();
 
 		NodeClass nextNode = directionEdge.getOtherNode(startNode);
-		try {
-			// try the node is exist or not
-			remainEdges.get(directionEdge.getId()).getId();
+		List<EdgeClass> nextEdgeList = nextNode.getEdge();
+		nextEdgeList.remove(directionEdge);
+		System.out.println(nextEdgeList.size());
 
-			// if it isn't exist
-			remainEdges.put(directionEdge.getId(), directionEdge);
+		for (EdgeClass temptEdge : nextEdgeList) {
+			try {
+				// try the node is exist or not
+				remainEdges.get(temptEdge.getId()).getId();
+				remainEdges.remove(temptEdge.getId());
+				outList.add(temptEdge.getGeo());
+				System.out.println(temptEdge.getGeo().Length());
 
-			// if it's not in main stream
-			// run grouping process
-			if (nextNode.getEdge().size() != 1) {
-				nextNode.getOtherEdges(directionEdge).forEach(otherEdge -> {
-					getGroupGeometry(nextNode, otherEdge, remainEdges).forEach(geo -> outList.add(geo));
-				});
+				// if exit
+				// run grouping process
+				if (temptEdge.getOtherNode(nextNode).getEdge().size() != 1) {
+					getGroupGeometry(nextNode, temptEdge, remainEdges).forEach(geo -> outList.add(geo));
 
-			} else if (nextNode.getEdge().size() == 1) {
-				outList.add(directionEdge.getGeo());
+				} else if (nextNode.getEdge().size() == 1) {
+					outList.add(directionEdge.getGeo());
 
-			} else {
-				System.out.println(new Exception("node error , id : " + nextNode.getId()));
+				} else {
+					System.out.println(new Exception("node error , id : " + nextNode.getId()));
+				}
+			} catch (Exception e) {
 			}
-		} catch (Exception e) {
+
 		}
 
-		return outList;
+		return new ArrayList<Geometry>(outList);
+
 	}
 
-	public static void getMainStreamNode(String mainStreamBuffer, String otherStream, String outptIntersectPointsShp,
-			String outputEndPointShp) {
-		Geometry bufferArea = new SpatialReader(mainStreamBuffer).getGeometryList().get(0);
-		IrregularReachBasicControl reach = new IrregularReachBasicControl(otherStream);
+	public static void getMainStreamNode(String mainStreamBufferShp, String streamShp,
+			String outputEndPointInMainStreamShp) {
+		Geometry bufferArea = new SpatialReader(mainStreamBufferShp).getGeometryList().get(0);
+		IrregularReachBasicControl reach = new IrregularReachBasicControl(streamShp);
 
 		List<NodeClass> nodeList = reach.getNodeList();
-		List<Geometry> endPoints = new ArrayList<>();
-		List<Geometry> intersectPoints = new ArrayList<>();
+		List<Geometry> endPointsInMainStream = new ArrayList<>();
 
 		nodeList.forEach(node -> {
 			System.out.println(node.getIndex());
-			// for endPoints
-			if (node.getEdge().size() == 1) {
-				Geometry point = node.getGeo();
-				if (bufferArea.Contains(point)) {
-					endPoints.add(node.getGeo());
-				}
-			}
 
-			// for intersectPoints
-			if (node.getEdge().size() > 2) {
+			// check is endPoint
+			if (node.isEndPoint()) {
 				Geometry point = node.getGeo();
+
+				// check is in main stream
 				if (bufferArea.Contains(point)) {
-					intersectPoints.add(node.getGeo());
+					endPointsInMainStream.add(node.getGeo());
 				}
 			}
 		});
 
-		new SpatialWriter().setCoordinateSystem(SpatialWriter.TWD97_121).setGeoList(endPoints)
-				.saveAsShp(outputEndPointShp);
-		new SpatialWriter().setCoordinateSystem(SpatialWriter.TWD97_121).setGeoList(intersectPoints)
-				.saveAsShp(outptIntersectPointsShp);
+		new SpatialWriter().setCoordinateSystem(SpatialWriter.TWD97_121).setGeoList(endPointsInMainStream)
+				.saveAsShp(outputEndPointInMainStreamShp);
 	}
 
 	public static void mainStreamBuffer(String inputShp, String outputShp, double bufferDistance) {
@@ -228,24 +215,24 @@ public class WaterSheidSpliting {
 				.saveAsShp(outputShp);
 	}
 
-	public static void mainStreamMerge(String inputShp, String outputShp) {
-		List<Geometry> mainStreamList = new SpatialReader(inputShp).getGeometryList();
-
-		while (mainStreamList.size() != 1) {
-			List<Geometry> temptList = new ArrayList<>();
-
-			for (int index = 0; index < mainStreamList.size(); index = index + 2) {
-				try {
-					temptList.add(mainStreamList.get(index).Union((mainStreamList.get(index + 1))));
-				} catch (Exception e) {
-					temptList.add(mainStreamList.get(index));
-				}
-			}
-			mainStreamList = temptList;
-			System.out.println(mainStreamList.size());
-		}
-
-		new SpatialWriter().setCoordinateSystem(SpatialWriter.TWD97_121).setGeoList(mainStreamList)
-				.saveAsShp(outputShp);
-	}
+//	public static void mainStreamMerge(String inputShp, String outputShp) {
+//		List<Geometry> mainStreamList = new SpatialReader(inputShp).getGeometryList();
+//
+//		while (mainStreamList.size() != 1) {
+//			List<Geometry> temptList = new ArrayList<>();
+//
+//			for (int index = 0; index < mainStreamList.size(); index = index + 2) {
+//				try {
+//					temptList.add(mainStreamList.get(index).Union((mainStreamList.get(index + 1))));
+//				} catch (Exception e) {
+//					temptList.add(mainStreamList.get(index));
+//				}
+//			}
+//			mainStreamList = temptList;
+//			System.out.println(mainStreamList.size());
+//		}
+//
+//		new SpatialWriter().setCoordinateSystem(SpatialWriter.TWD97_121).setGeoList(mainStreamList)
+//				.saveAsShp(outputShp);
+//	}
 }
