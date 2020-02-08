@@ -35,34 +35,21 @@ public class IrregularReachBasicControl {
 		process();
 	}
 
-	public IrregularReachBasicControl(String fileAdd, Boolean splitReachToPart) {
-		List<Geometry> geoList = new SpatialReader(fileAdd).getGeometryList();
-		if (splitReachToPart) {
-			IrregularReachBasicControl_SplitReachToParts(geoList);
-		}
-		process();
-	}
-
 	public IrregularReachBasicControl(List<Geometry> geoList) {
 		process();
 	}
 
-	public IrregularReachBasicControl(List<Geometry> geoList, Boolean splitReachToPart) {
-		if (splitReachToPart) {
-			IrregularReachBasicControl_SplitReachToParts(geoList);
-		}
+	public IrregularReachBasicControl(String fileAdd, Boolean regeneratGeometry) {
+		if (regeneratGeometry)
+			geoListRegenerate();
+		this.geoList = new SpatialReader(fileAdd).getGeometryList();
 		process();
 	}
 
-	private void IrregularReachBasicControl_SplitReachToParts(List<Geometry> geoList) {
-		geoList.forEach(geo -> {
-			Double[] point1 = new Double[] { geo.GetX(0), geo.GetY(0) };
-			for (int index = 0; index < geo.GetPointCount(); index++) {
-				Double[] point2 = new Double[] { geo.GetX(index), geo.GetY(index) };
-				this.geoList.add(GdalGlobal.LineToGeometry(point1, point2));
-				point1 = point2;
-			}
-		});
+	public IrregularReachBasicControl(List<Geometry> geoList, Boolean regeneratGeometry) {
+		if (regeneratGeometry)
+			geoListRegenerate();
+		process();
 	}
 
 	// make sure each reach is end in EndPoint
@@ -86,8 +73,11 @@ public class IrregularReachBasicControl {
 
 		// split multiStringLine to several stringLine
 		for (int index = 0; index < this.geoList.get(0).GetGeometryCount(); index++) {
-			outList.add(this.geoList.get(0).get);
+			outList.add(this.geoList.get(0).GetGeometryRef(index));
 		}
+
+		this.geoList.clear();
+		this.geoList = outList;
 	}
 
 	private void process() {

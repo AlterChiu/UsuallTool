@@ -74,13 +74,23 @@ public class SpatialWriter {
 	}
 
 	public SpatialWriter setGeoList(List<Geometry> getList) {
-		// translate path to geometry
 		this.geometryList = getList;
 
 		// setting coordinate system
 		outputSpatitalSystem.ImportFromEPSG(WGS84);
 		return this;
 	}
+
+	public SpatialWriter setGeoList(Geometry geo) {
+		this.geometryList.clear();
+		this.geometryList = new ArrayList<>();
+		this.geometryList.add(geo);
+
+		// setting coordinate system
+		outputSpatitalSystem.ImportFromEPSG(WGS84);
+		return this;
+	}
+
 	// <=========================================>
 
 	/*

@@ -271,6 +271,14 @@ public class GdalGlobal {
 		}
 	}
 
+	public static List<Geometry> splitPolygons(Geometry geo) {
+		List<Geometry> outList = new ArrayList<>();
+		for (int index = 0; index < geo.GetGeometryCount(); index++) {
+			outList.add(geo.GetGeometryRef(index));
+		}
+		return outList;
+	}
+
 	public static List<Path2D> getQualTree_Path(double[] centerPoint, double cellSize) {
 		return getQualTree_Path(centerPoint, cellSize, 4);
 	}
