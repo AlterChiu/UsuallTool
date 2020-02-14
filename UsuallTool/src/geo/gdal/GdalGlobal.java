@@ -233,7 +233,7 @@ public class GdalGlobal {
 		return temptPath;
 	}
 
-	public static Geometry mergePolygons(List<Geometry> geoList) {
+	public static Geometry mergePolygons(List<Geometry> geoList, Boolean showDetails) {
 		/*
 		 * check
 		 */
@@ -256,6 +256,45 @@ public class GdalGlobal {
 			while (outList.size() != 1) {
 				List<Geometry> temptList = new ArrayList<>();
 
+				if (showDetails)
+					System.out.print(outList.size() + "....");
+				for (int index = 0; index < outList.size(); index = index + 2) {
+					try {
+						temptList.add(outList.get(index).Union(outList.get(index + 1)));
+					} catch (Exception e) {
+						temptList.add(outList.get(index));
+					}
+				}
+
+				outList = temptList;
+			}
+
+			return outList.get(0);
+		}
+	}
+
+	public static Geometry mergePolygons(List<Geometry> geoList) {
+		/*
+		 * check
+		 */
+		if (geoList.size() <= 0) {
+			new Exception("not able to merge polygon");
+			return null;
+		} else {
+
+			/*
+			 * clone
+			 */
+			List<Geometry> outList = new ArrayList<>();
+			for (Geometry geo : geoList) {
+				outList.add(geo);
+			}
+
+			/*
+			 * starting merge
+			 */
+			while (outList.size() != 1) {
+				List<Geometry> temptList = new ArrayList<>();
 				for (int index = 0; index < outList.size(); index = index + 2) {
 					try {
 						temptList.add(outList.get(index).Union(outList.get(index + 1)));
@@ -347,5 +386,9 @@ public class GdalGlobal {
 		outList.add("set QGIS_PREFIX_PATH=%OSGEO4W_ROOT:\\=/%/apps/qgis-ltr");
 		outList.add("set GDAL_FILENAME_IS_UTF8=YES");
 		return outList;
+	}
+
+	private class mergePolygons_Threads {
+
 	}
 }

@@ -1,49 +1,38 @@
 package testFolder;
 
+import java.awt.Rectangle;
+import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.TreeMap;
 
+import org.apache.poi.sl.draw.geom.Path;
 import org.gdal.ogr.Geometry;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import asciiFunction.AsciiBasicControl;
-import asciiFunction.XYZToAscii;
 import geo.gdal.GdalGlobal;
+import geo.gdal.IrregularReachBasicControl;
 import geo.gdal.SpatialReader;
+import geo.gdal.SpatialWriter;
+import usualTool.AtCommonMath;
 import usualTool.AtFileReader;
+import usualTool.AtFileWriter;
 
 public class testAtCommon {
+	public static String fileAdd = "E:\\LittleProject\\報告書\\109 - 淹水預警平台之建置與整合\\各項目文件\\二維模型申請圖幅\\";
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		SpatialReader shpFile = new SpatialReader("H:\\SHP\\水文分析一維\\MergeAll.shp");
-		List<Geometry> geoList = shpFile.getGeometryList();
-		List<Map<String, String>> shpAttr = shpFile.getAttributeTable();
+		String reachesSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_reach.shp";
 
-		List<String> outList = new ArrayList<>();
+		IrregularReachBasicControl ir = new IrregularReachBasicControl(reachesSHP);
+		List<Geometry> geoList = new ArrayList<>();
 
-		for (int index = 0; index < geoList.size(); index++) {
-			if (GdalGlobal.GeomertyToPath2D(geoList.get(index)) == null) {
-				JsonObject json = new JsonParser().parse(geoList.get(index).ExportToJson()).getAsJsonObject();
-
-				System.out.print(shpAttr.get(index).get("ID"));
-				JsonArray polygons = json.get("coordinates").getAsJsonArray();
-				for (int polygon = 0; polygon < polygons.size(); polygon++) {
-					for (int point = 0; point < polygons.get(polygon).getAsJsonArray().size(); point++) {
-						System.out.print("\t"
-								+ polygons.get(polygon).getAsJsonArray().get(point).getAsJsonArray().size() + "\t");
-					}
-				}
-				System.out.println();
-			}
-		}
+		ir.getNodeList().forEach(node -> geoList.add(node.getGeo()));
+		new SpatialWriter().setGeoList(geoList)
+				.saveAsGeoJson("E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\temptNodes.geoJson");
 
 	}
-
 }

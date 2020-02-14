@@ -10,7 +10,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.gdal.gdal.gdal;
@@ -173,7 +172,6 @@ public class IrregularNetBasicControl {
 			temptFace.setCenterX(centroid.GetX());
 			temptFace.setCenterY(centroid.GetY());
 			temptFace.setGeometry(geo);
-			temptFace.setArea(geo.Area());
 			faceKeyList.forEach(index -> {
 				temptFace.addNode(this.nodeMap.get(this.nodeList.get(Integer.parseInt(index))));
 			});
@@ -330,7 +328,7 @@ public class IrregularNetBasicControl {
 		public String getKey() {
 			return this.key;
 		}
-		
+
 		protected void clear() {
 
 			// remove linked
@@ -362,12 +360,11 @@ public class IrregularNetBasicControl {
 		private double centerX = nullValue;
 		private double centerY = nullValue;
 		private double value = nullValue;
-		private double area = nullValue;
 		private Geometry geo = null;
 		private String faceKey = "";
 		private Set<EdgeClass> linkedEdge = new HashSet<>();
 		private Set<NodeClass> linkedNode = new HashSet<>();
-		private Set<FaceClass> linkedFace = new HashSet<>();
+		private Set<FaceClass> linkedFace = null;
 		private int index = -1;
 
 		public void setFaceKey(String key) {
@@ -382,24 +379,12 @@ public class IrregularNetBasicControl {
 			}
 		}
 
-		public void setArea(double area) {
-			this.area = area;
-		}
-
 		public void addNode(NodeClass node) {
 			this.linkedNode.add(node);
 		}
 
 		public void addEdge(EdgeClass edge) {
 			this.linkedEdge.add(edge);
-
-			if (edge.getLinkedFace().size() > 0) {
-				edge.getLinkedFace().forEach(face -> {
-					if (face != this) {
-						this.linkedFace.add(face);
-					}
-				});
-			}
 		}
 
 		public void setCenterX(double centerX) {
@@ -427,6 +412,18 @@ public class IrregularNetBasicControl {
 		}
 
 		public List<FaceClass> getLinkedFace() {
+			if (this.linkedFace == null) {
+				Set<FaceClass> temptList = new HashSet<>();
+
+				for (EdgeClass temptEdge : this.linkedEdge) {
+					for (FaceClass otherFace : temptEdge.getLinkedFace()) {
+						if (otherFace != this) {
+							temptList.add(otherFace);
+						}
+					}
+				}
+				this.linkedFace = temptList;
+			}
 			return new ArrayList<>(this.linkedFace);
 		}
 
@@ -443,7 +440,7 @@ public class IrregularNetBasicControl {
 		}
 
 		public double getArea() {
-			return area;
+			return this.geo.Area();
 		}
 
 		public Geometry getGeo() {
@@ -499,89 +496,6 @@ public class IrregularNetBasicControl {
 			}
 
 		}
-
-		public void mergeOtherLinkedFace(FaceClass face) throws Exception {
-			if (!this.linkedFace.contains(face)) {
-				throw new Exception("not avilable face");
-			} else {
-				FaceClass old1Face = face;
-				FaceClass old2Face = this;
-
-				FaceClass newFace = new FaceClass();
-				List<String> faceKeyList = new ArrayList<>();
-
-				Geometry newGeo = this.geo.Union(face.getGeo());
-				Geometry centroid = newGeo.Centroid();
-
-				newFace.setGeometry(newGeo);
-				System.out.println(123);
-				newFace.setArea(newGeo.Area());
-				newFace.setCenterX(centroid.GetX(0));
-				newFace.setCenterY(centroid.GetY(0));
-
-				// seValue
-				List<Double> valueList = new ArrayList<>();
-				if (old1Face.getValue() != nullValue)
-					valueList.add(old1Face.getValue());
-				if (old2Face.getValue() != nullValue)
-					valueList.add(old2Face.getValue());
-				try {
-					newFace.setValue(new AtCommonMath(valueList).getMean());
-				} catch (Exception e) {
-					newFace.setValue(nullValue);
-				}
-
-				/*------------------------------node-----------------------------------*/
-				List<NodeClass> newNodeOrder = new ArrayList<>();
-				for (int index = 0; index < newGeo.GetPointCount(); index++) {
-					double temptX = AtCommonMath.getDecimal_Double(newGeo.GetX(index), dataDecimal);
-					double temptY = AtCommonMath.getDecimal_Double(newGeo.GetY(index), dataDecimal);
-					String nodeKey = temptX + "_" + temptY;
-
-					// add all nodes to new new Face
-					newNodeOrder.add(nodeMap.get(nodeKey));
-
-					// add this face to nodes
-					nodeMap.get(nodeKey).addFace(newFace);
-
-					// add node to this face
-					newFace.addNode(nodeMap.get(nodeKey));
-
-					// add node index to faceKeyList
-					faceKeyList.add(String.valueOf(nodeMap.get(nodeKey).getIndex()));
-				}
-
-				Collections.sort(faceKeyList);
-				newFace.setFaceKey(String.join("_", faceKeyList));
-
-				/*------------------------------Edge-----------------------------------*/
-				EdgeClass linkedEdge = null;
-				for (EdgeClass edge : face.getLinkedEdge()) {
-					if (edge.getLinkedFace().contains(this)) {
-						linkedEdge = edge;
-						break;
-					}
-				}
-				for (EdgeClass edge : old1Face.getLinkedEdge()) {
-					if (edge != linkedEdge) {
-						edge.addFace(newFace);
-						newFace.addEdge(edge);
-					}
-				}
-				for (EdgeClass edge : old2Face.getLinkedEdge()) {
-					if (edge != linkedEdge) {
-						edge.addFace(newFace);
-						newFace.addEdge(edge);
-					}
-				}
-
-				/*------------------------------remove-----------------------------------*/
-				old1Face.clear();
-				old2Face.clear();
-				linkedEdge.clear();
-			}
-		}
-
 	}
 
 	public class NodeClass {
