@@ -108,5 +108,4 @@ public class TimeTranslate {
 		SimpleDateFormat sdf = new SimpleDateFormat(format);
 		return sdf.format(time);
 	}
-
 }
