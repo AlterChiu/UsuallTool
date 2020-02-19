@@ -152,10 +152,9 @@ public class AtFileReader {
 		return tempt.parallelStream().toArray(String[]::new);
 	}
 
-	public JsonObject getJsonObject() throws JsonIOException, JsonSyntaxException, FileNotFoundException {
-		JsonParser parser = new JsonParser();
-		JsonElement jsonElement = parser.parse(new FileReader(fileAdd));
-		return jsonElement.getAsJsonObject();
+	public JsonElement getJson() throws JsonIOException, JsonSyntaxException, FileNotFoundException {
+		JsonElement jsonElement = new JsonParser().parse(new FileReader(fileAdd));
+		return jsonElement;
 	}
 
 	final void clear() {

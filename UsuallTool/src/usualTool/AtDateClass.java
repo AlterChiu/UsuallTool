@@ -136,6 +136,10 @@ public class AtDateClass {
 		return this.getSecondPass(0);
 	}
 
+	public long getDateLong() {
+		return this.dateLong;
+	}
+
 	private void translate() throws ParseException {
 		StringBuilder dateString = new StringBuilder();
 		dateString.append(String.format("%04d", this.year));

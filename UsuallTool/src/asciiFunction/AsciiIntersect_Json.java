@@ -29,7 +29,7 @@ public class AsciiIntersect_Json {
 	}
 
 	public AsciiIntersect_Json(String jsonAdd) throws IOException {
-		this.geoJson = new AtFileReader(jsonAdd).getJsonObject();
+		this.geoJson = new AtFileReader(jsonAdd).getJson().getAsJsonObject();
 	}
 
 	// <===================================================== >
