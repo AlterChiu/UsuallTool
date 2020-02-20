@@ -1,6 +1,7 @@
 package usualTool;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,46 +33,46 @@ public class AtCommonMath {
 
 	public double getMax(int precision) {
 		Double tempt = this.ds.getMax();
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public double getMin(int precision) {
 		Double tempt = this.ds.getMin();
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public double getStd(int precision) {
 		Double tempt = this.ds.getStandardDeviation();
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public double getSkewness(int precision) {
 		Double tempt = this.ds.getSkewness();
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public double getKurtosis(int precision) {
 		Double tempt = this.ds.getKurtosis();
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public double getMean(int precision) {
 		Double tempt = this.ds.getMean();
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public double getSum(int precision) {
 		Double tempt = this.ds.getSum();
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public double getVariance(int precision) {
 		Double tempt = this.ds.getVariance();
-		return new BigDecimal(tempt).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(tempt).setScale(precision, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public double getMedium(int precision) {
-		return new BigDecimal(getMedium()).setScale(precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(getMedium()).setScale(precision, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public double getPersentage(double persantage) {
@@ -171,27 +172,27 @@ public class AtCommonMath {
 	}
 
 	public static double getDecimal_Double(double value, int scale) {
-		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public static double getDecimal_Double(String value, int scale) {
-		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public static String getDecimal_String(double value, int scale) {
-		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).toString();
+		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).toString();
 	}
 
 	public static String getDecimal_String(String value, int scale) {
-		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).toString();
+		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).toString();
 	}
 
 	public static int getDecimal_Int(double value, int scale) {
-		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).intValue();
+		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).intValue();
 	}
 
 	public static int getDecimal_Int(String value, int scale) {
-		return new BigDecimal(value).setScale(scale, BigDecimal.ROUND_HALF_UP).intValue();
+		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).intValue();
 	}
 
 	public static double getAzimuth(double[] vector) {

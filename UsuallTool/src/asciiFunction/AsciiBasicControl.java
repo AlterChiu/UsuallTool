@@ -5,6 +5,7 @@ import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +24,21 @@ public class AsciiBasicControl implements Cloneable {
 	private String[][] asciiContent = null;
 	private Map<String, String> property;
 	private Map<String, Double> boundary;
+
+	public static String minCenterX = "bottomX";
+	public static String maxCenterX = "topX";
+	public static String minCenterY = "bottomY";
+	public static String maxCenterY = "topY";
+
+	public static String minCoenerX = "minX";
+	public static String maxCornerX = "maxX";
+	public static String minCornerY = "minY";
+	public static String maxCornerY = "maxY";
+
+	public static String columnKey = "column";
+	public static String rowKey = "row";
+	public static String cellSizeKey = "cellSize";
+	public static String nullValueKsy = "noData";
 
 	/*
 	 * 
@@ -83,17 +99,17 @@ public class AsciiBasicControl implements Cloneable {
 
 	private void setBoundary() {
 		Map<String, Double> boundary = new TreeMap<String, Double>();
-		double cellSize = Double.parseDouble(this.property.get("cellSize"));
+		double cellSize = Double.parseDouble(this.property.get(cellSizeKey));
 
-		double minX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
-		double maxX = Double.parseDouble(this.property.get("topX")) + 0.5 * cellSize;
-		double minY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * cellSize;
-		double maxY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
+		double minX = Double.parseDouble(this.property.get(minCenterX)) - 0.5 * cellSize;
+		double maxX = Double.parseDouble(this.property.get(maxCenterX)) + 0.5 * cellSize;
+		double minY = Double.parseDouble(this.property.get(minCenterY)) - 0.5 * cellSize;
+		double maxY = Double.parseDouble(this.property.get(maxCenterY)) + 0.5 * cellSize;
 
-		boundary.put("minX", minX);
-		boundary.put("maxX", maxX);
-		boundary.put("minY", minY);
-		boundary.put("maxY", maxY);
+		boundary.put(minCoenerX, minX);
+		boundary.put(maxCornerX, maxX);
+		boundary.put(minCornerY, minY);
+		boundary.put(maxCornerY, maxY);
 		this.boundary = boundary;
 	}
 	// <=============================================>
@@ -117,7 +133,7 @@ public class AsciiBasicControl implements Cloneable {
 		temptTree.add(new String[] { "nrows", this.asciiContent[1][1] });
 		temptTree.add(new String[] { "xllcenter", this.asciiContent[2][1] });
 		temptTree.add(new String[] { "yllcenter", this.asciiContent[3][1] });
-		temptTree.add(new String[] { "cellsize", this.asciiContent[4][1] });
+		temptTree.add(new String[] { cellSizeKey, this.asciiContent[4][1] });
 		temptTree.add(new String[] { "NODATA_value", this.asciiContent[5][1] });
 
 		return temptTree.parallelStream().toArray(String[][]::new);
@@ -125,7 +141,7 @@ public class AsciiBasicControl implements Cloneable {
 
 	private void setProperty() {
 		TreeMap<String, String> temptTree = new TreeMap<String, String>();
-		double cellSize = new BigDecimal(this.asciiContent[4][1]).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
+		double cellSize = new BigDecimal(this.asciiContent[4][1]).setScale(globalAscii.scale, RoundingMode.HALF_UP)
 				.doubleValue();
 
 		// set the xllCorner to xllCenter
@@ -138,22 +154,22 @@ public class AsciiBasicControl implements Cloneable {
 			this.asciiContent[3][1] = (Double.parseDouble(this.asciiContent[3][1]) + cellSize * 0.5) + "";
 		}
 
-		temptTree.put("column", this.asciiContent[0][1]);
-		temptTree.put("row", this.asciiContent[1][1]);
-		temptTree.put("bottomX", this.asciiContent[2][1]);
-		temptTree.put("bottomY", this.asciiContent[3][1]);
-		temptTree.put("cellSize", this.asciiContent[4][1]);
-		temptTree.put("noData", this.asciiContent[5][1]);
+		temptTree.put(columnKey, this.asciiContent[0][1]);
+		temptTree.put(rowKey, this.asciiContent[1][1]);
+		temptTree.put(minCenterX, this.asciiContent[2][1]);
+		temptTree.put(minCenterY, this.asciiContent[3][1]);
+		temptTree.put(cellSizeKey, this.asciiContent[4][1]);
+		temptTree.put(nullValueKsy, this.asciiContent[5][1]);
 
-		temptTree.put("topX",
+		temptTree.put(maxCenterX,
 				new BigDecimal(Double.parseDouble(this.asciiContent[2][1])
-						+ cellSize * (Integer.parseInt(temptTree.get("column")) - 1))
-								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
+						+ cellSize * (Integer.parseInt(temptTree.get(columnKey)) - 1))
+								.setScale(globalAscii.scale, RoundingMode.HALF_UP).toString());
 
-		temptTree.put("topY",
+		temptTree.put(maxCenterY,
 				new BigDecimal(Double.parseDouble(this.asciiContent[3][1])
-						+ cellSize * (Integer.parseInt(temptTree.get("row")) - 1))
-								.setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP).toString());
+						+ cellSize * (Integer.parseInt(temptTree.get(rowKey)) - 1))
+								.setScale(globalAscii.scale, RoundingMode.HALF_UP).toString());
 
 		this.property = temptTree;
 	}
@@ -168,16 +184,16 @@ public class AsciiBasicControl implements Cloneable {
 
 	// <________________________________________________________________________>
 	public String getValue(double x, double y) {
-		double cellSize = Double.parseDouble(this.property.get("cellSize"));
-		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
-		double startY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
+		double cellSize = Double.parseDouble(this.property.get(cellSizeKey));
+		double startX = Double.parseDouble(this.property.get(minCenterX)) - 0.5 * cellSize;
+		double startY = Double.parseDouble(this.property.get(maxCenterY)) + 0.5 * cellSize;
 
 		int row = new BigDecimal((startY - y) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
 		int column = new BigDecimal((x - startX) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
 		try {
 			return this.asciiContent[row + 6][column];
 		} catch (Exception e) {
-			return this.property.get("noData");
+			return this.property.get(nullValueKsy);
 		}
 	}
 
@@ -188,13 +204,13 @@ public class AsciiBasicControl implements Cloneable {
 			try {
 				return this.asciiContent[row + 6][column];
 			} catch (Exception e) {
-				return this.property.get("noData");
+				return this.property.get(nullValueKsy);
 			}
 		}
 	}
 
 	public String getNullValue() {
-		return this.getProperty().get("noData");
+		return this.getProperty().get(nullValueKsy);
 	}
 
 	public String getValue(Path2D path) {
@@ -277,7 +293,7 @@ public class AsciiBasicControl implements Cloneable {
 		List<Double> polygonValueList = getPolygonValueList(geometry);
 
 		try {
-			return new BigDecimal(new AtCommonMath(polygonValueList).getMean()).setScale(3, BigDecimal.ROUND_HALF_UP)
+			return new BigDecimal(new AtCommonMath(polygonValueList).getMean()).setScale(3, RoundingMode.HALF_UP)
 					.toString();
 		} catch (Exception e) {
 			return this.getNullValue();
@@ -341,7 +357,7 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public double getCellSize() {
-		return Double.parseDouble(this.property.get("cellSize"));
+		return Double.parseDouble(this.property.get(cellSizeKey));
 	}
 
 	/*
@@ -353,32 +369,32 @@ public class AsciiBasicControl implements Cloneable {
 
 	// <==============================================>
 	public int[] getPosition(double x, double y) {
-		double cellSize = Double.parseDouble(this.property.get("cellSize"));
-		double startX = Double.parseDouble(this.property.get("bottomX"));
-		double startY = Double.parseDouble(this.property.get("topY"));
+		double cellSize = Double.parseDouble(this.property.get(cellSizeKey));
+		double startX = Double.parseDouble(this.property.get(minCenterX));
+		double startY = Double.parseDouble(this.property.get(maxCenterY));
 
-		int row = new BigDecimal((startY - y) / cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
-		int column = new BigDecimal((x - startX) / cellSize).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
+		int row = new BigDecimal((startY - y) / cellSize).setScale(0, RoundingMode.HALF_UP).intValue();
+		int column = new BigDecimal((x - startX) / cellSize).setScale(0, RoundingMode.HALF_UP).intValue();
 		return new int[] { column, row };
 	}
 
 	public double[] getCoordinate(int column, int row) {
-		double startX = Double.parseDouble(this.property.get("bottomX"));
-		double startY = Double.parseDouble(this.property.get("topY"));
-		double cellSize = Double.parseDouble(this.property.get("cellSize"));
+		double startX = Double.parseDouble(this.property.get(minCenterX));
+		double startY = Double.parseDouble(this.property.get(maxCenterY));
+		double cellSize = Double.parseDouble(this.property.get(cellSizeKey));
 
-		double x = new BigDecimal(startX + column * cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
+		double x = new BigDecimal(startX + column * cellSize).setScale(globalAscii.scale, RoundingMode.HALF_UP)
 				.doubleValue();
-		double y = new BigDecimal(startY - row * cellSize).setScale(globalAscii.scale, BigDecimal.ROUND_HALF_UP)
+		double y = new BigDecimal(startY - row * cellSize).setScale(globalAscii.scale, RoundingMode.HALF_UP)
 				.doubleValue();
 
 		return new double[] { x, y };
 	}
 
 	public double[] getClosestCoordinate(double x, double y) {
-		double cellSize = Double.parseDouble(this.property.get("cellSize"));
-		double startX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * cellSize;
-		double startY = Double.parseDouble(this.property.get("topY")) + 0.5 * cellSize;
+		double cellSize = Double.parseDouble(this.property.get(cellSizeKey));
+		double startX = Double.parseDouble(this.property.get(minCenterX)) - 0.5 * cellSize;
+		double startY = Double.parseDouble(this.property.get(maxCenterY)) + 0.5 * cellSize;
 
 		int row = new BigDecimal((startY - y) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
 		int column = new BigDecimal((x - startX) / cellSize).setScale(0, BigDecimal.ROUND_DOWN).intValue();
@@ -428,11 +444,11 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public int getRow() {
-		return Integer.parseInt(this.property.get("row"));
+		return Integer.parseInt(this.property.get(rowKey));
 	}
 
 	public int getColumn() {
-		return Integer.parseInt(this.property.get("column"));
+		return Integer.parseInt(this.property.get(columnKey));
 	}
 	/*
 	 * 
@@ -472,10 +488,10 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public AsciiBasicControl getClipAsciiFile(Map<String, Double> boundary) throws IOException {
-		double minX = boundary.get("minX");
-		double maxX = boundary.get("maxX");
-		double minY = boundary.get("minY");
-		double maxY = boundary.get("maxY");
+		double minX = boundary.get(minCoenerX);
+		double maxX = boundary.get(maxCornerX);
+		double minY = boundary.get(minCornerY);
+		double maxY = boundary.get(maxCornerY);
 
 		return getClipAsciiFile(minX, minY, maxX, maxY);
 	}
@@ -486,12 +502,12 @@ public class AsciiBasicControl implements Cloneable {
 
 	public AsciiBasicControl getClipAsciiFile(double minX, double minY, double maxX, double maxY) throws IOException {
 		ArrayList<String[]> asciiGrid = new ArrayList<String[]>();
-		double cellSize = Double.parseDouble(property.get("cellSize"));
+		double cellSize = Double.parseDouble(property.get(cellSizeKey));
 
-		minX = new BigDecimal(minX + 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-		minY = new BigDecimal(minY + 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-		maxX = new BigDecimal(maxX - 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-		maxY = new BigDecimal(maxY - 0.5 * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		minX = new BigDecimal(minX + 0.5 * cellSize).setScale(3, RoundingMode.HALF_UP).doubleValue();
+		minY = new BigDecimal(minY + 0.5 * cellSize).setScale(3, RoundingMode.HALF_UP).doubleValue();
+		maxX = new BigDecimal(maxX - 0.5 * cellSize).setScale(3, RoundingMode.HALF_UP).doubleValue();
+		maxY = new BigDecimal(maxY - 0.5 * cellSize).setScale(3, RoundingMode.HALF_UP).doubleValue();
 
 		int[] bottomPosition = this.getPosition(minX, minY);
 		int[] topPosition = this.getPosition(maxX, maxY);
@@ -501,8 +517,8 @@ public class AsciiBasicControl implements Cloneable {
 		asciiGrid.add(new String[] { "nrows", -topPosition[1] + bottomPosition[1] + 1 + "" });
 		asciiGrid.add(new String[] { "xllcenter", outllCenter[0] + "" });
 		asciiGrid.add(new String[] { "yllcenter", outllCenter[1] + "" });
-		asciiGrid.add(new String[] { "cellsize", property.get("cellSize") });
-		asciiGrid.add(new String[] { "nodata_value", property.get("noData") });
+		asciiGrid.add(new String[] { cellSizeKey, property.get(cellSizeKey) });
+		asciiGrid.add(new String[] { "nodata_value", property.get(nullValueKsy) });
 
 		for (int line = topPosition[1]; line <= bottomPosition[1]; line++) {
 			ArrayList<String> temptLine = new ArrayList<String>();
@@ -529,21 +545,19 @@ public class AsciiBasicControl implements Cloneable {
 		outList.add(new String[] { "nrows", totalColumn + "" });
 		outList.add(new String[] { "xllcenter", minX + (0.5 * cellSize) + "" });
 		outList.add(new String[] { "yllcenter", minY + (0.5 * cellSize) + "" });
-		outList.add(new String[] { "cellsize", cellSize + "" });
-		outList.add(new String[] { "nodata_value", this.property.get("noData") });
+		outList.add(new String[] { cellSizeKey, cellSize + "" });
+		outList.add(new String[] { "nodata_value", this.property.get(nullValueKsy) });
 
 		for (int row = 0; row < totalRow; row++) {
 			List<String> rowContent = new ArrayList<String>();
 			for (int column = 0; column < totalColumn; column++) {
 				// get the position in the original ascii of the boundary
 				int originalStartPoint[] = this.getPosition(
-						new BigDecimal(minX + column * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue(),
-						new BigDecimal(maxY - row * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
+						new BigDecimal(minX + column * cellSize).setScale(3, RoundingMode.HALF_UP).doubleValue(),
+						new BigDecimal(maxY - row * cellSize).setScale(3, RoundingMode.HALF_UP).doubleValue());
 				int originalEndPoint[] = this.getPosition(
-						new BigDecimal(minX + (column + 1) * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP)
-								.doubleValue(),
-						new BigDecimal(maxY - (row + 1) * cellSize).setScale(3, BigDecimal.ROUND_HALF_UP)
-								.doubleValue());
+						new BigDecimal(minX + (column + 1) * cellSize).setScale(3, RoundingMode.HALF_UP).doubleValue(),
+						new BigDecimal(maxY - (row + 1) * cellSize).setScale(3, RoundingMode.HALF_UP).doubleValue());
 				int totalTimes = (originalEndPoint[0] - originalStartPoint[0])
 						* (originalEndPoint[1] - originalStartPoint[1]);
 				int selectimes = 0;
@@ -561,7 +575,7 @@ public class AsciiBasicControl implements Cloneable {
 				for (int targetRow = originalStartPoint[1]; targetRow <= originalEndPoint[1]; targetRow++) {
 					for (int targetColumn = originalStartPoint[0]; targetColumn <= originalEndPoint[0]; targetColumn++) {
 						double cordinate[] = this.getCoordinate(targetColumn, targetRow);
-						if (!this.asciiContent[targetRow + 6][targetColumn].equals(this.property.get("noData"))
+						if (!this.asciiContent[targetRow + 6][targetColumn].equals(this.property.get(nullValueKsy))
 								&& temptPath.contains(cordinate[0], cordinate[1])) {
 							try {
 								cellValueList.add(Double.parseDouble(this.asciiContent[targetRow + 6][targetColumn]));
@@ -578,7 +592,7 @@ public class AsciiBasicControl implements Cloneable {
 				if (selectimes > 0.5 * totalTimes) {
 					rowContent.add(new AtCommonMath(cellValueList).getMean() + "");
 				} else {
-					rowContent.add(this.property.get("noData"));
+					rowContent.add(this.property.get(nullValueKsy));
 				}
 			}
 			outList.add(rowContent.parallelStream().toArray(String[]::new));
@@ -596,15 +610,15 @@ public class AsciiBasicControl implements Cloneable {
 	// <get the boundary is inside or not>
 	// <____________________________________________________________________________>
 	public Boolean isContain(double x, double y) {
-		double cellSize = Double.parseDouble(this.property.get("cellSize"));
-		double boundaryMaxX = new BigDecimal(Double.parseDouble(this.property.get("topX")) + cellSize * 0.5)
-				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-		double boundaryMaxY = new BigDecimal(Double.parseDouble(this.property.get("topY")) + cellSize * 0.5)
-				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-		double boundaryMinX = new BigDecimal(Double.parseDouble(this.property.get("bottomX")) - cellSize * 0.5)
-				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-		double boundaryMinY = new BigDecimal(Double.parseDouble(this.property.get("bottomY")) - cellSize * 0.5)
-				.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+		double cellSize = Double.parseDouble(this.property.get(cellSizeKey));
+		double boundaryMaxX = new BigDecimal(Double.parseDouble(this.property.get(maxCenterX)) + cellSize * 0.5)
+				.setScale(3, RoundingMode.HALF_UP).doubleValue();
+		double boundaryMaxY = new BigDecimal(Double.parseDouble(this.property.get(maxCenterY)) + cellSize * 0.5)
+				.setScale(3, RoundingMode.HALF_UP).doubleValue();
+		double boundaryMinX = new BigDecimal(Double.parseDouble(this.property.get(minCenterX)) - cellSize * 0.5)
+				.setScale(3, RoundingMode.HALF_UP).doubleValue();
+		double boundaryMinY = new BigDecimal(Double.parseDouble(this.property.get(minCenterY)) - cellSize * 0.5)
+				.setScale(3, RoundingMode.HALF_UP).doubleValue();
 		if (x <= boundaryMaxX && x >= boundaryMinX && y <= boundaryMaxY && y >= boundaryMinY) {
 			return true;
 		} else {
@@ -628,18 +642,18 @@ public class AsciiBasicControl implements Cloneable {
 	public Boolean isIntersect(double xCoefficient, double yCoefficient, double intersectCoefficient) {
 		Map<String, Double> boundary = this.getBoundary();
 
-		double crossTopX = -1 * (yCoefficient * boundary.get("maxY") + intersectCoefficient) / xCoefficient;
-		double crossBottomX = -1 * (yCoefficient * boundary.get("minY") + intersectCoefficient) / xCoefficient;
-		double crossRightY = -1 * (xCoefficient * boundary.get("maxX") + intersectCoefficient) / yCoefficient;
-		double crossLeftY = -1 * (xCoefficient * boundary.get("maxX") + intersectCoefficient) / yCoefficient;
+		double crossTopX = -1 * (yCoefficient * boundary.get(maxCornerY) + intersectCoefficient) / xCoefficient;
+		double crossBottomX = -1 * (yCoefficient * boundary.get(minCornerY) + intersectCoefficient) / xCoefficient;
+		double crossRightY = -1 * (xCoefficient * boundary.get(maxCornerX) + intersectCoefficient) / yCoefficient;
+		double crossLeftY = -1 * (xCoefficient * boundary.get(maxCornerX) + intersectCoefficient) / yCoefficient;
 
-		if (crossTopX <= boundary.get("maxX") && crossTopX >= boundary.get("minX")) {
+		if (crossTopX <= boundary.get(maxCornerX) && crossTopX >= boundary.get(minCoenerX)) {
 			return true;
-		} else if (crossBottomX <= boundary.get("maxX") && crossBottomX >= boundary.get("minX")) {
+		} else if (crossBottomX <= boundary.get(maxCornerX) && crossBottomX >= boundary.get(minCoenerX)) {
 			return true;
-		} else if (crossRightY <= boundary.get("maxY") && crossRightY >= boundary.get("minY")) {
+		} else if (crossRightY <= boundary.get(maxCornerY) && crossRightY >= boundary.get(minCornerY)) {
 			return true;
-		} else if (crossLeftY <= boundary.get("maxY") && crossLeftY >= boundary.get("minY")) {
+		} else if (crossLeftY <= boundary.get(maxCornerY) && crossLeftY >= boundary.get(minCornerY)) {
 			return true;
 		} else {
 			return false;
@@ -652,10 +666,10 @@ public class AsciiBasicControl implements Cloneable {
 
 		Map<String, Double> boundary = this.getBoundary();
 		Path2D temptPath = new Path2D.Double();
-		temptPath.moveTo(boundary.get("minX"), boundary.get("maxY"));
-		temptPath.lineTo(boundary.get("minX"), boundary.get("minY"));
-		temptPath.lineTo(boundary.get("maxX"), boundary.get("minY"));
-		temptPath.lineTo(boundary.get("maxX"), boundary.get("maxY"));
+		temptPath.moveTo(boundary.get(minCoenerX), boundary.get(maxCornerY));
+		temptPath.lineTo(boundary.get(minCoenerX), boundary.get(minCornerY));
+		temptPath.lineTo(boundary.get(maxCornerX), boundary.get(minCornerY));
+		temptPath.lineTo(boundary.get(maxCornerX), boundary.get(maxCornerY));
 
 		List<List<Double[]>> sidePoints = new IntersectLine(temptPath).getSidePoints(xCoefficient, yCoefficient,
 				intersectCoefficient);
@@ -677,10 +691,10 @@ public class AsciiBasicControl implements Cloneable {
 			double maxY = yStatics.getMax();
 
 			Map<String, Double> temptBoundary = new TreeMap<>();
-			temptBoundary.put("maxX", maxX);
-			temptBoundary.put("minX", minX);
-			temptBoundary.put("minY", minY);
-			temptBoundary.put("maxY", maxY);
+			temptBoundary.put(maxCornerX, maxX);
+			temptBoundary.put(minCoenerX, minX);
+			temptBoundary.put(minCornerY, minY);
+			temptBoundary.put(maxCornerY, maxY);
 
 			outBoundary.add(temptBoundary);
 		}
@@ -710,11 +724,11 @@ public class AsciiBasicControl implements Cloneable {
 	public Boolean isIntersect(double minX, double maxX, double minY, double maxY) {
 		// if there is any points of boundary is in the ascii
 		// return true
-		double tmeptCellSize = Double.parseDouble(this.property.get("cellSize"));
-		double temptMinX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * tmeptCellSize;
-		double temptMaxX = Double.parseDouble(this.property.get("topX")) + 0.5 * tmeptCellSize;
-		double temptMinY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * tmeptCellSize;
-		double temptMaxY = Double.parseDouble(this.property.get("topY")) + 0.5 * tmeptCellSize;
+		double tmeptCellSize = Double.parseDouble(this.property.get(cellSizeKey));
+		double temptMinX = Double.parseDouble(this.property.get(minCenterX)) - 0.5 * tmeptCellSize;
+		double temptMaxX = Double.parseDouble(this.property.get(maxCenterX)) + 0.5 * tmeptCellSize;
+		double temptMinY = Double.parseDouble(this.property.get(minCenterY)) - 0.5 * tmeptCellSize;
+		double temptMaxY = Double.parseDouble(this.property.get(maxCenterY)) + 0.5 * tmeptCellSize;
 
 		if (temptMinX < maxX && temptMaxX > minX) {
 			if (minY < temptMaxY && maxY > temptMinY) {
@@ -739,19 +753,19 @@ public class AsciiBasicControl implements Cloneable {
 	// < get the intersect by giving asciiFile>
 	// <=======================>
 	public Boolean isIntersect(AsciiBasicControl temptAscii) {
-		double cellSize = Double.parseDouble(temptAscii.getProperty().get("cellSize"));
-		double minX = Double.parseDouble(temptAscii.getProperty().get("bottomX")) - 0.5 * cellSize;
-		double maxX = Double.parseDouble(temptAscii.getProperty().get("topX")) + 0.5 * cellSize;
-		double minY = Double.parseDouble(temptAscii.getProperty().get("bottomY")) - 0.5 * cellSize;
-		double maxY = Double.parseDouble(temptAscii.getProperty().get("topY")) + 0.5 * cellSize;
+		double cellSize = Double.parseDouble(temptAscii.getProperty().get(cellSizeKey));
+		double minX = Double.parseDouble(temptAscii.getProperty().get(minCenterX)) - 0.5 * cellSize;
+		double maxX = Double.parseDouble(temptAscii.getProperty().get(maxCenterX)) + 0.5 * cellSize;
+		double minY = Double.parseDouble(temptAscii.getProperty().get(minCenterY)) - 0.5 * cellSize;
+		double maxY = Double.parseDouble(temptAscii.getProperty().get(maxCenterY)) + 0.5 * cellSize;
 
 		// if there is any points of boundary is in the ascii
 		// return true
-		double tmeptCellSize = Double.parseDouble(this.property.get("cellSize"));
-		double temptMinX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * tmeptCellSize;
-		double temptMaxX = Double.parseDouble(this.property.get("topX")) + 0.5 * tmeptCellSize;
-		double temptMinY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * tmeptCellSize;
-		double temptMaxY = Double.parseDouble(this.property.get("topY")) + 0.5 * tmeptCellSize;
+		double tmeptCellSize = Double.parseDouble(this.property.get(cellSizeKey));
+		double temptMinX = Double.parseDouble(this.property.get(minCenterX)) - 0.5 * tmeptCellSize;
+		double temptMaxX = Double.parseDouble(this.property.get(maxCenterX)) + 0.5 * tmeptCellSize;
+		double temptMinY = Double.parseDouble(this.property.get(minCenterY)) - 0.5 * tmeptCellSize;
+		double temptMaxY = Double.parseDouble(this.property.get(maxCenterY)) + 0.5 * tmeptCellSize;
 
 		if (temptMinX < maxX && temptMaxX > minX) {
 			if (minY < temptMaxY && maxY > temptMinY) {
@@ -777,18 +791,18 @@ public class AsciiBasicControl implements Cloneable {
 	// < get the intersect by giving boundary map>
 	// <============================>
 	public Boolean isIntersect(Map<String, Double> boundary) {
-		double minX = boundary.get("minX");
-		double maxX = boundary.get("maxX");
-		double minY = boundary.get("minY");
-		double maxY = boundary.get("maxY");
+		double minX = boundary.get(minCoenerX);
+		double maxX = boundary.get(maxCornerX);
+		double minY = boundary.get(minCornerY);
+		double maxY = boundary.get(maxCornerY);
 
 		// if there is any points of boundary is in the ascii
 		// return true
-		double tmeptCellSize = Double.parseDouble(this.property.get("cellSize"));
-		double temptMinX = Double.parseDouble(this.property.get("bottomX")) - 0.5 * tmeptCellSize;
-		double temptMaxX = Double.parseDouble(this.property.get("topX")) + 0.5 * tmeptCellSize;
-		double temptMinY = Double.parseDouble(this.property.get("bottomY")) - 0.5 * tmeptCellSize;
-		double temptMaxY = Double.parseDouble(this.property.get("topY")) + 0.5 * tmeptCellSize;
+		double tmeptCellSize = Double.parseDouble(this.property.get(cellSizeKey));
+		double temptMinX = Double.parseDouble(this.property.get(minCenterX)) - 0.5 * tmeptCellSize;
+		double temptMaxX = Double.parseDouble(this.property.get(maxCenterX)) + 0.5 * tmeptCellSize;
+		double temptMinY = Double.parseDouble(this.property.get(minCenterY)) - 0.5 * tmeptCellSize;
+		double temptMaxY = Double.parseDouble(this.property.get(maxCenterY)) + 0.5 * tmeptCellSize;
 
 		if (temptMinX < maxX && temptMaxX > minX) {
 			if (minY < temptMaxY && maxY > temptMinY) {
@@ -811,34 +825,34 @@ public class AsciiBasicControl implements Cloneable {
 	 */
 	// <===========================================================>
 	private Map<String, Double> intersectBoundary(Map<String, Double> boundary) {
-		return intersectBoundary(boundary.get("minX"), boundary.get("maxX"), boundary.get("minY"),
-				boundary.get("maxY"));
+		return intersectBoundary(boundary.get(minCoenerX), boundary.get(maxCornerX), boundary.get(minCornerY),
+				boundary.get(maxCornerY));
 	}
 
 	private Map<String, Double> intersectBoundary(double minX, double maxX, double minY, double maxY) {
 		Map<String, Double> boundary = new TreeMap<>();
-		if (this.boundary.get("minX") > minX) {
-			boundary.put("minX", this.boundary.get("minX"));
+		if (this.boundary.get(minCoenerX) > minX) {
+			boundary.put(minCoenerX, this.boundary.get(minCoenerX));
 		} else {
-			boundary.put("minX", minX);
+			boundary.put(minCoenerX, minX);
 		}
 
-		if (this.boundary.get("minY") > minY) {
-			boundary.put("minY", this.boundary.get("minY"));
+		if (this.boundary.get(minCornerY) > minY) {
+			boundary.put(minCornerY, this.boundary.get(minCornerY));
 		} else {
-			boundary.put("minY", minY);
+			boundary.put(minCornerY, minY);
 		}
 
-		if (this.boundary.get("maxX") < maxX) {
-			boundary.put("maxX", this.boundary.get("maxX"));
+		if (this.boundary.get(maxCornerX) < maxX) {
+			boundary.put(maxCornerX, this.boundary.get(maxCornerX));
 		} else {
-			boundary.put("maxX", maxX);
+			boundary.put(maxCornerX, maxX);
 		}
 
-		if (this.boundary.get("maxY") < maxY) {
-			boundary.put("maxY", this.boundary.get("maxY"));
+		if (this.boundary.get(maxCornerY) < maxY) {
+			boundary.put(maxCornerY, this.boundary.get(maxCornerY));
 		} else {
-			boundary.put("maxY", maxY);
+			boundary.put(maxCornerY, maxY);
 		}
 
 		return boundary;
@@ -851,8 +865,8 @@ public class AsciiBasicControl implements Cloneable {
 	public List<Double[]> converToXYZ() {
 		List<Double[]> outList = new ArrayList<>();
 
-		for (int row = 0; row < Integer.parseInt(this.property.get("row")); row++) {
-			for (int column = 0; column < Integer.parseInt(this.property.get("column")); column++) {
+		for (int row = 0; row < Integer.parseInt(this.property.get(rowKey)); row++) {
+			for (int column = 0; column < Integer.parseInt(this.property.get(columnKey)); column++) {
 				String temptValue = this.getValue(column, row);
 				if (!temptValue.equals(this.getNullValue())) {
 					double[] coordinate = this.getCoordinate(column, row);

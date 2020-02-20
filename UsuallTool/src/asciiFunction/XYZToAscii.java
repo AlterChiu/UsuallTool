@@ -2,6 +2,7 @@ package asciiFunction;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,17 +35,6 @@ public class XYZToAscii {
 
 	public XYZToAscii(List<Double[]> xyzContent) throws IOException {
 		this.xyzContent = xyzContent;
-		this.setXYZList();
-	}
-
-	public XYZToAscii(String fileAdd) throws IOException {
-		List<String[]> temptContent = new ArrayList<String[]>(Arrays.asList(new AtFileReader(fileAdd).getCsv(1, 0)));
-		xyzContent = new ArrayList<>();
-		for (String[] temptLine : temptContent) {
-			xyzContent.add(new Double[] { Double.parseDouble(temptLine[0]), Double.parseDouble(temptLine[1]),
-					Double.parseDouble(temptLine[2]) });
-		}
-
 		this.setXYZList();
 	}
 
@@ -95,34 +85,13 @@ public class XYZToAscii {
 	// < private function >
 	// <================================================>
 	private void setXYZList() {
-		Double minX = this.xyzContent.get(0)[0];
-		Double maxX = this.xyzContent.get(0)[0];
-		Double minY = this.xyzContent.get(0)[1];
-		Double maxY = this.xyzContent.get(0)[1];
-
-		while (this.xyzContent.size() > 0) {
-			double temptX = this.xyzContent.get(0)[0];
-			double temptY = this.xyzContent.get(0)[1];
-
-			// get the boundary of the xyList
-			if (temptX > maxX) {
-				maxX = temptX;
-			} else if (temptX < minX) {
-				minX = temptX;
-			}
-
-			if (temptY > maxY) {
-				maxY = temptY;
-			} else if (temptY < minY) {
-				minY = temptY;
-			}
-
+		for (Double[] temptLine : this.xyzContent) {
 			// get the xyzList
-			this.xList.add(temptX);
-			this.yList.add(temptY);
-			this.zList.add(this.xyzContent.get(0)[2]);
-			this.xyzContent.remove(0);
+			this.xList.add(temptLine[0]);
+			this.yList.add(temptLine[1]);
+			this.zList.add(temptLine[2]);
 		}
+		this.xyzContent.clear();
 	}
 
 	private void setProperty() {
@@ -131,14 +100,14 @@ public class XYZToAscii {
 		AtCommonMath yMath = new AtCommonMath(this.yList);
 
 		this.maxX = new BigDecimal(xMath.getMax() + 0.5 * this.cellSize)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+				.setScale(this.coordinateScale, RoundingMode.HALF_UP).doubleValue();
 		this.minY = new BigDecimal(yMath.getMin() - 0.5 * this.cellSize)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+				.setScale(this.coordinateScale, RoundingMode.HALF_UP).doubleValue();
 
 		this.minX = new BigDecimal(new AtCommonMath(this.xList).getMin() - 0.5 * this.cellSize)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+				.setScale(this.coordinateScale, RoundingMode.HALF_UP).doubleValue();
 		this.maxY = new BigDecimal(new AtCommonMath(this.yList).getMax() + 0.5 * this.cellSize)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+				.setScale(this.coordinateScale, RoundingMode.HALF_UP).doubleValue();
 
 		xMath.clear();
 		yMath.clear();
@@ -146,35 +115,27 @@ public class XYZToAscii {
 		// set the column and row
 		// reBoundary the xyList
 		int row = new BigDecimal((this.maxY - this.minY) / this.cellSize)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_UP).intValue() + 2;
-		int column = new BigDecimal((maxX - minX) / this.cellSize).setScale(this.coordinateScale, BigDecimal.ROUND_UP)
+				.setScale(this.coordinateScale, RoundingMode.UP).intValue() + 2;
+		int column = new BigDecimal((maxX - minX) / this.cellSize).setScale(this.coordinateScale, RoundingMode.UP)
 				.intValue() + 2;
 		this.maxX = new BigDecimal((column) * this.cellSize + this.minX)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+				.setScale(this.coordinateScale, RoundingMode.HALF_UP).doubleValue();
 		this.minY = new BigDecimal(this.maxY - (row) * this.cellSize)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).doubleValue();
+				.setScale(this.coordinateScale, RoundingMode.HALF_UP).doubleValue();
 
 		this.property.put("bottomX", new BigDecimal(this.minX + this.cellSize / 2)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).toString());
+				.setScale(this.coordinateScale, RoundingMode.HALF_UP).toString());
 		this.property.put("bottomY", new BigDecimal(this.minY + this.cellSize / 2)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).toString());
+				.setScale(this.coordinateScale, RoundingMode.HALF_UP).toString());
 		this.property.put("topX", new BigDecimal(this.maxX - this.cellSize / 2)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).toString());
+				.setScale(this.coordinateScale, RoundingMode.HALF_UP).toString());
 		this.property.put("topY", new BigDecimal(this.maxY - this.cellSize / 2)
-				.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).toString());
+				.setScale(this.coordinateScale, RoundingMode.HALF_UP).toString());
+
 		this.property.put("cellSize", this.cellSize + "");
 		this.property.put("noData", this.noData);
 		this.property.put("row", row + "");
 		this.property.put("column", column + "");
-
-		System.out.println("XYZ");
-		System.out.println("MinX " + this.property.get("bottomX"));
-		System.out.println("MinY " + property.get("bottomY"));
-		System.out.println("MaxX " + property.get("topX"));
-		System.out.println("MaxY " + property.get("topY"));
-
-		System.out.println();
-
 	}
 
 	// the order of tree , y,x,z
@@ -197,9 +158,9 @@ public class XYZToAscii {
 
 		for (int index = 0; index < this.xList.size(); index++) {
 			int temptRow = new BigDecimal((boundaryMaxY - this.yList.get(index)) / this.cellSize)
-					.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).intValue();
+					.setScale(this.coordinateScale, RoundingMode.HALF_UP).intValue();
 			int temptColumn = new BigDecimal((this.xList.get(index) - boundaryMinX) / this.cellSize)
-					.setScale(this.coordinateScale, BigDecimal.ROUND_HALF_UP).intValue();
+					.setScale(this.coordinateScale, RoundingMode.HALF_UP).intValue();
 			this.outTree.get(temptRow).get(temptColumn).add(this.zList.get(index));
 		}
 	}
@@ -211,13 +172,17 @@ public class XYZToAscii {
 			List<String> temptList = new ArrayList<String>();
 			Integer[] columnList = this.outTree.get(row).keySet().parallelStream().toArray(Integer[]::new);
 			for (int column : columnList) {
-				double temptValue = new AtCommonMath(this.outTree.get(row).get(column)).getMean();
-				try {
-					temptList.add(
-							new BigDecimal(temptValue).setScale(this.valeuScale, BigDecimal.ROUND_HALF_UP).toString());
-				} catch (Exception e) {
+
+				List<Double> valueList = this.outTree.get(row).get(column);
+
+				if (valueList.size() == 1) {
+					temptList.add(AtCommonMath.getDecimal_String(valueList.get(0), this.valeuScale));
+				} else if (valueList.size() == 0) {
 					temptList.add(this.noData);
+				} else {
+					temptList.add(new AtCommonMath(valueList).getMean(this.valeuScale) + "");
 				}
+
 				this.outTree.get(row).remove(column);
 			}
 			this.outList.add(temptList.parallelStream().toArray(String[]::new));
@@ -234,10 +199,15 @@ public class XYZToAscii {
 	// <start working>
 	// <=======================================>
 	public XYZToAscii start() {
+		long start = System.currentTimeMillis();
 		setProperty();
+		System.out.println(System.currentTimeMillis() - start);
 		initialTreeMap();
+		System.out.println(System.currentTimeMillis() - start);
 		getSortedTree();
+		System.out.println(System.currentTimeMillis() - start);
 		setAsciiContent();
+		System.out.println(System.currentTimeMillis() - start);
 		return this;
 	}
 	// <================================================>

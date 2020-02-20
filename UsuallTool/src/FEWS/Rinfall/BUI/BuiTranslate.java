@@ -3,9 +3,11 @@ package FEWS.Rinfall.BUI;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.TreeMap;
 
 import javax.naming.OperationNotSupportedException;
@@ -22,7 +24,7 @@ import usualTool.TimeTranslate;
 public class BuiTranslate {
 	private String fileAdd;
 	private TreeMap<String, String> idMapping = null;
-	private ArrayList<TimeSeriesArray> timeSeriesArrays;
+	private List<TimeSeriesArray> timeSeriesArrays;
 	private long startDate;
 	private int timeStepMultiplier;
 	private long endDate;
@@ -91,7 +93,7 @@ public class BuiTranslate {
 					temptValue.add("0.00");
 				} else {
 					temptValue.add(new BigDecimal(timeSeries.getValue(event) * this.valueTimes)
-							.setScale(2, BigDecimal.ROUND_HALF_UP).toString());
+							.setScale(2, RoundingMode.HALF_UP).toString());
 				}
 			}
 			;
