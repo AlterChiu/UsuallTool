@@ -19,6 +19,7 @@ public class SpatialReader {
 	private List<Geometry> geometryList = new ArrayList<Geometry>();
 	private List<Map<String, String>> featureTable = new ArrayList<>();
 	private Map<String, String> attributeTitleType = new TreeMap<>();
+	private int EPSG = 4326;
 
 	// <=========================================>
 	// <constructor>
@@ -88,6 +89,10 @@ public class SpatialReader {
 
 	public Map<String, String> getAttributeTitleType() {
 		return this.attributeTitleType;
+	}
+
+	public int getEPSG() {
+		return this.EPSG;
 	}
 	// <============================================>
 
@@ -175,6 +180,12 @@ public class SpatialReader {
 
 	private void detectAttributeTable() {
 		Layer layer = this.dataSource.GetLayer(0);
+		try {
+			this.EPSG = layer.GetSpatialRef().AutoIdentifyEPSG();
+		} catch (Exception e) {
+			new Exception("*WARN* error while detect EPSG ");
+		}
+
 		for (int index = 0; index < layer.GetFeatureCount(); index++) {
 			Feature feature = layer.GetFeature(index);
 

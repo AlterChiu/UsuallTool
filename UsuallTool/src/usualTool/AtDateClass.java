@@ -55,29 +55,34 @@ public class AtDateClass {
 		this.second = Integer.parseInt(TimeTranslate.milliToTime(dateLong, "ss"));
 	}
 
-	public void addYear(int times) throws ParseException {
+	public AtDateClass addYear(int times) throws ParseException {
 		this.year = this.year + times;
 		translate();
+		return this;
 	}
 
-	public void addHour(int times) throws ParseException {
+	public AtDateClass addHour(int times) throws ParseException {
 		this.hour = this.hour + times;
 		translate();
+		return this;
 	}
 
-	public void addMonth(int times) throws ParseException {
+	public AtDateClass addMonth(int times) throws ParseException {
 		this.month = this.month + times;
 		translate();
+		return this;
 	}
 
-	public void addMinutes(int times) throws ParseException {
+	public AtDateClass addMinutes(int times) throws ParseException {
 		this.minute = this.minute + times;
 		translate();
+		return this;
 	}
 
-	public void addSecond(int times) throws ParseException {
+	public AtDateClass addSecond(int times) throws ParseException {
 		this.second = this.second + times;
 		translate();
+		return this;
 	}
 
 	public int getYearFormat() {
