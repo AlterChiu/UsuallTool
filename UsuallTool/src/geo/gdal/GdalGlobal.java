@@ -2,6 +2,7 @@ package geo.gdal;
 
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -17,17 +18,19 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import usualTool.RandomMaker;
+
 public class GdalGlobal {
 
 	/*
 	 * library & temptFolder
 	 */
-	public static String gdalBinFolder = "K:\\Qgis\\3.4.13\\bin\\";
-	public static String sagaBinFolder = "K:\\Qgis\\3.4.13\\apps\\saga-ltr\\";
-	public static String grassBinFolder = "K:\\Qgis\\3.4.13\\apps\\grass\\grass78\\bin\\";
+	public static String qgisBinFolder = "K:\\Qgis\\3.4.13\\";
+	public static String gdalBinFolder = qgisBinFolder + "bin\\";
+	public static String sagaBinFolder = qgisBinFolder + "apps\\saga-ltr\\";
+	public static String grassBinFolder = qgisBinFolder + "apps\\grass\\grass78\\bin\\";
 
-	public static String temptFolder = "K:/Qgis/test/";
-	public static String temptFile = temptFolder + "tempt";
+	public static String temptFolder = qgisBinFolder + "temptFolder";
 
 	/*
 	 * Coordinate System
@@ -388,7 +391,20 @@ public class GdalGlobal {
 		return outList;
 	}
 
-	private class mergePolygons_Threads {
+	// additionFormat should be like this ".csv",".shp"
+	public static String newTempFileName(String folder, String additionFormat) {
+		StringBuilder temptName = new StringBuilder();
 
+		RandomMaker radom = new RandomMaker();
+		for (int index = 0; index < 10; index++) {
+			temptName.append(radom.RandomInt(0, 9));
+		}
+		String temptWholeName = temptName.toString() + additionFormat;
+
+		if (new File(folder + temptWholeName).exists()) {
+			return newTempFileName(folder, additionFormat);
+		} else {
+			return temptWholeName;
+		}
 	}
 }

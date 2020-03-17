@@ -1,6 +1,7 @@
 package geo.gdal.raster;
 
 import java.awt.geom.Path2D;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
 import geo.gdal.SpatialWriter;
 import usualTool.AtCommonMath;
+import usualTool.FileFunction;
 
 public class GDAL_RASTER_ToVector {
 	/*
@@ -48,14 +50,26 @@ public class GDAL_RASTER_ToVector {
 	}
 
 	public void save(String saveAdd) throws IOException, InterruptedException {
+		/*
+		 * clear gdalGlobal temptFolder
+		 */
+		for (String fileName : new File(GdalGlobal.temptFolder).list()) {
+			FileFunction.delete(GdalGlobal.temptFolder + "\\" + fileName);
+		}
+
+		/*
+		 * setting temptFile fileName
+		 */
+		String temptFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, ".txt");
+		String temptFileDirection = GdalGlobal.temptFolder + temptFileName;
 
 		// translate raster data to asciiFormat
 		GDAL_RASTER_Translate rasterTranslate = new GDAL_RASTER_Translate(this.inputFile);
 		rasterTranslate.setNullValue("-999");
-		rasterTranslate.save(GdalGlobal.temptFile + ".asc", this.outputDataType);
+		rasterTranslate.save(temptFileDirection, this.outputDataType);
 
 		// get asciiFormate data
-		AsciiBasicControl ascii = new AsciiBasicControl(GdalGlobal.temptFile + ".asc");
+		AsciiBasicControl ascii = new AsciiBasicControl(temptFileDirection);
 
 		// setting output geoList and attributeData
 		List<Geometry> geoList = new ArrayList<>();

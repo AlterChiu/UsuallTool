@@ -55,32 +55,20 @@ public class AtDateClass {
 		this.second = Integer.parseInt(TimeTranslate.milliToTime(dateLong, "ss"));
 	}
 
-	public AtDateClass addYear(int times) throws ParseException {
-		this.year = this.year + times;
-		translate();
-		return this;
-	}
-
 	public AtDateClass addHour(int times) throws ParseException {
-		this.hour = this.hour + times;
-		translate();
-		return this;
-	}
-
-	public AtDateClass addMonth(int times) throws ParseException {
-		this.month = this.month + times;
+		this.dateLong = this.dateLong + (long)times * (long)3600000;
 		translate();
 		return this;
 	}
 
 	public AtDateClass addMinutes(int times) throws ParseException {
-		this.minute = this.minute + times;
+		this.dateLong = this.dateLong + (long)times * (long)60000;
 		translate();
 		return this;
 	}
 
 	public AtDateClass addSecond(int times) throws ParseException {
-		this.second = this.second + times;
+		this.dateLong = this.dateLong + (long)times * (long)1000;
 		translate();
 		return this;
 	}
@@ -146,18 +134,66 @@ public class AtDateClass {
 	}
 
 	private void translate() throws ParseException {
-		StringBuilder dateString = new StringBuilder();
-		dateString.append(String.format("%04d", this.year));
-		dateString.append(String.format("%02d", this.month));
-		dateString.append(String.format("%02d", this.day));
-		dateString.append(String.format("%02d", this.minute));
-		dateString.append(String.format("%02d", this.second));
-
-		this.dateLong = TimeTranslate.StringToLong(dateString.toString(), "yyyyMMddHHmmss");
+		this.year = Integer.parseInt(TimeTranslate.milliToDate(this.dateLong, "yyyy"));
+		this.month = Integer.parseInt(TimeTranslate.milliToDate(this.dateLong, "HH"));
+		this.day = Integer.parseInt(TimeTranslate.milliToDate(this.dateLong, "dd"));
+		this.hour = Integer.parseInt(TimeTranslate.milliToDate(this.dateLong, "HH"));
+		this.minute = Integer.parseInt(TimeTranslate.milliToDate(this.dateLong, "mm"));
+		this.second = Integer.parseInt(TimeTranslate.milliToDate(this.dateLong, "ss"));
 	}
 
 	public String getDateString(String outputFormat) {
 		return TimeTranslate.milliToDate(this.dateLong, outputFormat);
+	}
+
+	public static Boolean isLunar(int year) {
+		if (year % 4000 == 0) {
+			return false;
+		} else if (year % 400 == 0) {
+			return true;
+		} else if (year % 100 == 0) {
+			return false;
+		} else if (year % 4 == 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public static int getTotalDayInMont(int year, int month) throws Exception {
+		if (month > 12 || month <= 0) {
+			throw new Exception("error month");
+		} else if (year <= 0) {
+			throw new Exception("error year");
+		} else if (month == 1) {
+			return 31;
+		} else if (month == 2) {
+			if (isLunar(year)) {
+				return 29;
+			} else {
+				return 28;
+			}
+		} else if (month == 3) {
+			return 31;
+		} else if (month == 4) {
+			return 30;
+		} else if (month == 5) {
+			return 31;
+		} else if (month == 6) {
+			return 30;
+		} else if (month == 7) {
+			return 31;
+		} else if (month == 8) {
+			return 31;
+		} else if (month == 9) {
+			return 30;
+		} else if (month == 10) {
+			return 31;
+		} else if (month == 11) {
+			return 30;
+		} else {
+			return 31;
+		}
 	}
 
 }

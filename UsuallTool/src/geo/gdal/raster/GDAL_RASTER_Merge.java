@@ -11,6 +11,8 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_Merge {
+	private static String tmeptRunFileName = "gdal_merge_tempt.bat";
+
 	/*
 	 * variable type
 	 */
@@ -51,10 +53,15 @@ public class GDAL_RASTER_Merge {
 		}
 
 		/*
+		 * setting temptFile fileName
+		 */
+		String temptFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, ".txt");
+		String temptFileDirection = GdalGlobal.temptFolder + temptFileName;
+
+		/*
 		 * setting inputFile
 		 */
-		new AtFileWriter(this.mergeFiles.parallelStream().toArray(String[]::new), GdalGlobal.temptFile + ".txt")
-				.textWriter("");
+		new AtFileWriter(this.mergeFiles.parallelStream().toArray(String[]::new), temptFileDirection).textWriter("");
 
 		/*
 		 * setting raster merge .bat file
@@ -65,14 +72,14 @@ public class GDAL_RASTER_Merge {
 		mergeCommand.append(" -ot " + VARIABLETYPE_Float32);
 		mergeCommand.append(" -of " + GdalGlobal_DataFormat.DATAFORMAT_RASTER_GTiff);
 		mergeCommand.append(" -o " + saveAdd);
-		mergeCommand.append(" --optfile " + GdalGlobal.temptFile + ".txt");
+		mergeCommand.append(" --optfile " + temptFileDirection);
 		this.batContent.add(mergeCommand.toString());
 
 		/*
 		 * save .bat file to gdalBin folder
 		 */
 		new AtFileWriter(this.batContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//gdal_merge_tempt.bat").setEncoding(AtFileWriter.ANSI).textWriter("");
+				GdalGlobal.gdalBinFolder + tmeptRunFileName).setEncoding(AtFileWriter.ANSI).textWriter("");
 
 		/*
 		 * run bat file
@@ -82,7 +89,7 @@ public class GDAL_RASTER_Merge {
 		runCommand.add("/c");
 		runCommand.add("start");
 		runCommand.add("/B");
-		runCommand.add(GdalGlobal.gdalBinFolder + "//gdal_merge_tempt.bat");
+		runCommand.add(GdalGlobal.gdalBinFolder + tmeptRunFileName);
 
 		ProcessBuilder pb = new ProcessBuilder();
 		pb.directory(new File(GdalGlobal.gdalBinFolder));

@@ -3,6 +3,7 @@ package geo.saga;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,10 @@ public class SAGA_Interpolation_Kriging {
 	// xyzList
 	private List<Double[]> xyzList;
 
+	// tmeptFile setting
+	private String temptFileName = "";
+	private String temptFileDirection = "";
+
 	/*
 	 ** InterPolationKriging
 	 * 
@@ -67,6 +72,11 @@ public class SAGA_Interpolation_Kriging {
 	 * @ 2. using gisFunction SAGA(in QGIS)
 	 */
 
+	// <========================================================>
+	// <+++++++++CONSTRUCTUR++++++++++++++>
+	// <========================================================>
+
+	// giving xyzList without title
 	public SAGA_Interpolation_Kriging(List<Double[]> xyzList) throws InterruptedException {
 		this.xyzList = xyzList;
 		initialize();
@@ -78,17 +88,19 @@ public class SAGA_Interpolation_Kriging {
 		initialize();
 	}
 
-	// this method only for shapeFile which attribute table contains xyz(Double)
-	public SAGA_Interpolation_Kriging(String shpFile) {
-		FileFunction.copyFile(shpFile, GdalGlobal.temptFile + ".shp");
-	}
-
 	private void initialize() throws InterruptedException {
-		// clear temptFolder
+		/*
+		 * clear gdalGlobal temptFolder
+		 */
 		for (String fileName : new File(GdalGlobal.temptFolder).list()) {
-			FileFunction.delete(GdalGlobal.temptFolder + fileName);
+			FileFunction.delete(GdalGlobal.temptFolder + "\\" + fileName);
 		}
-		Thread.sleep(500);
+
+		/*
+		 * setting temptFile fileName
+		 */
+		this.temptFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, ".shp");
+		this.temptFileDirection = GdalGlobal.temptFolder + this.temptFileName;
 
 		// convert xyzList to csvFile, which save in temptFile
 		List<String[]> temptCsvList = new ArrayList<>();
@@ -102,14 +114,16 @@ public class SAGA_Interpolation_Kriging {
 		csvTitleType.put("y", "Double");
 		csvTitleType.put("z", "Double");
 		csvConverter.setFieldType(csvTitleType);
-		csvConverter.saveAsShp(GdalGlobal.temptFile + ".shp");
+		csvConverter.saveAsShp(this.temptFileDirection);
 	}
+
+	// <=================================================================>
 
 	private void GDAL_Translation(String saveAdd, String dataType) throws InterruptedException, IOException {
 		/*
 		 * GDAL_TANS CommandLine
 		 */
-		FileFunction.delete(GdalGlobal.temptFile + "_pridiction.asc");
+		FileFunction.delete(this.temptFileDirection + "_pridiction.asc");
 
 		List<String> transCmd = new ArrayList<>();
 		transCmd.add("cmd");
@@ -120,7 +134,7 @@ public class SAGA_Interpolation_Kriging {
 		transCmd.add("gdal_translate.exe");
 		transCmd.add("-of");
 		transCmd.add(dataType);
-		transCmd.add(GdalGlobal.temptFile + "_pridiction.sdat");
+		transCmd.add(this.temptFileDirection + "_pridiction.sdat");
 		transCmd.add(saveAdd);
 
 		ProcessBuilder trans_builder = new ProcessBuilder();
@@ -160,7 +174,7 @@ public class SAGA_Interpolation_Kriging {
 
 		// shape file add
 		sagaCmd.add("-POINTS");
-		sagaCmd.add("\"" + GdalGlobal.temptFile + ".shp\"");
+		sagaCmd.add("\"" + this.temptFileDirection + "\"");
 
 		// field
 		sagaCmd.add("-FIELD");
@@ -173,16 +187,16 @@ public class SAGA_Interpolation_Kriging {
 		// target boundary
 		sagaCmd.add("-TARGET_USER_XMIN");
 		sagaCmd.add(new BigDecimal(this.targetBoundary.get("minX") + 0.5 * this.cellSize)
-				.setScale(5, BigDecimal.ROUND_HALF_UP).toString());
+				.setScale(5, RoundingMode.HALF_UP).toString());
 		sagaCmd.add("-TARGET_USER_XMAX");
 		sagaCmd.add(new BigDecimal(this.targetBoundary.get("maxX") - 0.5 * this.cellSize)
-				.setScale(5, BigDecimal.ROUND_HALF_UP).toString());
+				.setScale(5, RoundingMode.HALF_UP).toString());
 		sagaCmd.add("-TARGET_USER_YMIN");
 		sagaCmd.add(new BigDecimal(this.targetBoundary.get("minY") + 0.5 * this.cellSize)
-				.setScale(5, BigDecimal.ROUND_HALF_UP).toString());
+				.setScale(5, RoundingMode.HALF_UP).toString());
 		sagaCmd.add("-TARGET_USER_YMAX");
 		sagaCmd.add(new BigDecimal(this.targetBoundary.get("maxY") - 0.5 * this.cellSize)
-				.setScale(5, BigDecimal.ROUND_HALF_UP).toString());
+				.setScale(5, RoundingMode.HALF_UP).toString());
 
 		// cellSize
 		sagaCmd.add("-TARGET_USER_SIZE");
@@ -210,9 +224,9 @@ public class SAGA_Interpolation_Kriging {
 
 		// saveAdd
 		sagaCmd.add("-PREDICTION");
-		sagaCmd.add("\"" + GdalGlobal.temptFile + "_pridiction.sdat\"");
+		sagaCmd.add("\"" + this.temptFileDirection + "_pridiction.sdat\"");
 		sagaCmd.add("-VARIANCE");
-		sagaCmd.add("\"" + GdalGlobal.temptFile + "_variance.sdat\"");
+		sagaCmd.add("\"" + this.temptFileDirection + "_variance.sdat\"");
 
 		ProcessBuilder saga_builder = new ProcessBuilder();
 		saga_builder.directory(new File(GdalGlobal.sagaBinFolder));
@@ -278,8 +292,8 @@ public class SAGA_Interpolation_Kriging {
 	public AsciiBasicControl getAscii() throws IOException, InterruptedException {
 		// TODO Auto-generated method stub
 		SAGA_RunKriging();
-		GDAL_Translation(GdalGlobal.temptFile + "_pridiction.asc", GdalGlobal_DataFormat.DATAFORMAT_RASTER_AAIGrid);
-		return new AsciiBasicControl(GdalGlobal.temptFile + "_pridiction.asc");
+		GDAL_Translation(this.temptFileDirection + "_pridiction.asc", GdalGlobal_DataFormat.DATAFORMAT_RASTER_AAIGrid);
+		return new AsciiBasicControl(this.temptFileDirection + "_pridiction.asc");
 	}
 
 	public void saveAdRaster(String saveAdd, String dataFormat) throws InterruptedException, IOException {

@@ -199,15 +199,10 @@ public class XYZToAscii {
 	// <start working>
 	// <=======================================>
 	public XYZToAscii start() {
-		long start = System.currentTimeMillis();
 		setProperty();
-		System.out.println(System.currentTimeMillis() - start);
 		initialTreeMap();
-		System.out.println(System.currentTimeMillis() - start);
 		getSortedTree();
-		System.out.println(System.currentTimeMillis() - start);
 		setAsciiContent();
-		System.out.println(System.currentTimeMillis() - start);
 		return this;
 	}
 	// <================================================>
