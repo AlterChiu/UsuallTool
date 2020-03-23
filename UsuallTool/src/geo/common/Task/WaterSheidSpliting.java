@@ -1,6 +1,7 @@
 package geo.common.Task;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +24,7 @@ import geo.gdal.IrregularReachBasicControl.NodeClass;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
 import usualTool.AtCommonMath;
+import usualTool.AtFileReader;
 
 public class WaterSheidSpliting {
 	private static int dataDecimale = 4;
@@ -40,6 +42,7 @@ public class WaterSheidSpliting {
 	private static String groupedNodeShp = "";
 	private static int groupedNodeEPSG = 3826;
 	private static String groupedPolygons = "";
+	private static String idPrefix = "tempt-";
 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
@@ -114,44 +117,37 @@ public class WaterSheidSpliting {
 		/*
 		 * testing
 		 */
-		mainStreamSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\主流.shp";
-		bufferStreamShp = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\主流_buffer.shp";
+		mainStreamSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\mainStream.shp";
+		bufferStreamShp = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\mainStream-buffer.shp";
 		otherStreamSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_reach.shp";
 		groupedReachSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedReach.shp";
 		groupedNodeShp = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedNode.shp";
 		waterSheidSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10.shp";
 		waterSheidMinArea = 100.;
 		groupedPolygons = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedPolygons.shp";
+		idPrefix = "RRin-";
 
-		args = new String[] { "-mainStreamSHP", "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\mainStream.shp",
-				"-mainStreamEPSG", "3826", "-bufferRadius", "30", "-bufferStreamShp",
-				"E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\mainStream-Buffer.shp", "-waterSheidSHP",
-				"E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10.shp", "-waterSheidMinArea", "100",
-				"-waterSheidEPSG", "3826", "-otherStreamSHP",
-				"E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_reach.shp", "-otherStreamEPSG", "3826",
-				"-groupedReachSHP", "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedReach.shp",
-				"-groupedReachEPSG", "3826", "-groupedNodeShp",
-				"E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedNode.shp", "-groupedNodeEPSG",
-				"3826", "-groupedPolygons",
-				"E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedPolygons.shp" };
-
-		getCommand(args);
+//		getCommand(args[0]);
 
 		System.out.println("START buffer main stream....");
 		mainStreamBuffer(mainStreamSHP, bufferStreamShp, bufferRadius);
 		System.out.println("END");
 
-//		System.out.println("START grouping reaches....");
-//		getMainStreamGroup(bufferStreamShp, otherStreamSHP, groupedReachSHP, groupedNodeShp);
-//		System.out.println("END");
-//
-//		System.out.println("START merge small polygons");
-//		mergeSmallPolygons(waterSheidSHP, waterSheidMinArea);
-//		System.out.println("END");
-//
-//		System.out.println("START grouping polygons");
-//		groupPolygons(waterSheidSHP, groupedReachSHP, groupedPolygons);
-//		System.out.println("END");
+		System.out.println("START grouping reaches....");
+		getMainStreamGroup(bufferStreamShp, otherStreamSHP, groupedReachSHP, groupedNodeShp);
+		System.out.println("END");
+
+		System.out.println("START merge small polygons");
+		mergeSmallPolygons(waterSheidSHP, waterSheidMinArea);
+		System.out.println("END");
+
+		System.out.println("START grouping polygons");
+		groupPolygons(waterSheidSHP, groupedReachSHP, groupedPolygons);
+		System.out.println("END");
+
+		System.out.println("START relinked id");
+		reLinkedID();
+		System.out.println("END");
 
 	}
 
@@ -231,14 +227,10 @@ public class WaterSheidSpliting {
 				// if the other node is in mainStream
 				// let's this edge to mainStreamEdgeMap
 				// or make it to crossMainStreamEdgeMap
-				try {
 
-					// if in mainStream
-					mainStreamNodeMap.get(temptEdge.getOtherNode(temptMainStreamNode).getId()).getId();
+				if (mainStreamNodeMap.containsKey(temptEdge.getOtherNode(temptMainStreamNode).getId())) {
 					mainStreamEdgeMap.put(temptEdge.getId(), temptEdge);
-				} catch (Exception e) {
-
-					// if not in main stream
+				} else {
 					crossMainStreamEdgeMap.put(temptEdge.getId(), temptEdge);
 				}
 			});
@@ -253,16 +245,21 @@ public class WaterSheidSpliting {
 		totalEdgeMap.keySet().forEach(edgeMapKey -> {
 			EdgeClass temptEdge = totalEdgeMap.get(edgeMapKey);
 
-			try {
-				mainStreamEdgeMap.get(temptEdge.getId()).getId();
-			} catch (Exception e1) {
-				try {
-					crossMainStreamEdgeMap.get(temptEdge.getId()).getId();
-				} catch (Exception e2) {
-					notMainStreamEdgeMap.put(temptEdge.getId(), temptEdge);
-				}
+			if (!mainStreamEdgeMap.containsKey(temptEdge.getId())
+					&& !crossMainStreamEdgeMap.containsKey(temptEdge.getId())) {
+				notMainStreamEdgeMap.put(temptEdge.getId(), temptEdge);
 			}
 		});
+
+		// TESTINGINGINGINGIN
+		// <++++++++++++++++>
+		List<Geometry> testList = new ArrayList<>();
+		crossMainStreamEdgeMap.keySet().forEach(key -> {
+			testList.add(crossMainStreamEdgeMap.get(key).getGeo());
+		});
+		new SpatialWriter().setGeoList(testList)
+				.saveAsShp("E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\testingCross.shp");
+		// <++++++++++++++++>
 
 		/*
 		 * starting grouping
@@ -274,10 +271,9 @@ public class WaterSheidSpliting {
 
 			// get the node that not in main stream
 			crossMainStreamEdge.getNode().forEach(temptNode -> {
-				try {
 
-					// if in mainStream, starting grouping reaches
-					mainStreamNodeMap.get(temptNode.getId()).getId();
+				// if node not in mainStream, starting grouping reaches
+				if (mainStreamNodeMap.containsKey(temptNode.getId())) {
 
 					/*
 					 * for grouped nodes
@@ -287,9 +283,9 @@ public class WaterSheidSpliting {
 
 					// feature
 					Map<String, Object> featureAttr_Node = new HashMap<>();
-					featureAttr_Node.put("ID", temptNode.getId());
-					featureAttr_Node.put("X", temptNode.getX());
-					featureAttr_Node.put("Y", temptNode.getY());
+					featureAttr_Node.put("ID", crossMainStreamEdge.getId());
+					featureAttr_Node.put("X", temptNode.getX() + "");
+					featureAttr_Node.put("Y", temptNode.getY() + "");
 					outGeometry_GroupedNode_Attr.add(featureAttr_Node);
 
 					/*
@@ -297,15 +293,18 @@ public class WaterSheidSpliting {
 					 */
 					List<Geometry> groupedGeometries = getGroupReaches(temptNode, crossMainStreamEdge,
 							notMainStreamEdgeMap);
+					groupedGeometries.add(crossMainStreamEdge.getGeo());
 					Geometry groupedGeometry = GdalGlobal.mergePolygons(groupedGeometries);
-					outGeometry_GroupedReached.put(temptNode.getId(), groupedGeometry);
+
+					if (outGeometry_GroupedReached.containsKey(crossMainStreamEdge.getId())) {
+						groupedGeometries.add(outGeometry_GroupedReached.get(crossMainStreamEdge.getId()));
+					}
+					outGeometry_GroupedReached.put(crossMainStreamEdge.getId(), groupedGeometry);
 
 					// add a new feature to node map
 					Map<String, Object> featureAttr_Reach = new HashMap<>();
-					featureAttr_Reach.put("ID", temptNode.getId());
+					featureAttr_Reach.put("ID", crossMainStreamEdge.getId());
 					outGeometry_GroupedReached_Attr.add(featureAttr_Reach);
-
-				} catch (Exception e) {
 				}
 			});
 		});
@@ -336,34 +335,30 @@ public class WaterSheidSpliting {
 			Map<String, EdgeClass> remainEdges) {
 
 		Set<Geometry> outList = new HashSet<>();
-		outList.add(directionEdge.getGeo());
-		remainEdges.remove(directionEdge.getId());
-
 		NodeClass nextNode = directionEdge.getOtherNode(startNode);
 		List<EdgeClass> nextEdgeList = nextNode.getEdge();
-		nextEdgeList.remove(directionEdge);
 
-		for (EdgeClass temptEdge : nextEdgeList) {
-			try {
+		for (EdgeClass nextEdge : nextEdgeList) {
+			if (nextEdge != directionEdge) {
+
 				// try the node is exist or not
-				remainEdges.get(temptEdge.getId()).getId();
-				remainEdges.remove(temptEdge.getId());
-				outList.add(temptEdge.getGeo());
+				if (remainEdges.containsKey(nextEdge.getId())) {
+					remainEdges.remove(nextEdge.getId());
+					outList.add(nextEdge.getGeo());
 
-				// if exit
-				// run grouping process
-				if (temptEdge.getOtherNode(nextNode).getEdge().size() != 1) {
-					getGroupReaches(nextNode, temptEdge, remainEdges).forEach(geo -> outList.add(geo));
+					// if exit
+					// run grouping process
+					if (nextEdge.getOtherNode(nextNode).getEdge().size() != 1) {
+						getGroupReaches(nextNode, nextEdge, remainEdges).forEach(geo -> outList.add(geo));
 
-				} else if (temptEdge.getOtherNode(nextNode).getEdge().size() == 1) {
-					outList.add(directionEdge.getGeo());
+					} else if (nextEdge.getOtherNode(nextNode).getEdge().size() == 1) {
+						outList.add(nextEdge.getGeo());
 
-				} else {
-					System.out.println(new Exception("node error , id : " + nextNode.getId()));
+					} else {
+						System.out.println(new Exception("node error , id : " + nextNode.getId()));
+					}
 				}
-			} catch (Exception e) {
 			}
-
 		}
 
 		return new ArrayList<Geometry>(outList);
@@ -457,7 +452,7 @@ public class WaterSheidSpliting {
 		// read grouped reaches
 		SpatialReader groupedReaches = new SpatialReader(groupedReachSHP);
 		List<Geometry> groupedReachesGeoList = groupedReaches.getGeometryList();
-		List<Map<String, String>> groupedReachesAttr = groupedReaches.getAttributeTable();
+		List<Map<String, Object>> groupedReachesAttr = groupedReaches.getAttributeTable();
 
 		// for output grouped polygons
 		List<Geometry> groupedPolygons = new ArrayList<>();
@@ -515,7 +510,41 @@ public class WaterSheidSpliting {
 		}
 	}
 
-	private static void getCommand(String[] args) {
+	public static void reLinkedID() {
+		Map<String, String> outMap = new TreeMap<>();
+
+		// node
+		SpatialReader node = new SpatialReader(groupedNodeShp);
+		List<Map<String, Object>> nodeAttr = node.getAttributeTable();
+		for (int index = 0; index < nodeAttr.size(); index++) {
+			String fixedID = idPrefix + (index + 1);
+			outMap.put(nodeAttr.get(index).get("ID") + "", fixedID);
+			nodeAttr.get(index).put("ID", fixedID);
+		}
+		new SpatialWriter().setGeoList(node.getGeometryList()).setFieldType(node.getAttributeTitleType())
+				.setAttribute(nodeAttr).setCoordinateSystem(groupedNodeEPSG).saveAsShp(groupedNodeShp);
+
+		// reach
+		SpatialReader reach = new SpatialReader(groupedReachSHP);
+		List<Map<String, Object>> reachAttr = reach.getAttributeTable();
+		reachAttr.forEach(attr -> {
+			attr.put("ID", outMap.get(attr.get("ID")));
+		});
+		new SpatialWriter().setGeoList(reach.getGeometryList()).setFieldType(reach.getAttributeTitleType())
+				.setAttribute(reachAttr).setCoordinateSystem(groupedReachEPSG).saveAsShp(groupedReachSHP);
+
+		// polygon
+		SpatialReader polygon = new SpatialReader(groupedPolygons);
+		List<Map<String, Object>> polygonAttr = polygon.getAttributeTable();
+		polygonAttr.forEach(attr -> {
+			attr.put("ID", outMap.get(attr.get("ID")));
+		});
+		new SpatialWriter().setGeoList(polygon.getGeometryList()).setFieldType(polygon.getAttributeTitleType())
+				.setAttribute(polygonAttr).setCoordinateSystem(waterSheidEPSG).saveAsShp(groupedPolygons);
+	}
+
+	private static void getCommand(String settingConfig) throws IOException {
+		String content[] = new AtFileReader(settingConfig).getContainWithOut("*");
 		Map<String, String> commandLine = new TreeMap<>();
 
 		// setting default values
@@ -525,8 +554,13 @@ public class WaterSheidSpliting {
 		commandLine.put("-groupedNodeEPSG", groupedNodeEPSG + "");
 
 		// input user input
-		for (int index = 0; index < args.length; index = index + 2) {
-			commandLine.put(args[index], args[index + 1]);
+		for (String temptLine : content) {
+			temptLine = temptLine.trim();
+			try {
+				String[] command = temptLine.split(" +");
+				commandLine.put(command[0], command[1]);
+			} catch (Exception e) {
+			}
 		}
 
 		// check
@@ -557,8 +591,8 @@ public class WaterSheidSpliting {
 		System.out.println("-groupedNodeShp : " + commandLine.get("-groupedNodeShp"));
 		groupedNodeShp = commandLine.get("-groupedNodeShp");
 
-		System.out.println("-groupedPolygonsShp : " + commandLine.get("-groupedNodeShp"));
-		groupedPolygons = commandLine.get("-groupedPolygonsShp");
+		System.out.println("-groupedPolygonsShp : " + commandLine.get("-groupedPolygonsSHP"));
+		groupedPolygons = commandLine.get("-groupedPolygonsSHP");
 
 		System.out.println("-otherStreamEPSG : " + commandLine.get("-otherStreamEPSG"));
 		otherStreamEPSG = Integer.parseInt(commandLine.get("-otherStreamEPSG"));
@@ -581,5 +615,7 @@ public class WaterSheidSpliting {
 		System.out.println("-waterSheidMinArea : " + commandLine.get("-waterSheidMinArea"));
 		waterSheidMinArea = Double.parseDouble(commandLine.get("-waterSheidMinArea"));
 
+		System.out.println("-idPrefix : " + commandLine.get("-idPrefix"));
+		idPrefix = commandLine.get("-idPrefix");
 	}
 }

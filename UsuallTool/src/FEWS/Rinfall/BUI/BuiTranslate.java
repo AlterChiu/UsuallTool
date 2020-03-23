@@ -2,6 +2,7 @@ package FEWS.Rinfall.BUI;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
@@ -15,6 +16,8 @@ import javax.naming.OperationNotSupportedException;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.XMLWriter;
 
 import FEWS.PIXml.AtPiXmlReader;
 import nl.wldelft.util.timeseries.TimeSeriesArray;
@@ -242,7 +245,11 @@ public class BuiTranslate {
 
 			}
 		}
-
-		return doc.asXML();
+		OutputFormat format = new OutputFormat().createPrettyPrint();
+		StringWriter sw = new StringWriter();
+		XMLWriter xmlWriter = new XMLWriter(sw, format);
+		xmlWriter.write(doc);
+		xmlWriter.close();
+		return sw.toString();
 	}
 }

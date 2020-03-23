@@ -17,7 +17,7 @@ public class SpatialReader {
 	private DataSource dataSource;
 	private List<String> attributeTitles = new ArrayList<String>();
 	private List<Geometry> geometryList = new ArrayList<Geometry>();
-	private List<Map<String, String>> featureTable = new ArrayList<>();
+	private List<Map<String, Object>> featureTable = new ArrayList<>();
 	private Map<String, String> attributeTitleType = new TreeMap<>();
 	private int EPSG = 4326;
 
@@ -32,6 +32,7 @@ public class SpatialReader {
 		detectAttributeTitle();
 		detectAttributeTable();
 		detectAttributeTitleType();
+		this.close();
 	}
 
 	public SpatialReader(String fileAdd, String encode) {
@@ -42,6 +43,7 @@ public class SpatialReader {
 		detectAttributeTitle();
 		detectAttributeTable();
 		detectAttributeTitleType();
+		this.close();
 	}
 
 	public SpatialReader(DataSource dataSource) {
@@ -52,6 +54,7 @@ public class SpatialReader {
 		detectAttributeTitle();
 		detectAttributeTable();
 		detectAttributeTitleType();
+		this.close();
 	}
 
 	public SpatialReader(DataSource dataSource, String encode) {
@@ -75,7 +78,7 @@ public class SpatialReader {
 		return this.attributeTitles;
 	}
 
-	public List<Map<String, String>> getAttributeTable() {
+	public List<Map<String, Object>> getAttributeTable() {
 		return this.featureTable;
 	}
 
@@ -193,7 +196,7 @@ public class SpatialReader {
 			this.geometryList.add(feature.GetGeometryRef());
 
 			// get the attribute table
-			Map<String, String> temptMap = new TreeMap<String, String>();
+			Map<String, Object> temptMap = new TreeMap<String, Object>();
 			for (String key : this.attributeTitles) {
 				try {
 					String value = feature.GetFieldAsString(key);
@@ -205,6 +208,9 @@ public class SpatialReader {
 			this.featureTable.add(temptMap);
 		}
 	}
-	// <==============================================>
 
+	// <==============================================>
+	private void close() {
+		this.dataSource.delete();
+	}
 }
