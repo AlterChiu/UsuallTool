@@ -85,8 +85,8 @@ public class BuiTranslate {
 		outArray.add("*Daarna voor elk station de neerslag in mm per tijdstap.");
 
 		outArray.add(
-				TimeTranslate.milliToDate(firstTimeSeriesArray.getStartTime(), " yyyy MM dd HH mm ss") + TimeTranslate
-						.milliToTime(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size(),
+				TimeTranslate.getDateString(firstTimeSeriesArray.getStartTime(), " yyyy MM dd HH mm ss") + TimeTranslate
+						.getTimeString(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size(),
 								" dd HH mm ss"));
 
 		for (int event = 0; event < firstTimeSeriesArray.size(); event++) {
@@ -99,7 +99,6 @@ public class BuiTranslate {
 							.setScale(2, RoundingMode.HALF_UP).toString());
 				}
 			}
-			;
 			outArray.add(String.join(" ", temptValue));
 		}
 		return outArray.parallelStream().toArray(String[]::new);
@@ -146,10 +145,10 @@ public class BuiTranslate {
 
 		double previousTime = (firstTimeSeriesArray.getTimeStep().getStepMillis()) * times;
 
-		outArray.add(TimeTranslate.milliToDate(firstTimeSeriesArray.getStartTime() - (long) previousTime,
+		outArray.add(TimeTranslate.getDateString(firstTimeSeriesArray.getStartTime() - (long) previousTime,
 				" yyyy MM dd HH mm ss")
 				+ TimeTranslate
-						.milliToTime(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size()
+						.getTimeString(firstTimeSeriesArray.getTimeStep().getStepMillis() * firstTimeSeriesArray.size()
 								+ (long) previousTime, " dd HH mm ss"));
 
 		for (int event = 0; event < firstTimeSeriesArray.size() + times; event++) {
@@ -189,7 +188,7 @@ public class BuiTranslate {
 		// start time
 		String[] startTimeSetting = content[3 + stationSize].trim().split(" +");
 		this.startDate = TimeTranslate
-				.StringToLong(
+				.getDateLong(
 						startTimeSetting[0] + " " + startTimeSetting[1] + " " + startTimeSetting[2] + " "
 								+ startTimeSetting[3] + " " + startTimeSetting[4] + " " + startTimeSetting[5],
 						"yyyy MM dd HH mm ss");
@@ -223,10 +222,11 @@ public class BuiTranslate {
 			header.addElement("parameterId").addText("P.obs");
 			header.addElement("timeStep").addAttribute("unit", "second").addAttribute("multiplier",
 					this.timeStepMultiplier + "");
-			header.addElement("startDate").addAttribute("date", TimeTranslate.milliToDate(this.startDate, "yyyy-MM-dd"))
-					.addAttribute("time", TimeTranslate.milliToDate(this.startDate, "HH:mm:ss"));
-			header.addElement("endDate").addAttribute("date", TimeTranslate.milliToDate(this.endDate, "yyyy-MM-dd"))
-					.addAttribute("time", TimeTranslate.milliToDate(this.endDate, "HH:mm:ss"));
+			header.addElement("startDate")
+					.addAttribute("date", TimeTranslate.getDateString(this.startDate, "yyyy-MM-dd"))
+					.addAttribute("time", TimeTranslate.getDateString(this.startDate, "HH:mm:ss"));
+			header.addElement("endDate").addAttribute("date", TimeTranslate.getDateString(this.endDate, "yyyy-MM-dd"))
+					.addAttribute("time", TimeTranslate.getDateString(this.endDate, "HH:mm:ss"));
 			header.addElement("missVal").addText("-999.99");
 			header.addElement("stationName").addText(stationId.get(order));
 			header.addElement("units").addText("mm");
@@ -236,10 +236,10 @@ public class BuiTranslate {
 			for (int time = 0; time < rainfallValue.size(); time++) {
 				series.addElement("event")
 						.addAttribute("date",
-								TimeTranslate.milliToDate(this.startDate + time * this.timeStepMultiplier * 1000,
+								TimeTranslate.getDateString(this.startDate + time * this.timeStepMultiplier * 1000,
 										"yyyy-MM-dd"))
 						.addAttribute("time",
-								TimeTranslate.milliToDate(this.startDate + time * this.timeStepMultiplier * 1000,
+								TimeTranslate.getDateString(this.startDate + time * this.timeStepMultiplier * 1000,
 										"HH:mm:ss"))
 						.addAttribute("value", rainfallValue.get(time)[order]).addAttribute("flag", "2");
 

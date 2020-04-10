@@ -110,18 +110,30 @@ public class GrassGlobal {
 		command.add("set GRASS_PROJSHARE=%QgisRootFolder%\\share\\proj ");
 		command.add("set GRASS_MESSAGE_FORMAT=plain");
 
-		// setting running enviromnet
+		// setting running enviroment
 		command.add(
 				"set PATH=%path%;%QgisRootFolder%\\apps\\grass\\grass-7.6.0\\bin;%QgisRootFolder%\\apps\\grass\\grass-7.6.0\\lib;%QgisRootFolder%\\apps\\Python27\\lib\\site-packages\\Shapely-1.2.18-py2.7-win-amd64.egg\\shapely\\DLLs;%QgisRootFolder%\\apps\\Python27\\DLLs;%QgisRootFolder%\\apps\\qgis-ltr\\bin;%QgisRootFolder%\\apps\\Python27\\Scripts;%QgisRootFolder%\\bin;%QgisRootFolder%\\apps\\Python27\\lib\\site-packages\\numpy\\.libs");
 		command.add("set PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY");
 		command.add(
 				"set PYTHONPATH=;%QgisRootFolder%\\apps\\grass\\grass-7.6.0\\etc\\python;%QgisRootFolder%\\apps\\grass\\grass-7.6.0\\etc\\wxpython\\n");
 
+		// setting g.gisenv.exe
+		command.add("g.gisenv.exe set=\"MAPSET=PERMANENT\"");
+		command.add("g.gisenv.exe set=\"LOCATION=temp_location\" ");
+		command.add("g.gisenv.exe set=\"LOCATION_NAME=temp_location\" ");
+		command.add("g.gisenv.exe set=\"GISDBASE=" + GdalGlobal.temptFolder + "\\grassdata\"");
+		command.add("g.gisenv.exe set=\"GRASS_GUI=text\"");
+
 		return command;
 	}
 
 	public void runGrass(List<String> commands) throws IOException, InterruptedException {
 		List<String> runCommand = new ArrayList<>();
+
+		// initialize enviroment
+		FileFunction.delete(GdalGlobal.temptFolder);
+		FileFunction.newFolder(GdalGlobal.temptFolder);
+		GrassGlobal.initializeGrassWorkSpace(GdalGlobal.temptFolder);
 
 		// start cmd
 		runCommand.add("cmd");

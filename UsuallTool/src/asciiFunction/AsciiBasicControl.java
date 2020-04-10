@@ -38,7 +38,7 @@ public class AsciiBasicControl implements Cloneable {
 	public static String columnKey = "column";
 	public static String rowKey = "row";
 	public static String cellSizeKey = "cellSize";
-	public static String nullValueKsy = "noData";
+	public static String nullValueKey = "noData";
 
 	/*
 	 * 
@@ -159,7 +159,7 @@ public class AsciiBasicControl implements Cloneable {
 		temptTree.put(minCenterX, this.asciiContent[2][1]);
 		temptTree.put(minCenterY, this.asciiContent[3][1]);
 		temptTree.put(cellSizeKey, this.asciiContent[4][1]);
-		temptTree.put(nullValueKsy, this.asciiContent[5][1]);
+		temptTree.put(nullValueKey, this.asciiContent[5][1]);
 
 		temptTree.put(maxCenterX,
 				new BigDecimal(Double.parseDouble(this.asciiContent[2][1])
@@ -193,7 +193,7 @@ public class AsciiBasicControl implements Cloneable {
 		try {
 			return this.asciiContent[row + 6][column];
 		} catch (Exception e) {
-			return this.property.get(nullValueKsy);
+			return this.property.get(nullValueKey);
 		}
 	}
 
@@ -204,13 +204,13 @@ public class AsciiBasicControl implements Cloneable {
 			try {
 				return this.asciiContent[row + 6][column];
 			} catch (Exception e) {
-				return this.property.get(nullValueKsy);
+				return this.property.get(nullValueKey);
 			}
 		}
 	}
 
 	public String getNullValue() {
-		return this.getProperty().get(nullValueKsy);
+		return this.getProperty().get(nullValueKey);
 	}
 
 	public String getValue(Path2D path) {
@@ -335,6 +335,22 @@ public class AsciiBasicControl implements Cloneable {
 	public AsciiBasicControl setValue(int x, int y, String value) {
 		this.asciiContent[y + 6][x] = value;
 		return this;
+	}
+
+	public Boolean isNull(double x, double y) {
+		if (this.getValue(x, y).equals(this.getNullValue())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public Boolean isNull(int column, int row) {
+		if (this.getValue(column, row).equals(this.getNullValue())) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public AsciiBasicControl setStartPoint(String[] coordinate) {
@@ -518,7 +534,7 @@ public class AsciiBasicControl implements Cloneable {
 		asciiGrid.add(new String[] { "xllcenter", outllCenter[0] + "" });
 		asciiGrid.add(new String[] { "yllcenter", outllCenter[1] + "" });
 		asciiGrid.add(new String[] { cellSizeKey, property.get(cellSizeKey) });
-		asciiGrid.add(new String[] { "nodata_value", property.get(nullValueKsy) });
+		asciiGrid.add(new String[] { "nodata_value", property.get(nullValueKey) });
 
 		for (int line = topPosition[1]; line <= bottomPosition[1]; line++) {
 			ArrayList<String> temptLine = new ArrayList<String>();
@@ -546,7 +562,7 @@ public class AsciiBasicControl implements Cloneable {
 		outList.add(new String[] { "xllcenter", minX + (0.5 * cellSize) + "" });
 		outList.add(new String[] { "yllcenter", minY + (0.5 * cellSize) + "" });
 		outList.add(new String[] { cellSizeKey, cellSize + "" });
-		outList.add(new String[] { "nodata_value", this.property.get(nullValueKsy) });
+		outList.add(new String[] { "nodata_value", this.property.get(nullValueKey) });
 
 		for (int row = 0; row < totalRow; row++) {
 			List<String> rowContent = new ArrayList<String>();
@@ -575,7 +591,7 @@ public class AsciiBasicControl implements Cloneable {
 				for (int targetRow = originalStartPoint[1]; targetRow <= originalEndPoint[1]; targetRow++) {
 					for (int targetColumn = originalStartPoint[0]; targetColumn <= originalEndPoint[0]; targetColumn++) {
 						double cordinate[] = this.getCoordinate(targetColumn, targetRow);
-						if (!this.asciiContent[targetRow + 6][targetColumn].equals(this.property.get(nullValueKsy))
+						if (!this.asciiContent[targetRow + 6][targetColumn].equals(this.property.get(nullValueKey))
 								&& temptPath.contains(cordinate[0], cordinate[1])) {
 							try {
 								cellValueList.add(Double.parseDouble(this.asciiContent[targetRow + 6][targetColumn]));
@@ -592,7 +608,7 @@ public class AsciiBasicControl implements Cloneable {
 				if (selectimes > 0.5 * totalTimes) {
 					rowContent.add(new AtCommonMath(cellValueList).getMean() + "");
 				} else {
-					rowContent.add(this.property.get(nullValueKsy));
+					rowContent.add(this.property.get(nullValueKey));
 				}
 			}
 			outList.add(rowContent.parallelStream().toArray(String[]::new));
@@ -632,6 +648,18 @@ public class AsciiBasicControl implements Cloneable {
 	// <=============================================>
 	// < ==============Intersect Function===================>
 	// <=============================================>
+
+	public AsciiBasicControl getIntersectAscii(double minX, double maxX, double minY, double maxY) throws IOException {
+		return this.getClipAsciiFile(this.intersectBoundary(minX, maxX, minY, maxY));
+	}
+
+	public AsciiBasicControl getIntersectAscii(AsciiBasicControl boundaryAscii) throws IOException {
+		return this.getClipAsciiFile(this.intersectBoundary(boundaryAscii.getBoundary()));
+	}
+
+	public AsciiBasicControl getIntersectAscii(Map<String, Double> boundary) throws IOException {
+		return this.getClipAsciiFile(this.intersectBoundary(boundary));
+	}
 
 	/*
 	 * 

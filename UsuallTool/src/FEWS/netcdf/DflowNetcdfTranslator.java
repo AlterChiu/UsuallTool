@@ -515,8 +515,8 @@ public class DflowNetcdfTranslator {
 		writer.addGlobalAttribute("references", "http://www.deltares.n");
 		writer.addGlobalAttribute("source", "RGFGRID 6.00.01.61844. Model: ---");
 		writer.addGlobalAttribute("history",
-				"Created on " + TimeTranslate.milliToDate(System.currentTimeMillis(), "yyyy-MM-dd") + "T"
-						+ TimeTranslate.milliToDate(System.currentTimeMillis(), "HH:mm:ss") + "+0800, RGFGRID");
+				"Created on " + TimeTranslate.getDateString(System.currentTimeMillis(), "yyyy-MM-dd") + "T"
+						+ TimeTranslate.getDateString(System.currentTimeMillis(), "HH:mm:ss") + "+0800, RGFGRID");
 		writer.addGlobalAttribute("Conventions", "CF-1.6 UGRID-1.0/Deltares-0.8");
 
 	}
