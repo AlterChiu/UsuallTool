@@ -59,6 +59,17 @@ public class AtFileReader {
 		br.close();
 	}
 
+	public AtFileReader skipEmptyLine() {
+		List<String> temptList = new ArrayList<>();
+		this.fileContain.forEach(e -> {
+			if (!e.isEmpty()) {
+				temptList.add(e);
+			}
+		});
+		this.fileContain = temptList;
+		return this;
+	}
+
 	// <get the file by line -> buufered reader>
 	// <_________________________________________________________________>
 	public String[] getContain() {

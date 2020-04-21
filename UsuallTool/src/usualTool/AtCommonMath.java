@@ -156,13 +156,15 @@ public class AtCommonMath {
 			return math.getVariance();
 		case getMedium:
 			return math.getMedium();
+		case getSum:
+			return math.getSum();
 		default:
 			throw new Exception("Error operation while AtCommonMath statistics");
 		}
 	}
 
 	public static enum StaticsModel {
-		getMean, getMax, getMin, getStd, getVaraince, getMedium
+		getMean, getSum, getMax, getMin, getStd, getVaraince, getMedium
 	}
 
 	// begin from the minValue
