@@ -140,6 +140,31 @@ public class AtCommonMath {
 		return tempt;
 	}
 
+	public static double getListStatistic(List<Double> valueList, StaticsModel staticsModel) throws Exception {
+		AtCommonMath math = new AtCommonMath(valueList);
+
+		switch (staticsModel) {
+		case getMean:
+			return math.getMean();
+		case getMax:
+			return math.getMax();
+		case getMin:
+			return math.getMin();
+		case getStd:
+			return math.getStd();
+		case getVaraince:
+			return math.getVariance();
+		case getMedium:
+			return math.getMedium();
+		default:
+			throw new Exception("Error operation while AtCommonMath statistics");
+		}
+	}
+
+	public static enum StaticsModel {
+		getMean, getMax, getMin, getStd, getVaraince, getMedium
+	}
+
 	// begin from the minValue
 	public List<Double> getSortedList() {
 		List<Double> sortedList = new ArrayList<>();
@@ -201,6 +226,30 @@ public class AtCommonMath {
 
 	public static double getAzimuth(double[] startPoint, double[] endPoint) {
 		return getAzimuth(startPoint[0], startPoint[1], endPoint[0], endPoint[1]);
+	}
+
+	public static double getDecimal_Double(double value, int scale, RoundingMode roundingMode) {
+		return new BigDecimal(value).setScale(scale, roundingMode).doubleValue();
+	}
+
+	public static double getDecimal_Double(String value, int scale, RoundingMode roundingMode) {
+		return new BigDecimal(value).setScale(scale, roundingMode).doubleValue();
+	}
+
+	public static String getDecimal_String(double value, int scale, RoundingMode roundingMode) {
+		return new BigDecimal(value).setScale(scale, roundingMode).toString();
+	}
+
+	public static String getDecimal_String(String value, int scale, RoundingMode roundingMode) {
+		return new BigDecimal(value).setScale(scale, roundingMode).toString();
+	}
+
+	public static int getDecimal_Int(double value, int scale, RoundingMode roundingMode) {
+		return new BigDecimal(value).setScale(scale, roundingMode).intValue();
+	}
+
+	public static int getDecimal_Int(String value, int scale, RoundingMode roundingMode) {
+		return new BigDecimal(value).setScale(scale, roundingMode).intValue();
 	}
 
 	// return azimuth, start from north, clockwise
@@ -267,12 +316,12 @@ public class AtCommonMath {
 			return 0;
 		}
 	}
-	
-	public static double getLength(double x1 , double y1 , double x2 , double y2) {
+
+	public static double getLength(double x1, double y1, double x2, double y2) {
 		return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 	}
-	
- 	public final void clear() {
+
+	public final void clear() {
 		this.ds.clear();
 	}
 }
