@@ -179,7 +179,7 @@ public class DateValueStorage {
 				}
 
 			}
-
+			
 			// get statics to values
 			// get statistic
 			List<String> temptOutList = new ArrayList<>();
