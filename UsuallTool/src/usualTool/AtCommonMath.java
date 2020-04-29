@@ -202,6 +202,10 @@ public class AtCommonMath {
 		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).doubleValue();
 	}
 
+	public static double getDecimal_Double(float value, int scale) {
+		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).doubleValue();
+	}
+
 	public static double getDecimal_Double(String value, int scale) {
 		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).doubleValue();
 	}
@@ -214,11 +218,19 @@ public class AtCommonMath {
 		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).toString();
 	}
 
+	public static String getDecimal_String(float value, int scale) {
+		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).toString();
+	}
+
 	public static int getDecimal_Int(double value, int scale) {
 		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).intValue();
 	}
 
 	public static int getDecimal_Int(String value, int scale) {
+		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).intValue();
+	}
+
+	public static int getDecimal_Int(float value, int scale) {
 		return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).intValue();
 	}
 
@@ -238,6 +250,10 @@ public class AtCommonMath {
 		return new BigDecimal(value).setScale(scale, roundingMode).doubleValue();
 	}
 
+	public static double getDecimal_Double(float value, int scale, RoundingMode roundingMode) {
+		return new BigDecimal(value).setScale(scale, roundingMode).doubleValue();
+	}
+
 	public static String getDecimal_String(double value, int scale, RoundingMode roundingMode) {
 		return new BigDecimal(value).setScale(scale, roundingMode).toString();
 	}
@@ -246,11 +262,19 @@ public class AtCommonMath {
 		return new BigDecimal(value).setScale(scale, roundingMode).toString();
 	}
 
+	public static String getDecimal_String(float value, int scale, RoundingMode roundingMode) {
+		return new BigDecimal(value).setScale(scale, roundingMode).toString();
+	}
+
 	public static int getDecimal_Int(double value, int scale, RoundingMode roundingMode) {
 		return new BigDecimal(value).setScale(scale, roundingMode).intValue();
 	}
 
 	public static int getDecimal_Int(String value, int scale, RoundingMode roundingMode) {
+		return new BigDecimal(value).setScale(scale, roundingMode).intValue();
+	}
+
+	public static int getDecimal_Int(float value, int scale, RoundingMode roundingMode) {
 		return new BigDecimal(value).setScale(scale, roundingMode).intValue();
 	}
 
