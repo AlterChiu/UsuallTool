@@ -60,7 +60,7 @@ public class GdalGlobal {
 
 		if (geometry.GetGeometryName().toUpperCase().equals("POLYGON")
 				|| geometry.GetGeometryName().toUpperCase().equals("POLYLINE")) {
-			outList.add(GeomertyToPath2D_Polygon(geometry));
+			outList.add(GeomertyToPath2D_Polygon(geometry.GetGeometryRef(0)));
 
 		} else if (geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYGON")
 				|| geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYLINE")) {
@@ -74,18 +74,11 @@ public class GdalGlobal {
 	}
 
 	private static Path2D GeomertyToPath2D_Polygon(Geometry geometry) {
-		Geometry temptGeo;
-		try {
-			temptGeo = geometry.Boundary();
-		} catch (Exception e) {
-			temptGeo = geometry;
-		}
-
 		Path2D outPath = new Path2D.Double();
 
-		outPath.moveTo(temptGeo.GetPoint(0)[0], geometry.GetPoint(0)[1]);
-		for (int index = 1; index < temptGeo.GetPointCount(); index++) {
-			outPath.lineTo(temptGeo.GetPoint(index)[0], geometry.GetPoint(index)[1]);
+		outPath.moveTo(geometry.GetPoint(0)[0], geometry.GetPoint(0)[1]);
+		for (int index = 1; index < geometry.GetPointCount(); index++) {
+			outPath.lineTo(geometry.GetPoint(index)[0], geometry.GetPoint(index)[1]);
 		}
 		return outPath;
 	}
