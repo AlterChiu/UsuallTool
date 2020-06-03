@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 import org.gdal.ogr.Geometry;
 
 import geo.gdal.GdalGlobal;
-import geo.path.IntersectLine;
 import usualTool.AtCommonMath;
 import usualTool.AtFileReader;
+import usualTool.AtCommonMath.StaticsModel;
 
 public class AsciiBasicControl implements Cloneable {
 	private String[][] asciiContent = null;
@@ -30,7 +30,7 @@ public class AsciiBasicControl implements Cloneable {
 	public static String minCenterY = "bottomY";
 	public static String maxCenterY = "topY";
 
-	public static String minCoenerX = "minX";
+	public static String minCornerX = "minX";
 	public static String maxCornerX = "maxX";
 	public static String minCornerY = "minY";
 	public static String maxCornerY = "maxY";
@@ -106,7 +106,7 @@ public class AsciiBasicControl implements Cloneable {
 		double minY = Double.parseDouble(this.property.get(minCenterY)) - 0.5 * cellSize;
 		double maxY = Double.parseDouble(this.property.get(maxCenterY)) + 0.5 * cellSize;
 
-		boundary.put(minCoenerX, minX);
+		boundary.put(minCornerX, minX);
 		boundary.put(maxCornerX, maxX);
 		boundary.put(minCornerY, minY);
 		boundary.put(maxCornerY, maxY);
@@ -214,7 +214,7 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public String getValue(Path2D path) {
-		return getValue(path, Double.MIN_VALUE, Double.MAX_VALUE);
+		return getValue(path, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 	}
 
 	public String getValue(Path2D path, double minValue, double maxValue) {
@@ -248,8 +248,39 @@ public class AsciiBasicControl implements Cloneable {
 		return getPolygonValueList(path, minValue, maxValue).size();
 	}
 
+	public List<Double> getValueList(double x, double y, int gridCount) {
+		int[] position = this.getPosition(x, y);
+		return this.getValueList(position[0], position[1], gridCount);
+	}
+
+	public List<Double> getValueList(double x, double y, double distance) throws IOException {
+		Geometry geo = GdalGlobal.CreatePoint(x, y).Buffer(distance);
+		return this.getPolygonValueList(geo);
+	}
+
+	public List<Double> getValueList(int column, int row, double distance) throws IOException {
+		double[] coordinate = this.getCoordinate(column, row);
+		return this.getValueList(coordinate[0], coordinate[1], distance);
+	}
+
+	public List<Double> getValueList(int column, int row, int gridCount) {
+		List<Double> outList = new ArrayList<>();
+
+		for (int rowCount = -1 * gridCount; rowCount < gridCount; rowCount++) {
+			for (int columnCount = -1 * gridCount; columnCount < gridCount; columnCount++) {
+				String temptValue = this.getValue(columnCount + column, rowCount + row);
+				
+				if (!temptValue.equals(this.getNullValue())) {
+					outList.add(Double.parseDouble(temptValue));
+				}
+			}
+		}
+
+		return outList;
+	}
+
 	public List<Double> getPolygonValueList(Path2D path) {
-		return getPolygonValueList(path, Double.MIN_VALUE, Double.MAX_VALUE);
+		return getPolygonValueList(path, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 	}
 
 	public List<Double> getPolygonValueList(Path2D path, double minValue, double maxValue) {
@@ -286,7 +317,7 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public String getValue(Geometry geometry) throws IOException {
-		return getValue(geometry, Double.MIN_VALUE, Double.MAX_VALUE);
+		return getValue(geometry, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 	}
 
 	public String getValue(Geometry geometry, double minValue, double maxValue) throws IOException {
@@ -309,7 +340,7 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public List<Double> getPolygonValueList(Geometry geometry) throws IOException {
-		return getPolygonValueList(geometry, Double.MIN_VALUE, Double.MAX_VALUE);
+		return getPolygonValueList(geometry, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 	}
 
 	public List<Double> getPolygonValueList(Geometry geometry, double minValue, double maxValue) throws IOException {
@@ -504,7 +535,7 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public AsciiBasicControl getClipAsciiFile(Map<String, Double> boundary) throws IOException {
-		double minX = boundary.get(minCoenerX);
+		double minX = boundary.get(minCornerX);
 		double maxX = boundary.get(maxCornerX);
 		double minY = boundary.get(minCornerY);
 		double maxY = boundary.get(maxCornerY);
@@ -675,9 +706,9 @@ public class AsciiBasicControl implements Cloneable {
 		double crossRightY = -1 * (xCoefficient * boundary.get(maxCornerX) + intersectCoefficient) / yCoefficient;
 		double crossLeftY = -1 * (xCoefficient * boundary.get(maxCornerX) + intersectCoefficient) / yCoefficient;
 
-		if (crossTopX <= boundary.get(maxCornerX) && crossTopX >= boundary.get(minCoenerX)) {
+		if (crossTopX <= boundary.get(maxCornerX) && crossTopX >= boundary.get(minCornerX)) {
 			return true;
-		} else if (crossBottomX <= boundary.get(maxCornerX) && crossBottomX >= boundary.get(minCoenerX)) {
+		} else if (crossBottomX <= boundary.get(maxCornerX) && crossBottomX >= boundary.get(minCornerX)) {
 			return true;
 		} else if (crossRightY <= boundary.get(maxCornerY) && crossRightY >= boundary.get(minCornerY)) {
 			return true;
@@ -692,25 +723,99 @@ public class AsciiBasicControl implements Cloneable {
 			double intersectCoefficient) {
 		List<Map<String, Double>> outBoundary = new ArrayList<>();
 
+		/*
+		 * get bounday
+		 */
 		Map<String, Double> boundary = this.getBoundary();
 		Path2D temptPath = new Path2D.Double();
-		temptPath.moveTo(boundary.get(minCoenerX), boundary.get(maxCornerY));
-		temptPath.lineTo(boundary.get(minCoenerX), boundary.get(minCornerY));
+		temptPath.moveTo(boundary.get(minCornerX), boundary.get(maxCornerY));
+		temptPath.lineTo(boundary.get(minCornerX), boundary.get(minCornerY));
 		temptPath.lineTo(boundary.get(maxCornerX), boundary.get(minCornerY));
 		temptPath.lineTo(boundary.get(maxCornerX), boundary.get(maxCornerY));
+		Geometry temptGeo = GdalGlobal.Path2DToGeometry(temptPath);
 
-		List<List<Double[]>> sidePoints = new IntersectLine(temptPath).getSidePoints(xCoefficient, yCoefficient,
-				intersectCoefficient);
+		/*
+		 * get cross line
+		 */
+		double interMaxX = Double.POSITIVE_INFINITY / 100000;
+		double interMaxY = (-1 * intersectCoefficient - interMaxX * xCoefficient) / yCoefficient;
+		double interMinX = Double.NEGATIVE_INFINITY / 100000;
+		double interMinY = (-1 * intersectCoefficient - interMinX * xCoefficient) / yCoefficient;
+		Geometry interLine = GdalGlobal.CreateLine(interMaxX, interMaxY, interMinX, interMinY);
+		Geometry crossPoints = temptGeo.Intersection(interLine);
 
-		for (int index = 0; index < sidePoints.size(); index++) {
+		/*
+		 * get differ side
+		 */
+		List<List<Double[]>> differSidePoints = new ArrayList<>();
+		List<Double[]> positivePoints = new ArrayList<>();
+		List<Double[]> negetivePoints = new ArrayList<>();
+
+		for (int pointIndex = 0; pointIndex < crossPoints.GetGeometryCount(); pointIndex++) {
+			positivePoints.add(new Double[] { crossPoints.GetX(pointIndex), crossPoints.GetY(pointIndex) });
+			negetivePoints.add(new Double[] { crossPoints.GetX(pointIndex), crossPoints.GetY(pointIndex) });
+		}
+
+		// maxX maxY
+		if ((boundary.get(maxCornerX) * xCoefficient + boundary.get(maxCornerY) * yCoefficient
+				+ intersectCoefficient) > 0) {
+			positivePoints.add(new Double[] { boundary.get(maxCornerX), boundary.get(maxCornerY) });
+		} else if ((boundary.get(maxCornerX) * xCoefficient + boundary.get(maxCornerY) * yCoefficient
+				+ intersectCoefficient) < 0) {
+			negetivePoints.add(new Double[] { boundary.get(maxCornerX), boundary.get(maxCornerY) });
+		} else {
+			positivePoints.add(new Double[] { boundary.get(maxCornerX), boundary.get(maxCornerY) });
+			negetivePoints.add(new Double[] { boundary.get(maxCornerX), boundary.get(maxCornerY) });
+		}
+
+		// maxX minY
+		if ((boundary.get(maxCornerX) * xCoefficient + boundary.get(minCornerY) * yCoefficient
+				+ intersectCoefficient) > 0) {
+			positivePoints.add(new Double[] { boundary.get(maxCornerX), boundary.get(minCornerY) });
+		} else if ((boundary.get(maxCornerX) * xCoefficient + boundary.get(minCornerY) * yCoefficient
+				+ intersectCoefficient) < 0) {
+			negetivePoints.add(new Double[] { boundary.get(maxCornerX), boundary.get(minCornerY) });
+		} else {
+			positivePoints.add(new Double[] { boundary.get(maxCornerX), boundary.get(minCornerY) });
+			negetivePoints.add(new Double[] { boundary.get(maxCornerX), boundary.get(minCornerY) });
+		}
+
+		// minX minY
+		if ((boundary.get(minCornerX) * xCoefficient + boundary.get(minCornerY) * yCoefficient
+				+ intersectCoefficient) > 0) {
+			positivePoints.add(new Double[] { boundary.get(minCornerX), boundary.get(minCornerY) });
+		} else if ((boundary.get(minCornerX) * xCoefficient + boundary.get(minCornerY) * yCoefficient
+				+ intersectCoefficient) < 0) {
+			negetivePoints.add(new Double[] { boundary.get(minCornerX), boundary.get(minCornerY) });
+		} else {
+			positivePoints.add(new Double[] { boundary.get(minCornerX), boundary.get(minCornerY) });
+			negetivePoints.add(new Double[] { boundary.get(minCornerX), boundary.get(minCornerY) });
+		}
+
+		// minX maxY
+		if ((boundary.get(minCornerX) * xCoefficient + boundary.get(maxCornerY) * yCoefficient
+				+ intersectCoefficient) > 0) {
+			positivePoints.add(new Double[] { boundary.get(minCornerX), boundary.get(maxCornerY) });
+		} else if ((boundary.get(minCornerX) * xCoefficient + boundary.get(maxCornerY) * yCoefficient
+				+ intersectCoefficient) < 0) {
+			negetivePoints.add(new Double[] { boundary.get(minCornerX), boundary.get(maxCornerY) });
+		} else {
+			positivePoints.add(new Double[] { boundary.get(minCornerX), boundary.get(maxCornerY) });
+			negetivePoints.add(new Double[] { boundary.get(minCornerX), boundary.get(maxCornerY) });
+		}
+
+		/*
+		 * get new boundary
+		 */
+		for (int index = 0; index < differSidePoints.size(); index++) {
 			List<Double> temptXList = new ArrayList<Double>();
 			List<Double> temptYList = new ArrayList<Double>();
 
-			List<Double[]> temptPoints = sidePoints.get(index);
-			temptPoints.forEach(point -> {
-				temptXList.add(point[0]);
-				temptYList.add(point[1]);
+			differSidePoints.get(index).forEach(e -> {
+				temptXList.add(e[0]);
+				temptYList.add(e[1]);
 			});
+
 			AtCommonMath xStatics = new AtCommonMath(temptXList);
 			AtCommonMath yStatics = new AtCommonMath(temptYList);
 			double minX = xStatics.getMin();
@@ -720,7 +825,7 @@ public class AsciiBasicControl implements Cloneable {
 
 			Map<String, Double> temptBoundary = new TreeMap<>();
 			temptBoundary.put(maxCornerX, maxX);
-			temptBoundary.put(minCoenerX, minX);
+			temptBoundary.put(minCornerX, minX);
 			temptBoundary.put(minCornerY, minY);
 			temptBoundary.put(maxCornerY, maxY);
 
@@ -819,7 +924,7 @@ public class AsciiBasicControl implements Cloneable {
 	// < get the intersect by giving boundary map>
 	// <============================>
 	public Boolean isIntersect(Map<String, Double> boundary) {
-		double minX = boundary.get(minCoenerX);
+		double minX = boundary.get(minCornerX);
 		double maxX = boundary.get(maxCornerX);
 		double minY = boundary.get(minCornerY);
 		double maxY = boundary.get(maxCornerY);
@@ -853,16 +958,16 @@ public class AsciiBasicControl implements Cloneable {
 	 */
 	// <===========================================================>
 	private Map<String, Double> intersectBoundary(Map<String, Double> boundary) {
-		return intersectBoundary(boundary.get(minCoenerX), boundary.get(maxCornerX), boundary.get(minCornerY),
+		return intersectBoundary(boundary.get(minCornerX), boundary.get(maxCornerX), boundary.get(minCornerY),
 				boundary.get(maxCornerY));
 	}
 
 	private Map<String, Double> intersectBoundary(double minX, double maxX, double minY, double maxY) {
 		Map<String, Double> boundary = new TreeMap<>();
-		if (this.boundary.get(minCoenerX) > minX) {
-			boundary.put(minCoenerX, this.boundary.get(minCoenerX));
+		if (this.boundary.get(minCornerX) > minX) {
+			boundary.put(minCornerX, this.boundary.get(minCornerX));
 		} else {
-			boundary.put(minCoenerX, minX);
+			boundary.put(minCornerX, minX);
 		}
 
 		if (this.boundary.get(minCornerY) > minY) {
@@ -908,6 +1013,29 @@ public class AsciiBasicControl implements Cloneable {
 	@Override
 	public AsciiBasicControl clone() {
 		return new AsciiBasicControl(this);
+	}
+
+	public static AsciiBasicControl getMaxAscii(List<AsciiBasicControl> asciiList) throws Exception {
+		AsciiBasicControl outAscii = asciiList.get(0).clone();
+
+		for (int row = 0; row < outAscii.getRow(); row++) {
+			for (int column = 0; column < outAscii.getColumn(); column++) {
+				String temptValue = outAscii.getValue(column, row);
+
+				if (!temptValue.equals(outAscii.getNullValue())) {
+					List<Double> temptValueList = new ArrayList<>();
+
+					for (AsciiBasicControl ascii : asciiList) {
+						temptValueList.add(Double.parseDouble(ascii.getValue(column, row)));
+					}
+
+					outAscii.setValue(column, row,
+							AtCommonMath.getListStatistic(temptValueList, StaticsModel.getMax) + "");
+				}
+			}
+		}
+
+		return outAscii;
 	}
 
 	// <=================>

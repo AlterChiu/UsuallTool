@@ -104,7 +104,11 @@ public class DateValueStorage {
 				String temptFrontDate = TimeTranslate.getDateStringTranslte(temptDate, this.dateFormat,
 						temptFrontDateFormat);
 
-				String temptBackDateFormat = this.dateFormat.split("mm")[1];
+				String temptBackDateFormat = "";
+				try {
+					temptBackDateFormat = this.dateFormat.split("mm")[1];
+				} catch (Exception e) {
+				}
 				String temptBackDate = TimeTranslate.getTimeString(0, temptBackDateFormat);
 
 				temptDate = temptFrontDate + temptBackDate;
@@ -179,7 +183,7 @@ public class DateValueStorage {
 				}
 
 			}
-			
+
 			// get statics to values
 			// get statistic
 			List<String> temptOutList = new ArrayList<>();
@@ -223,7 +227,7 @@ public class DateValueStorage {
 				String temptFrontDateFormat = this.dateFormat.split("dd")[0] + "dd";
 				String temptFrontDate = TimeTranslate.getDateStringTranslte(temptDate, this.dateFormat,
 						temptFrontDateFormat);
-
+				
 				String temptBackDateFormat = this.dateFormat.split("dd")[1];
 				String temptBackDate = TimeTranslate.getTimeString(0, temptBackDateFormat);
 

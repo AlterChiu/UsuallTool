@@ -11,13 +11,13 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
-public class AtXmlReader {
+public class AtXmlReader{
 	private String nameSpace = "//";
 	private Document document;
-	
+
 	public AtXmlReader(String fileAdd) throws DocumentException {
 		SAXReader reader = new SAXReader();
-	
+
 		Document document = reader.read(new File(fileAdd));
 
 		Element root = document.getRootElement();
@@ -25,15 +25,18 @@ public class AtXmlReader {
 		nameSpace.put("np", root.getNamespaceURI());
 		reader.getDocumentFactory().setXPathNamespaceURIs(nameSpace);
 		this.nameSpace = this.nameSpace + "np:";
-		
-		this.document =reader.read(new File(fileAdd));
+
+		this.document = reader.read(new File(fileAdd));
 	}
-	
-	public List<Node> getNodes(String node){
+
+	public List<Node> getNodes(String node) {
 		return this.document.selectNodes(this.nameSpace + node);
 	}
+
 	public Element getRoot() {
 		return this.document.getRootElement();
 	}
 
 }
+
+

@@ -191,6 +191,20 @@ public class AtCommonMath {
 		return outValue;
 	}
 
+	public int getCloestIndex(double targetValue) {
+		int outIndex = -1;
+		double dis = Double.POSITIVE_INFINITY;
+
+		for (int index = 0; index < this.valueList.size(); index++) {
+			double absDif = Math.abs(this.valueList.get(index) - targetValue);
+			if (dis > absDif) {
+				dis = absDif;
+				outIndex = index;
+			}
+		}
+		return outIndex;
+	}
+
 	public List<Double> getRatio() {
 		double sum = this.getSum();
 		List<Double> ratio = new ArrayList<>();

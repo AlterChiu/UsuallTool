@@ -1,7 +1,9 @@
-package usualTool;
+package usualTool.MathEqualtion;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import usualTool.AtCommonMath;
 
 public class AtKmeans {
 	private List<Double[]> analysisData;

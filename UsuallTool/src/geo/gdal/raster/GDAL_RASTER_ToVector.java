@@ -64,7 +64,7 @@ public class GDAL_RASTER_ToVector {
 		String temptFileDirection = GdalGlobal.temptFolder + temptFileName;
 
 		// translate raster data to asciiFormat
-		GDAL_RASTER_Translate rasterTranslate = new GDAL_RASTER_Translate(this.inputFile);
+		GDAL_RASTER_TranslateFormat rasterTranslate = new GDAL_RASTER_TranslateFormat(this.inputFile);
 		rasterTranslate.setNullValue("-999");
 		rasterTranslate.save(temptFileDirection, this.outputDataType);
 

@@ -9,28 +9,22 @@ import geo.gdal.GdalGlobal;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
-public class GDAL_RASTER_Translate {
+public class GDAL_RASTER_TranslateFormat {
 
 	private String nullValue = "-999";
-	private int coordinateSystem = 0;
 	private String originalFile = "";
 	private String clipBoundary = "";
 
-	public GDAL_RASTER_Translate(String originalFile) {
+	public GDAL_RASTER_TranslateFormat(String originalFile) {
 		this.originalFile = originalFile;
 	}
 
-	public GDAL_RASTER_Translate setNullValue(String nullValue) {
+	public GDAL_RASTER_TranslateFormat setNullValue(String nullValue) {
 		this.nullValue = nullValue;
 		return this;
 	}
 
-	public GDAL_RASTER_Translate setCoordinate(int coordinate) {
-		this.coordinateSystem = coordinate;
-		return this;
-	}
-
-	public GDAL_RASTER_Translate setBoundary(double minX, double maxX, double minY, double maxY) {
+	public GDAL_RASTER_TranslateFormat setBoundary(double minX, double maxX, double minY, double maxY) {
 		this.clipBoundary = "";
 
 		StringBuilder sb = new StringBuilder();
@@ -45,12 +39,22 @@ public class GDAL_RASTER_Translate {
 	}
 
 	public void save(String saveAdd, String dataType) throws IOException, InterruptedException {
+
 		/*
-		 * clear gdalGlobal temptFolder
+		 * save sourceFile to temptFolder
 		 */
-		for (String fileName : new File(GdalGlobal.temptFolder).list()) {
-			FileFunction.delete(GdalGlobal.temptFolder + "\\" + fileName);
-		}
+		String sourceFileExtension = this.originalFile.substring(this.originalFile.lastIndexOf("."));
+		String saveFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
+
+		String newWorkSpace = GdalGlobal.temptFolder + "\\"
+				+ GdalGlobal.newTempFileName(GdalGlobal.temptFolder + "\\", "") + "\\";
+		FileFunction.newFolder(newWorkSpace);
+
+		String temptSorceFile = newWorkSpace
+				+ GdalGlobal.newTempFileName(GdalGlobal.temptFolder + "\\", sourceFileExtension);
+		String temptSaveFile = newWorkSpace
+				+ GdalGlobal.newTempFileName(GdalGlobal.temptFolder + "\\", saveFileExtension);
+		FileFunction.copyFile(this.originalFile, temptSorceFile);
 
 		/*
 		 * setting translate .bat file
@@ -67,11 +71,6 @@ public class GDAL_RASTER_Translate {
 		// setting clip boundary
 		translateCommand.append(this.clipBoundary);
 
-		// setting coordination system
-		if (this.coordinateSystem != 0) {
-			translateCommand.append(" -a_srs EPSG:" + this.coordinateSystem);
-		}
-
 		// setting no-data value
 		translateCommand.append(" -a_nodata " + this.nullValue);
 
@@ -79,12 +78,15 @@ public class GDAL_RASTER_Translate {
 		translateCommand.append(" -of " + dataType);
 
 		// setting original file
-		translateCommand.append(" " + this.originalFile);
+		translateCommand.append(" " + temptSorceFile + "");
 
 		// setting targetFile
-		translateCommand.append(" " + saveAdd);
+		translateCommand.append(" " + temptSaveFile + "\"");
 
 		batFile.add(translateCommand.toString());
+
+		// close batch file
+		batFile.add("exit");
 		new AtFileWriter(batFile.parallelStream().toArray(String[]::new),
 				GdalGlobal.gdalBinFolder + "//gdal_translate_tempt.bat").setEncoding(AtFileWriter.ANSI).textWriter("");
 
@@ -95,6 +97,7 @@ public class GDAL_RASTER_Translate {
 		runCommand.add("cmd");
 		runCommand.add("/c");
 		runCommand.add("start");
+		runCommand.add("/wait");
 		runCommand.add("/B");
 		runCommand.add(GdalGlobal.gdalBinFolder + "//gdal_translate_tempt.bat");
 
@@ -103,6 +106,12 @@ public class GDAL_RASTER_Translate {
 		pb.command(runCommand);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
+
+		/*
+		 * move temptSaved file to targetAdd
+		 */
+		FileFunction.copyFile(temptSaveFile, saveAdd);
+		FileFunction.delete(newWorkSpace);
 
 	}
 }

@@ -6,6 +6,7 @@ import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -16,6 +17,7 @@ import java.util.TreeMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.dom4j.Element;
 import org.gdal.ogr.Geometry;
 
 import FEWS.Rinfall.BUI.BuiTranslate;
@@ -28,6 +30,7 @@ import geo.gdal.SpatialReader;
 import usualTool.AtCommonMath;
 import usualTool.AtFileReader;
 import usualTool.AtFileWriter;
+import usualTool.AtXmlReader;
 import usualTool.DateValueStorage;
 import usualTool.FileFunction;
 import usualTool.TimeTranslate;
@@ -43,87 +46,46 @@ public class testAtCommon {
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 
-//		String fileAdd = "D:\\FEWS_Tainwan_SA_20200327\\Fews2018.02\\Taiwan\\modules\\WRA\\Taiwan\\Central\\Yunlin\\Sobek\\Zone\\Input\\Rainfall.xml";
-//		new AtFileWriter(new BuiTranslate(fileAdd).getBuiRainfall(), "D:\\Sobek213\\Fixed\\YUL40MA.BUI").textWriter("");
-
-		String targetAdd = "D:\\Sobek213\\YUL40ZTA.lit\\17\\BOUNDARY - Original.DAT";
-		String saveAdd = "D:\\Sobek213\\YUL40ZTA.lit\\17\\BOUNDARY.DAT";
-		Map<String, String> idMapping = getIdMapping();
-
-		List<String> outList = new ArrayList<>();
-
-		for (String key : idMapping.keySet()) {
-			String id = key;
-
-			if (idMapping.containsKey(id)) {
-				String tideName = idMapping.get(id);
-				List<String> tideValues = getTideString(tideName);
-				getBoundaryString(id, tideValues).forEach(e -> outList.add(e));
-			}
-		}
-
-		new AtFileWriter(outList.parallelStream().toArray(String[]::new), saveAdd).textWriter("");
-
-//		String saveAdd = "C:\\Users\\alter\\Desktop\\tempt.csv";
-//		List<String> outList = new ArrayList<>();
-//
-//		for (int time = 1; time <= 6; time++) {
-//
-//			List<String> temptList = new ArrayList<>();
-//			for (int index = 0; index < 3369; index++) {
-//				temptList.add(Math.abs(3-time) + "");
+//		String workSpace = "D:\\FEWS_Tainwan_SA_20200327\\Fews2018.02\\Taiwan\\Export\\宜蘭\\";
+//		for (String fileName : new File(workSpace).list()) {
+//			if (fileName.contains(".xml")) {
+//				new AtFileWriter(new BuiTranslate(workSpace + fileName).getBuiRainfall(),
+//						workSpace + fileName.replace(".xml", ".BUI")).textWriter("");
 //			}
-//			outList.add(String.join(" ", temptList));
 //		}
+//		String workSpace = "C:\\Users\\alter\\Downloads\\2.DEM成果-20200522T035643Z-001\\2.DEM成果\\";
+//		System.out.println("minx , maxX , minY , maxY");
+//		for (String fileName : new File(workSpace).list()) {
+//			List<Double> xList = new ArrayList<>();
+//			List<Double> yList = new ArrayList<>();
+//			if (fileName.contains(".xyz")) {
+//				String[][] content = new AtFileReader(workSpace + fileName).getContent(" +");
 //
-//		new AtFileWriter(outList.parallelStream().toArray(String[]::new), saveAdd).textWriter("");
-	}
+//				for (String temptLine[] : content) {
+//					xList.add(Double.parseDouble(temptLine[0]));
+//					yList.add(Double.parseDouble(temptLine[1]));
+//				}
+//
+//				System.out.print(AtCommonMath.getListStatistic(xList, StaticsModel.getMin) + ",");
+//				System.out.print(AtCommonMath.getListStatistic(xList, StaticsModel.getMax) + ",");
+//				System.out.print(AtCommonMath.getListStatistic(yList, StaticsModel.getMin) + ",");
+//				System.out.print(AtCommonMath.getListStatistic(yList, StaticsModel.getMax));
+//				System.out.println();
+//			}
+//		}
 
-	public static Map<String, String> getIdMapping() throws IOException {
-		Map<String, String> outMap = new TreeMap<>();
-		String[][] content = new AtFileReader("E:\\LittleProject\\報告書\\109 - 淹水預警平台之建置與整合\\淹水數據測試\\雲林潮位抽換\\潮位對應.csv")
-				.getCsv();
+		double coordinates[][] = new double[][] { { 166285.0, 168885.0, 2552615.0, 2555415.0 },
+				{ 161145.0, 163745.0, 2549875.0, 2552675.0 }, { 163710.0, 166305.0, 2549860.0, 2552660.0 },
+				{ 168835.0, 171430.0, 2549830.0, 2552635.0 }, { 171395.0, 173990.0, 2549820.0, 2552620.0 },
+				{ 158570.0, 161165.0, 2547120.0, 2549925.0 }, { 168820.0, 171415.0, 2547065.0, 2549865.0 },
+				{ 158550.0, 161150.0, 2544661.0, 2547155.0 }, { 161115.0, 163715.0, 2544335.0, 2547140.0 },
+				{ 163675.0, 166275.0, 2544320.0, 2547125.0 } };
 
-		for (String[] temptLine : content) {
-			outMap.put(temptLine[0], temptLine[1]);
+		for (double[] coordinate : coordinates) {
+			System.out.println(coordinate[0] + " " + coordinate[2]);
+			System.out.println(coordinate[0] + " " + coordinate[3]);
+			System.out.println(coordinate[1] + " " + coordinate[2]);
+			System.out.println(coordinate[1] + " " + coordinate[3]);
 		}
-
-		return outMap;
 	}
-
-	public static List<String> getTideString(String tideName) throws IOException, ParseException {
-		String fileAdd = "E:\\LittleProject\\報告書\\109 - 淹水預警平台之建置與整合\\淹水數據測試\\雲林潮位抽換\\" + tideName + ".csv";
-		String inputFormat = "yyyy-MM-dd HH:mm";
-		String outputFormat = "yyyy/MM/dd;HH:mm:ss";
-
-		String[][] content = new AtFileReader(fileAdd).getCsv();
-		List<String> outList = new ArrayList<>();
-		for (String temptLine[] : content) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("'");
-			sb.append(TimeTranslate.getDateStringTranslte(temptLine[0], inputFormat, outputFormat));
-			sb.append("' ");
-			sb.append(temptLine[1]);
-			sb.append(" <");
-
-			outList.add(sb.toString());
-		}
-		return outList;
-	}
-
-	public static List<String> getBoundaryString(String id, List<String> tideValues) {
-		List<String> outList = new ArrayList<>();
-		StringBuilder sb = new StringBuilder();
-		sb.append("FLBO id '");
-		sb.append(id);
-		sb.append("' st 0 ty 0 h_ wt 1 0 0 PDIN 0 0 '' pdin");
-		outList.add(sb.toString());
-
-		outList.add("TBLE");
-		tideValues.forEach(e -> outList.add(e));
-		outList.add("tble flobo");
-
-		return outList;
-	}
-
 }

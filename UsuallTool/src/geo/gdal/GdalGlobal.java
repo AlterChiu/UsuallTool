@@ -18,7 +18,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import usualTool.RandomMaker;
+import usualTool.MathEqualtion.RandomMaker;
 
 public class GdalGlobal {
 
@@ -40,6 +40,8 @@ public class GdalGlobal {
 	public static int TWD97_119 = 3825;
 	public static int TWD67_121 = 3828;
 	public static int TWD67_119 = 3827;
+	public static String TWD97_121_prj4 = "Proj4: +proj=tmerc +lat_0=0 +lon_0=121 +k=0.9999 +x_0=250000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+	public static String WGS84_prj4 = "Proj4: +proj=longlat +datum=WGS84 +no_defs";
 
 	public static Geometry GeometryTranslator(Geometry geo, int importCoordinate, int outputCoordinate) {
 		SpatialReference inputSpatital = new SpatialReference();
@@ -47,6 +49,20 @@ public class GdalGlobal {
 
 		SpatialReference outputSpatital = new SpatialReference();
 		outputSpatital.ImportFromEPSG(outputCoordinate);
+
+		CoordinateTransformation geoTrans = new CoordinateTransformation(inputSpatital, outputSpatital);
+		Geometry temptGeo = geo.Clone();
+		temptGeo.Transform(geoTrans);
+
+		return temptGeo;
+	}
+
+	public static Geometry GeometryTranslator(Geometry geo, String importCoordinate, String outputCoordinate) {
+		SpatialReference inputSpatital = new SpatialReference();
+		inputSpatital.ImportFromProj4(importCoordinate);
+
+		SpatialReference outputSpatital = new SpatialReference();
+		outputSpatital.ImportFromProj4(outputCoordinate);
 
 		CoordinateTransformation geoTrans = new CoordinateTransformation(inputSpatital, outputSpatital);
 		Geometry temptGeo = geo.Clone();

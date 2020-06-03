@@ -30,20 +30,22 @@ public class GDAL_RASTER_Merge {
 	private List<String> batContent = new ArrayList<>();
 	private List<String> mergeFiles = new ArrayList<>();
 
+	private String noDataValue = "-999";
+
 	public void addRaster(String fileAdd) {
-		this.mergeFiles.add("\"" + fileAdd + "\"");
+		this.mergeFiles.add(fileAdd);
+	}
+
+	public void setNoDataValue(String nullValue) {
+		this.noDataValue = nullValue;
 	}
 
 	public void save(String saveAdd) throws IOException, InterruptedException {
-		save(saveAdd, VARIABLETYPE_Float32, GdalGlobal_DataFormat.DATAFORMAT_RASTER_GTiff);
+		save(saveAdd, VARIABLETYPE_Float32);
 	}
 
-	public void save(String saveAdd, String dataFormatType) throws IOException, InterruptedException {
-		save(saveAdd, VARIABLETYPE_Float32, dataFormatType);
+	public void save(String saveAdd, String variableType)
 
-	}
-
-	public void save(String saveAdd, String variableType, String dataFormatType)
 			throws IOException, InterruptedException {
 		/*
 		 * clear gdalGlobal temptFolder
@@ -56,12 +58,32 @@ public class GDAL_RASTER_Merge {
 		 * setting temptFile fileName
 		 */
 		String temptFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, ".txt");
-		String temptFileDirection = GdalGlobal.temptFolder + temptFileName;
+		String temptFileDirection = GdalGlobal.temptFolder + "\\" + temptFileName;
+
+		/*
+		 * copy file to temptFolder
+		 */
+		List<String> mergeList = new ArrayList<>();
+		for (String temptFile : this.mergeFiles) {
+			String sourceFileExtension = temptFile.substring(temptFile.lastIndexOf("."));
+			String sourceFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, sourceFileExtension);
+			String sourceFileAdd = GdalGlobal.temptFolder + "\\" + sourceFileName;
+
+			FileFunction.copyFile(temptFile, sourceFileAdd);
+			mergeList.add("\"" + sourceFileAdd + "\"");
+		}
+
+		/*
+		 * merged file SavedAdd
+		 */
+		String targetFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
+		String targetFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, targetFileExtension);
+		String targetFileAdd = GdalGlobal.temptFolder + "\\" + targetFileName;
 
 		/*
 		 * setting inputFile
 		 */
-		new AtFileWriter(this.mergeFiles.parallelStream().toArray(String[]::new), temptFileDirection).textWriter("");
+		new AtFileWriter(mergeList.parallelStream().toArray(String[]::new), temptFileDirection).textWriter("");
 
 		/*
 		 * setting raster merge .bat file
@@ -69,12 +91,14 @@ public class GDAL_RASTER_Merge {
 		GdalGlobal.GDAL_EnviromentStarting().forEach(line -> this.batContent.add(line));
 		StringBuilder mergeCommand = new StringBuilder();
 		mergeCommand.append("\"%GRASS_PYTHON%\" gdal_merge.py");
+		mergeCommand.append(" -a_nodata  " + this.noDataValue);
 		mergeCommand.append(" -ot " + VARIABLETYPE_Float32);
 		mergeCommand.append(" -of " + GdalGlobal_DataFormat.DATAFORMAT_RASTER_GTiff);
-		mergeCommand.append(" -o " + saveAdd);
+		mergeCommand.append(" -o " + targetFileAdd);
 		mergeCommand.append(" --optfile " + temptFileDirection);
-		this.batContent.add(mergeCommand.toString());
 
+		this.batContent.add(mergeCommand.toString());
+		this.batContent.add("exit");
 		/*
 		 * save .bat file to gdalBin folder
 		 */
@@ -88,6 +112,7 @@ public class GDAL_RASTER_Merge {
 		runCommand.add("cmd");
 		runCommand.add("/c");
 		runCommand.add("start");
+		runCommand.add("/wait");
 		runCommand.add("/B");
 		runCommand.add(GdalGlobal.gdalBinFolder + tmeptRunFileName);
 
@@ -96,5 +121,11 @@ public class GDAL_RASTER_Merge {
 		pb.command(runCommand);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
+
+		/*
+		 * copy merged file to saveAdd
+		 */
+
+		FileFunction.copyFile(targetFileAdd, saveAdd);
 	}
 }

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.TreeMap;
 
 import usualTool.AtCommonMath;
-import usualTool.AtFileReader;
 import usualTool.AtFileWriter;
 
 public class XYZToAscii {

@@ -296,8 +296,14 @@ public class SAGA_Interpolation_Kriging {
 		return new AsciiBasicControl(this.temptFileDirection + "_pridiction.asc");
 	}
 
-	public void saveAdRaster(String saveAdd, String dataFormat) throws InterruptedException, IOException {
+	public void saveAsRaster(String saveAdd, String dataFormat) throws InterruptedException, IOException {
 		SAGA_RunKriging();
-		GDAL_Translation(saveAdd, dataFormat);
+
+		String temptSaveFolder = GdalGlobal.temptFolder + "\\";
+		String temptSavetFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
+		String temptSaveFileAdd = temptSaveFolder + temptSavetFileExtension;
+		GDAL_Translation(temptSaveFileAdd, dataFormat);
+
+		FileFunction.copyFile(temptSaveFileAdd, saveAdd);
 	}
 }
