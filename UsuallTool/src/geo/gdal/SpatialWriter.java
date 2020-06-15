@@ -4,6 +4,7 @@ import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -21,7 +22,7 @@ import org.gdal.osr.SpatialReference;
 public class SpatialWriter {
 	protected List<Geometry> geometryList = new ArrayList<Geometry>();
 	protected List<Map<String, Object>> attribute = new ArrayList<Map<String, Object>>();
-	protected Map<String, String> fieldType = new TreeMap<String, String>();
+	protected Map<String, String> fieldType = new LinkedHashMap<String, String>();
 
 	// projection
 	public static int WGS84 = 4326;
@@ -133,6 +134,24 @@ public class SpatialWriter {
 		return this;
 	}
 
+	public SpatialWriter reNameFeild(String oldFieldName, String newFeildName) {
+
+		// change type
+		if (this.fieldType.containsKey(oldFieldName)) {
+			this.fieldType.put(newFeildName, this.fieldType.get(oldFieldName));
+		} else {
+			this.fieldType.remove(oldFieldName);
+		}
+
+		// change attrTables
+		this.attribute.forEach(feature -> {
+			feature.put(newFeildName, feature.get(oldFieldName));
+			feature.remove(oldFieldName);
+		});
+
+		return this;
+	}
+
 	// <==========================================>
 
 	/*
@@ -232,23 +251,19 @@ public class SpatialWriter {
 			FieldDefn field = new FieldDefn();
 
 			String type = this.fieldType.get(name).toUpperCase();
-			if (type.equals("STRING") || type.equals("CHAR") || type.equals("STR") || type.equals("CHARATER")) {
+			if (type.contains("STRING") || type.contains("CHAR") || type.contains("STR") || type.contains("CHARATER")) {
 				field.SetType(ogr.OFTString);
 				field.SetName(name);
-				field.SetWidth(20);
 				outLayer.CreateField(field);
 
-			} else if (type.equals("DOUBLE") || type.equals("FLOAT") || type.equals("REAL")) {
+			} else if (type.contains("DOUBLE") || type.contains("FLOAT") || type.contains("REAL")) {
 				field.SetType(ogr.OFTReal);
 				field.SetName(name);
-				field.SetWidth(20);
-				field.SetPrecision(5);
 				outLayer.CreateField(field);
 
-			} else if (type.equals("INT") || type.equals("INTEGER") || type.equals("INTEGER64")) {
+			} else if (type.contains("INT") || type.contains("INTEGER") || type.contains("INTEGER64")) {
 				field.SetType(ogr.OFTInteger);
 				field.SetName(name);
-				field.SetWidth(20);
 				outLayer.CreateField(field);
 
 			} else if (type.equals("DATE") || type.equals("TIME")) {
@@ -268,25 +283,25 @@ public class SpatialWriter {
 			Feature feature = new Feature(outLayer.GetLayerDefn());
 
 			// attribute value
-			try {
-				for (String attributeKey : attribute.get(index).keySet()) {
-
+			for (String attributeKey : attribute.get(index).keySet()) {
+				try {
 					String type = this.fieldType.get(attributeKey).toUpperCase();
-					if (type.equals("STRING") || type.equals("CHAR") || type.equals("STR") || type.equals("CHARATER")) {
+					if (type.contains("STRING") || type.contains("CHAR") || type.contains("STR")
+							|| type.contains("CHARATER")) {
 						feature.SetField(attributeKey, (String) attribute.get(index).get(attributeKey));
 
-					} else if (type.equals("DOUBLE") || type.equals("FLOAT") || type.equals("REAL")) {
+					} else if (type.contains("DOUBLE") || type.contains("FLOAT") || type.contains("REAL")) {
 						feature.SetField(attributeKey, (Double) attribute.get(index).get(attributeKey));
 
-					} else if (type.equals("INT") || type.equals("INTEGER")) {
+					} else if (type.contains("INT") || type.contains("INTEGER")) {
 						feature.SetField(attributeKey, (Integer) attribute.get(index).get(attributeKey));
 
-					} else if (type.equals("DATE") || type.equals("TIME")) {
+					} else if (type.contains("DATE") || type.contains("TIME")) {
 						feature.SetField(attributeKey, (Double) attribute.get(index).get(attributeKey));
 					}
-
+				} catch (Exception e) {
+					feature.SetFieldNull(attributeKey);
 				}
-			} catch (Exception e) {
 			}
 
 			// geometry

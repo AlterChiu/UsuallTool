@@ -1,6 +1,7 @@
 package geo.gdal;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -18,7 +19,7 @@ public class SpatialReader {
 	private List<String> attributeTitles = new ArrayList<String>();
 	private List<Geometry> geometryList = new ArrayList<Geometry>();
 	private List<Map<String, Object>> featureTable = new ArrayList<>();
-	private Map<String, String> attributeTitleType = new TreeMap<>();
+	private Map<String, String> attributeTitleType = new LinkedHashMap<>();
 	private int EPSG = 4326;
 
 	// <=========================================>
@@ -92,6 +93,22 @@ public class SpatialReader {
 
 	public Map<String, String> getAttributeTitleType() {
 		return this.attributeTitleType;
+	}
+
+	public void reNameFeild(String oldFieldName, String newFeildName) {
+
+		// change type
+		if (this.attributeTitleType.containsKey(oldFieldName)) {
+			this.attributeTitleType.put(newFeildName, this.attributeTitleType.get(oldFieldName));
+		} else {
+			this.attributeTitleType.remove(oldFieldName);
+		}
+
+		// change attrTables
+		this.featureTable.forEach(feature -> {
+			feature.put(newFeildName, feature.get(oldFieldName));
+			feature.remove(oldFieldName);
+		});
 	}
 
 	public int getEPSG() {
@@ -198,11 +215,26 @@ public class SpatialReader {
 			// get the attribute table
 			Map<String, Object> temptMap = new TreeMap<String, Object>();
 			for (String key : this.attributeTitles) {
+				String type = this.attributeTitleType.get(key);
+
 				try {
-					String value = feature.GetFieldAsString(key);
-					temptMap.put(key, value);
+					if (type.contains("STRING") || type.contains("CHAR") || type.contains("STR")
+							|| type.contains("CHARATER")) {
+						temptMap.put(key, feature.GetFieldAsString(key));
+
+					} else if (type.contains("DOUBLE") || type.contains("FLOAT") || type.contains("REAL")) {
+						temptMap.put(key, feature.GetFieldAsDouble(key));
+
+					} else if (type.contains("INT") || type.contains("INTEGER")) {
+						temptMap.put(key, feature.GetFieldAsInteger(key));
+
+					} else if (type.contains("DATE") || type.contains("TIME")) {
+						temptMap.put(key, feature.GetFieldAsDouble(key));
+					} else {
+						temptMap.put(key, null);
+					}
 				} catch (Exception e) {
-					temptMap.put(key, "");
+					temptMap.put(key, null);
 				}
 			}
 			this.featureTable.add(temptMap);

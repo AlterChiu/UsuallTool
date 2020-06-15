@@ -30,10 +30,12 @@
 
 
 		<!-- +++++++++++++++++++++++++++++++ -->
-		<!-- ++++++++++++++ XML +++++++++++++ -->
+		<!-- ++++++++ HttpClient & XML +++++++++++ -->
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<dom4j.version>2.1.1</dom4j.version>
 		<jaxen.version>1.1.6</jaxen.version>
+		<HttpClient.version>4.5.12</HttpClient.version>
+		<HttpComponent.version>4.1.4</HttpComponent.version>
 
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<!-- ++++++++++++++ POI +++++++++++++ -->
@@ -93,7 +95,7 @@
 		</dependency>
 
 		<!-- +++++++++++++++++++++++++++++++ -->
-		<!-- ++++++++++++++ XML +++++++++++++ -->
+		<!-- ++++++++++++++ HttpClient & XML +++++++++++++ -->
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<!-- dom4j -->
 		<dependency>
@@ -108,6 +110,21 @@
 			<artifactId>jaxen</artifactId>
 			<version>${jaxen.version}</version>
 		</dependency>
+
+		<!-- HttpClient -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${HttpClient.version}</version>
+		</dependency>
+		
+		<!-- HttpComponent -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpasyncclient</artifactId>
+			<version>${HttpComponent.version}</version>
+		</dependency>
+
 
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<!-- ++++++++++++++ POI +++++++++++++ -->

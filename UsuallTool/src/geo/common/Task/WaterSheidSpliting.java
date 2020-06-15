@@ -114,20 +114,21 @@ public class WaterSheidSpliting {
 
 		// READ COMMAND LINE
 
-		/*
-		 * testing
-		 */
-		mainStreamSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\mainStream.shp";
-		bufferStreamShp = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\mainStream-buffer.shp";
-		otherStreamSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_reach.shp";
-		groupedReachSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedReach.shp";
-		groupedNodeShp = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedNode.shp";
-		waterSheidSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10.shp";
-		waterSheidMinArea = 100.;
-		groupedPolygons = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedPolygons.shp";
-		idPrefix = "RRin-";
-
-//		getCommand(args[0]);
+//		/*
+//		 * testing
+//		 */
+//		mainStreamSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\mainStream.shp";
+//		bufferStreamShp = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\mainStream-buffer.shp";
+//		otherStreamSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_reach.shp";
+//		groupedReachSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedReach.shp";
+//		groupedNodeShp = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedNode.shp";
+//		waterSheidSHP = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10.shp";
+//		waterSheidMinArea = 100.;
+//		groupedPolygons = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedPolygons.shp";
+//		idPrefix = "RRin-";
+		
+		// setting variables
+		getCommand(args[0]);
 
 		System.out.println("START buffer main stream....");
 		mainStreamBuffer(mainStreamSHP, bufferStreamShp, bufferRadius);
@@ -250,16 +251,6 @@ public class WaterSheidSpliting {
 				notMainStreamEdgeMap.put(temptEdge.getId(), temptEdge);
 			}
 		});
-
-		// TESTINGINGINGINGIN
-		// <++++++++++++++++>
-		List<Geometry> testList = new ArrayList<>();
-		crossMainStreamEdgeMap.keySet().forEach(key -> {
-			testList.add(crossMainStreamEdgeMap.get(key).getGeo());
-		});
-		new SpatialWriter().setGeoList(testList)
-				.saveAsShp("E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\testingCross.shp");
-		// <++++++++++++++++>
 
 		/*
 		 * starting grouping

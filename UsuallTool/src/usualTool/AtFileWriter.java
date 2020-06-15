@@ -4,6 +4,8 @@ import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -71,16 +73,17 @@ public class AtFileWriter {
 				new OutputStreamWriter(new FileOutputStream(this.fileAdd), this.encode));
 
 		if (temptDoubleArray != null) {
-			for (int i = 0; i < this.temptDoubleArray.length; i++) {
-				writer.write(temptDoubleArray[i][0]);
-				for (int j = 1; j < this.temptDoubleArray[i].length; j++) {
-					writer.write(split + temptDoubleArray[i][j]);
+			for (int line = 0; line < this.temptDoubleArray.length; line++) {
+				List<String> temptLine = new ArrayList<>();
+				for (int column = 0; column < this.temptDoubleArray[line].length; column++) {
+					temptLine.add(new String(this.temptDoubleArray[line][column].getBytes(), this.encode));
 				}
-				writer.write("\r\n");
+				writer.write(String.join(split, temptLine) + "\r\n");
 			}
+
 		} else if (temptArray != null) {
 			for (int i = 0; i < this.temptArray.length; i++) {
-				writer.write(temptArray[i] + "\r\n");
+				writer.write(new String(temptArray[i].getBytes(), this.encode) + "\r\n");
 			}
 		}
 		writer.close();
