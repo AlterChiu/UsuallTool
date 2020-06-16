@@ -32,7 +32,6 @@ public class SpatialReader {
 		this.dataSource = ogr.Open(fileAdd);
 		detectAttributeTitle();
 		detectAttributeTable();
-		detectAttributeTitleType();
 		this.close();
 	}
 
@@ -43,7 +42,6 @@ public class SpatialReader {
 		this.dataSource = ogr.Open(fileAdd);
 		detectAttributeTitle();
 		detectAttributeTable();
-		detectAttributeTitleType();
 		this.close();
 	}
 
@@ -54,7 +52,6 @@ public class SpatialReader {
 		this.dataSource = dataSource;
 		detectAttributeTitle();
 		detectAttributeTable();
-		detectAttributeTitleType();
 		this.close();
 	}
 
@@ -65,7 +62,6 @@ public class SpatialReader {
 		this.dataSource = dataSource;
 		detectAttributeTitle();
 		detectAttributeTable();
-		detectAttributeTitleType();
 	}
 
 	// <===========================================>
@@ -186,15 +182,12 @@ public class SpatialReader {
 	private void detectAttributeTitle() {
 		FeatureDefn layerDefn = this.dataSource.GetLayer(0).GetLayerDefn();
 		for (int index = 0; index < layerDefn.GetFieldCount(); index++) {
+			// get title name
 			attributeTitles.add(layerDefn.GetFieldDefn(index).GetName());
-		}
-	}
-
-	private void detectAttributeTitleType() {
-		FeatureDefn layerDefn = this.dataSource.GetLayer(0).GetLayerDefn();
-		for (int index = 0; index < layerDefn.GetFieldCount(); index++) {
+			
+			// get title style
 			attributeTitleType.put(layerDefn.GetFieldDefn(index).GetName(),
-					layerDefn.GetFieldDefn(index).GetTypeName());
+					layerDefn.GetFieldDefn(index).GetTypeName().toUpperCase());
 		}
 	}
 
@@ -216,7 +209,6 @@ public class SpatialReader {
 			Map<String, Object> temptMap = new TreeMap<String, Object>();
 			for (String key : this.attributeTitles) {
 				String type = this.attributeTitleType.get(key);
-
 				try {
 					if (type.contains("STRING") || type.contains("CHAR") || type.contains("STR")
 							|| type.contains("CHARATER")) {

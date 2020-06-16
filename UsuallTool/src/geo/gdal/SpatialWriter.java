@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import org.gdal.gdal.gdal;
@@ -283,27 +284,29 @@ public class SpatialWriter {
 			Feature feature = new Feature(outLayer.GetLayerDefn());
 
 			// attribute value
-			for (String attributeKey : attribute.get(index).keySet()) {
-				try {
-					String type = this.fieldType.get(attributeKey).toUpperCase();
-					if (type.contains("STRING") || type.contains("CHAR") || type.contains("STR")
-							|| type.contains("CHARATER")) {
-						feature.SetField(attributeKey, (String) attribute.get(index).get(attributeKey));
+			if (this.fieldType.keySet().size() > 0) {
+				for (String attributeKey : attribute.get(index).keySet()) {
+					try {
+						String type = this.fieldType.get(attributeKey).toUpperCase();
+						if (type.contains("STRING") || type.contains("CHAR") || type.contains("STR")
+								|| type.contains("CHARATER")) {
+							feature.SetField(attributeKey, (String) attribute.get(index).get(attributeKey));
 
-					} else if (type.contains("DOUBLE") || type.contains("FLOAT") || type.contains("REAL")) {
-						feature.SetField(attributeKey, (Double) attribute.get(index).get(attributeKey));
+						} else if (type.contains("DOUBLE") || type.contains("FLOAT") || type.contains("REAL")) {
+							feature.SetField(attributeKey, (Double) attribute.get(index).get(attributeKey));
 
-					} else if (type.contains("INT") || type.contains("INTEGER")) {
-						feature.SetField(attributeKey, (Integer) attribute.get(index).get(attributeKey));
+						} else if (type.contains("INT") || type.contains("INTEGER")) {
+							feature.SetField(attributeKey, (Integer) attribute.get(index).get(attributeKey));
 
-					} else if (type.contains("DATE") || type.contains("TIME")) {
-						feature.SetField(attributeKey, (Double) attribute.get(index).get(attributeKey));
+						} else if (type.contains("DATE") || type.contains("TIME")) {
+							feature.SetField(attributeKey, (Double) attribute.get(index).get(attributeKey));
+						}
+					} catch (Exception e) {
+						feature.SetFieldNull(attributeKey);
 					}
-				} catch (Exception e) {
-					feature.SetFieldNull(attributeKey);
 				}
 			}
-
+			
 			// geometry
 			feature.SetGeometry(this.geometryList.get(index));
 			outLayer.CreateFeature(feature);

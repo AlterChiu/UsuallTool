@@ -3,12 +3,10 @@ package geo.common.Task;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -126,7 +124,7 @@ public class WaterSheidSpliting {
 //		waterSheidMinArea = 100.;
 //		groupedPolygons = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\製作集水區scsNode\\100_10_GroupedPolygons.shp";
 //		idPrefix = "RRin-";
-		
+
 		// setting variables
 		getCommand(args[0]);
 
@@ -190,8 +188,8 @@ public class WaterSheidSpliting {
 		List<Map<String, Object>> outGeometry_GroupedNode_Attr = new ArrayList<>();
 
 		outGeometry_GroupedNode_TableType.put("ID", "String");
-		outGeometry_GroupedNode_TableType.put("X", "String");
-		outGeometry_GroupedNode_TableType.put("Y", "String");
+		outGeometry_GroupedNode_TableType.put("X", "Double");
+		outGeometry_GroupedNode_TableType.put("Y", "Double");
 
 		// get node in mainStream buffer area
 		System.out.print("depoly node.....");
@@ -275,8 +273,8 @@ public class WaterSheidSpliting {
 					// feature
 					Map<String, Object> featureAttr_Node = new HashMap<>();
 					featureAttr_Node.put("ID", crossMainStreamEdge.getId());
-					featureAttr_Node.put("X", temptNode.getX() + "");
-					featureAttr_Node.put("Y", temptNode.getY() + "");
+					featureAttr_Node.put("X", temptNode.getX());
+					featureAttr_Node.put("Y", temptNode.getY());
 					outGeometry_GroupedNode_Attr.add(featureAttr_Node);
 
 					/*
@@ -507,9 +505,10 @@ public class WaterSheidSpliting {
 		// node
 		SpatialReader node = new SpatialReader(groupedNodeShp);
 		List<Map<String, Object>> nodeAttr = node.getAttributeTable();
+
 		for (int index = 0; index < nodeAttr.size(); index++) {
 			String fixedID = idPrefix + (index + 1);
-			outMap.put(nodeAttr.get(index).get("ID") + "", fixedID);
+			outMap.put(String.valueOf(nodeAttr.get(index).get("ID")), fixedID);
 			nodeAttr.get(index).put("ID", fixedID);
 		}
 		new SpatialWriter().setGeoList(node.getGeometryList()).setFieldType(node.getAttributeTitleType())
@@ -518,6 +517,7 @@ public class WaterSheidSpliting {
 		// reach
 		SpatialReader reach = new SpatialReader(groupedReachSHP);
 		List<Map<String, Object>> reachAttr = reach.getAttributeTable();
+
 		reachAttr.forEach(attr -> {
 			attr.put("ID", outMap.get(attr.get("ID")));
 		});
@@ -567,8 +567,8 @@ public class WaterSheidSpliting {
 		System.out.println("-mainStreamSHP : " + commandLine.get("-mainStreamSHP"));
 		mainStreamSHP = commandLine.get("-mainStreamSHP");
 
-		System.out.println("-bufferStreamShp : " + commandLine.get("-bufferStreamShp"));
-		bufferStreamShp = commandLine.get("-bufferStreamShp");
+		System.out.println("-bufferStreamShp : " + commandLine.get("-bufferStreamSHP"));
+		bufferStreamShp = commandLine.get("-bufferStreamSHP");
 
 		System.out.println("-waterSheidSHP : " + commandLine.get("-waterSheidSHP"));
 		waterSheidSHP = commandLine.get("-waterSheidSHP");
@@ -579,8 +579,8 @@ public class WaterSheidSpliting {
 		System.out.println("-groupedReachSHP : " + commandLine.get("-groupedReachSHP"));
 		groupedReachSHP = commandLine.get("-groupedReachSHP");
 
-		System.out.println("-groupedNodeShp : " + commandLine.get("-groupedNodeShp"));
-		groupedNodeShp = commandLine.get("-groupedNodeShp");
+		System.out.println("-groupedNodeShp : " + commandLine.get("-groupedNodeSHP"));
+		groupedNodeShp = commandLine.get("-groupedNodeSHP");
 
 		System.out.println("-groupedPolygonsShp : " + commandLine.get("-groupedPolygonsSHP"));
 		groupedPolygons = commandLine.get("-groupedPolygonsSHP");
