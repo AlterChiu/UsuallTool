@@ -1,4 +1,4 @@
-package Microsoft.Office.Excel.Chart.CopyPaste;
+package Microsoft.Office.Excel.Chart;
 
 import java.io.File;
 import java.io.IOException;
