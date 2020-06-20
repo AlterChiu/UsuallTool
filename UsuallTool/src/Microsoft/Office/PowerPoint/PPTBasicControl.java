@@ -2,6 +2,7 @@ package Microsoft.Office.PowerPoint;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
@@ -24,6 +25,8 @@ import org.apache.poi.xslf.usermodel.XSLFSimpleShape;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFTable;
 import org.apache.poi.xslf.usermodel.XSLFTextBox;
+
+import geo.gdal.GdalGlobal;
 
 public class PPTBasicControl {
 	private XMLSlideShow pptFile = new XMLSlideShow();
@@ -119,15 +122,95 @@ public class PPTBasicControl {
 	}
 
 	public void createShape(Path2D path, int slideIndex) {
-		createShape(path, slideIndex, 1);
+
+		// adjust path
+		Path2D temptPath = GdalGlobal.pathFixPoint(path, 0, 0);
+
+		// get fixed Bound
+		Rectangle temptRec = temptPath.getBounds();
+		double temptRecWidth = temptRec.getWidth();
+		double temptRecHeight = temptRec.getHeight();
+
+		double slideWidth = this.pptFile.getPageSize().getWidth();
+		double slideHeight = this.pptFile.getPageSize().getHeight();
+
+		double widthRatio = slideWidth / temptRecWidth;
+		double heightRatio = slideHeight / temptRecHeight;
+
+		// get ratio
+		double ratioSize = 0;
+		if (widthRatio > heightRatio) {
+			ratioSize = heightRatio;
+		} else {
+			ratioSize = widthRatio;
+		}
+
+		temptPath = GdalGlobal.pathAdjustRatio(temptPath, 0, 0, ratioSize, ratioSize);
+		temptPath = GdalGlobal.pathAdjustMirroXLine(temptPath, temptPath.getBounds().getCenterY());
+		createShape_PrivateFunction(temptPath, slideIndex);
 	}
 
-	public void createShape(Path2D path, int slideIndex, int ratio) {
-		Shape shape = path.createTransformedShape(AffineTransform.getScaleInstance(ratio, ratio));
+	public void createShape(List<Path2D> pathList, int slideIndex) {
+		double groupMinX = Double.POSITIVE_INFINITY;
+		double groupMinY = Double.POSITIVE_INFINITY;
+		double groupMaxY = Double.NEGATIVE_INFINITY;
+		double groupMaxX = Double.NEGATIVE_INFINITY;
+
+		for (Path2D temptPath : pathList) {
+			Rectangle rec = temptPath.getBounds();
+			if (rec.getMinX() < groupMinX) {
+				groupMinX = rec.getMinX();
+			}
+			if (rec.getMaxX() > groupMaxX) {
+				groupMaxX = rec.getMaxX();
+			}
+			if (rec.getMinY() < groupMinY) {
+				groupMinY = rec.getMinY();
+			}
+			if (rec.getMaxY() > groupMaxY) {
+				groupMaxY = rec.getMaxY();
+			}
+		}
+
+		double pathWidth = groupMaxX - groupMinX;
+		double pathHeight = groupMaxY - groupMinY;
+		double pageWidth = this.pptFile.getPageSize().getWidth();
+		double pageHeight = this.pptFile.getPageSize().getHeight();
+
+		// get ratio
+		double widthRatio = pageWidth / pathWidth;
+		double heightRatio = pageHeight / pathHeight;
+
+		double ratioSize = 0;
+		if (widthRatio > heightRatio) {
+			ratioSize = heightRatio;
+		} else {
+			ratioSize = widthRatio;
+		}
+
+		// flip y
+		double flipY = pageHeight / 2;
+
+		for (Path2D temptPath : pathList) {
+			Rectangle temptRec = temptPath.getBounds();
+			Path2D adjustedPath = GdalGlobal.pathFixPoint(temptPath, temptRec.getMinX() - groupMinX,
+					temptRec.getMinY() - groupMinY);
+
+			adjustedPath = GdalGlobal.pathAdjustRatio(adjustedPath, 0, 0, ratioSize, ratioSize);
+			adjustedPath = GdalGlobal.pathAdjustMirroXLine(adjustedPath, flipY);
+
+			createShape_PrivateFunction(adjustedPath, slideIndex);
+		}
+	}
+
+	private void createShape_PrivateFunction(Path2D path, int slideIndex) {
+		Shape shape = path.createTransformedShape(AffineTransform.getScaleInstance(1, 1));
 		Path2D.Double pathDouble = new Path2D.Double(shape);
-		FreeformShape freeForm = this.pptFile.getSlides().get(slideIndex).createFreeform();
+		XSLFFreeformShape freeForm = this.pptFile.getSlides().get(slideIndex).createFreeform();
 		freeForm.setPath(pathDouble);
-		freeForm.setFillColor(Color.black);
+		freeForm.setFillColor(Color.white);
+		freeForm.setLineColor(Color.black);
+		freeForm.setLineWidth(1);
 	}
 
 	// <+++++++++++++++++++++++++++++>
@@ -241,7 +324,6 @@ public class PPTBasicControl {
 		}
 	}
 
-
 	public class PPTTextBox {
 		private XSLFTextBox textBox;
 
@@ -290,7 +372,6 @@ public class PPTBasicControl {
 		}
 
 	}
-
 
 	public class PPTPicture {
 		private XSLFPictureShape picture;

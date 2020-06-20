@@ -317,7 +317,7 @@ public class DflowNetcdfTranslator {
 		// clockwise
 		if (degree2 > degree1) {
 			Collections.reverse(pointList);
-			Geometry temptGeo = GdalGlobal.Path2DToGeometry(GdalGlobal.PointsToPath(
+			Geometry temptGeo = GdalGlobal.Path2DToGeometry(GdalGlobal.CreatePath2D(
 					pointList.parallelStream().map(d -> new Double[] { d[0], d[1] }).collect(Collectors.toList())));
 			return temptGeo;
 		} else {

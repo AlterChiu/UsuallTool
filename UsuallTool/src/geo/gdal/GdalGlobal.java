@@ -1,5 +1,6 @@
 package geo.gdal;
 
+import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.File;
@@ -81,12 +82,23 @@ public class GdalGlobal {
 		} else if (geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYGON")
 				|| geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYLINE")) {
 			for (int index = 0; index < geometry.GetGeometryCount(); index++) {
-				outList.add(GeomertyToPath2D_Polygon(geometry.GetGeometryRef(index)));
+				outList.add(GeomertyToPath2D_BoundaryPolygon(geometry.GetGeometryRef(index)));
 			}
 		} else {
 			throw new IOException("not correct geometry type");
 		}
 		return outList;
+	}
+
+	private static Path2D GeomertyToPath2D_BoundaryPolygon(Geometry geometry) {
+		Path2D outPath = new Path2D.Double();
+
+		Geometry temptGeo = geometry.Boundary();
+		outPath.moveTo(temptGeo.GetPoint(0)[0], temptGeo.GetPoint(0)[1]);
+		for (int index = 1; index < temptGeo.GetPointCount(); index++) {
+			outPath.lineTo(temptGeo.GetPoint(index)[0], temptGeo.GetPoint(index)[1]);
+		}
+		return outPath;
 	}
 
 	private static Path2D GeomertyToPath2D_Polygon(Geometry geometry) {
@@ -97,6 +109,103 @@ public class GdalGlobal {
 			outPath.lineTo(geometry.GetPoint(index)[0], geometry.GetPoint(index)[1]);
 		}
 		return outPath;
+	}
+
+	public static Path2D pathFixPoint(Path2D path, double leftBottomX, double leftBottomY) {
+		Rectangle rec = path.getBounds();
+		double minX = rec.getMinX();
+		double minY = rec.getMinY();
+
+		double moveX = leftBottomX - minX;
+		double moveY = leftBottomY - minY;
+
+		return pathAdjustPanel(path, moveX, moveY);
+	}
+
+	public static Path2D pathAdjustPanel(Path2D path, double moveX, double moveY) {
+		List<Double[]> pointList = getPathPoints(path);
+		List<Double[]> adjustedPointList = new ArrayList<>();
+
+		pointList.forEach(point -> {
+			double adjustX = point[0] + moveX;
+			double adjustY = point[1] + moveY;
+			adjustedPointList.add(new Double[] { adjustX, adjustY });
+		});
+
+		return CreatePath2D(adjustedPointList);
+	}
+
+	public static Path2D pathAdjustMirroXLine(Path2D path) {
+		Rectangle rec = path.getBounds();
+		double centerY = rec.getCenterY();
+
+		return pathAdjustMirroXLine(path, centerY);
+	}
+
+	public static Path2D pathAdjustMirroXLine(Path2D path, double flipY) {
+		List<Double[]> pointList = getPathPoints(path);
+		List<Double[]> adjustedPointList = new ArrayList<>();
+
+		pointList.forEach(point -> {
+			double adjustX = point[0];
+			double adjustY = flipY * 2 - point[1];
+			adjustedPointList.add(new Double[] { adjustX, adjustY });
+		});
+
+		return CreatePath2D(adjustedPointList);
+	}
+
+	public static Path2D pathAdjustMirroYLine(Path2D path) {
+		Rectangle rec = path.getBounds();
+		double centerX = rec.getCenterX();
+
+		return pathAdjustMirroYLine(path, centerX);
+	}
+
+	public static Path2D pathAdjustMirroYLine(Path2D path, double flipX) {
+
+		List<Double[]> pointList = getPathPoints(path);
+		List<Double[]> adjustedPointList = new ArrayList<>();
+
+		pointList.forEach(point -> {
+			double adjustX = flipX * 2 - point[0];
+			double adjustY = point[1];
+			adjustedPointList.add(new Double[] { adjustX, adjustY });
+		});
+
+		return CreatePath2D(adjustedPointList);
+	}
+
+	public static Path2D pathAdjustRatio(Path2D path, double fixX, double fixY, double ratioX, double ratioY) {
+
+		List<Double[]> pointList = getPathPoints(path);
+		List<Double[]> adjustedPointList = new ArrayList<>();
+
+		pointList.forEach(point -> {
+			double adjustX = fixX + (point[0] - fixX) * ratioX;
+			double adjustY = fixY + (point[1] - fixY) * ratioY;
+			adjustedPointList.add(new Double[] { adjustX, adjustY });
+		});
+
+		return CreatePath2D(adjustedPointList);
+	}
+
+	public static Path2D pathAdjustRatio(Path2D path, double ratio) {
+		Rectangle rec = path.getBounds();
+		return pathAdjustRatio(path, rec.getCenterX(), rec.getCenterY(), ratio, ratio);
+	}
+
+	public static List<Double[]> getPathPoints(Path2D path) {
+		List<Double[]> outList = new ArrayList<>();
+
+		PathIterator temptPathIteratore = path.getPathIterator(null);
+		double coordinate[] = new double[2];
+
+		for (; !temptPathIteratore.isDone(); temptPathIteratore.next()) {
+			temptPathIteratore.currentSegment(coordinate);
+			outList.add(new Double[] { coordinate[0], coordinate[1] });
+		}
+		return outList;
 	}
 
 	public static Geometry Path2DToGeometry(Path2D path) {
@@ -236,13 +345,14 @@ public class GdalGlobal {
 		return CreateLine(temptList);
 	}
 
-	public static Path2D PointsToPath(List<Double[]> points) {
-		Path2D temptPath = new Path2D.Double();
-		temptPath.moveTo(points.get(0)[0], points.get(0)[1]);
+	public static Path2D CreatePath2D(List<Double[]> points) {
+		Path2D outPath = new Path2D.Double();
+
+		outPath.moveTo(points.get(0)[0], points.get(0)[1]);
 		for (int index = 1; index < points.size(); index++) {
-			temptPath.lineTo(points.get(index)[0], points.get(index)[1]);
+			outPath.lineTo(points.get(index)[0], points.get(index)[1]);
 		}
-		return temptPath;
+		return outPath;
 	}
 
 	public static Geometry mergePolygons(List<Geometry> geoList, Boolean showDetails) {
