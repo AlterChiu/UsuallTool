@@ -48,6 +48,11 @@
 		<staxApi.version>1.0-2</staxApi.version>
 		<xmlBean.version>1.5.5</xmlBean.version>
 
+		<!-- +++++++++++++++++++++++++++++++ -->
+		<!--++++++++++++ GeoTool +++++++++++++ -->
+		<!-- +++++++++++++++++++++++++++++++ -->
+		<gt.wms.version>23.1</gt.wms.version>
+
 	</properties>
 
 	<repositories>
@@ -55,6 +60,30 @@
 			<id>unidata-all</id>
 			<name>Unidata All</name>
 			<url>https://artifacts.unidata.ucar.edu/repository/unidata-all/</url>
+		</repository>
+
+		<!-- osg geotools repository -->
+		<repository>
+			<id>osgeo</id>
+			<name>OSGeo Release Repository</name>
+			<url>https://repo.osgeo.org/repository/release/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+		<repository>
+			<id>osgeo-snapshot</id>
+			<name>OSGeo Snapshot Repository</name>
+			<url>https://repo.osgeo.org/repository/snapshot/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
 		</repository>
 	</repositories>
 
@@ -117,7 +146,7 @@
 			<artifactId>httpclient</artifactId>
 			<version>${HttpClient.version}</version>
 		</dependency>
-		
+
 		<!-- HttpComponent -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -199,6 +228,17 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+
+
+		<!-- +++++++++++++++++++++++++++++++ -->
+		<!--++++++++++++ GeoTool +++++++++++++ -->
+		<!-- +++++++++++++++++++++++++++++++ -->
+		<dependency>
+			<groupId>org.geoserver</groupId>
+			<artifactId>gs-wms</artifactId>
+			<version>2.17.1</version>
+		</dependency>
+
 
 	</dependencies>
 

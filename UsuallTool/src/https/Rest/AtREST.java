@@ -1,5 +1,7 @@
 package https.Rest;
 
+import java.io.UnsupportedEncodingException;
+
 import org.dom4j.DocumentException;
 
 import com.google.gson.JsonElement;
@@ -13,7 +15,7 @@ public interface AtREST {
 	public static String ENCODE_BIG5 = "big5";
 	public static String ENCODE_ASCII = "ASCII";
 
-	public void addKey(String key , String value);
+	public void addKey(String key, String value);
 
 	public void setEncode(String encode);
 
@@ -23,4 +25,11 @@ public interface AtREST {
 
 	public JsonElement getJsonRespond();
 
+	public byte[] getByte();
+
+	public static class convert {
+		public static String byteToString(byte[] byteArray, String encode) throws UnsupportedEncodingException {
+			return new String(byteArray, encode);
+		}
+	}
 }

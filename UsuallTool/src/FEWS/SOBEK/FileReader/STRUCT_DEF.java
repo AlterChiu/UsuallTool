@@ -160,12 +160,23 @@ public class STRUCT_DEF {
 			}
 
 			// initial
-			Optional.ofNullable(this.attrMap.get("id")).ifPresentOrElse(e -> this.id = e,
-					() -> new Exception("missing nessary tag \"id\""));
-			Optional.ofNullable(this.attrMap.get("nm")).ifPresentOrElse(e -> this.nm = e,
-					() -> new Exception("missing nessary tag \"nm\""));
-			Optional.ofNullable(this.attrMap.get("ty")).ifPresentOrElse(e -> this.ty = e,
-					() -> new Exception("missing nessary tag \"ty\""));
+			if (this.attrMap.containsKey("id")) {
+				this.id = this.attrMap.get("id");
+			} else {
+				new Exception("missing nessary tag \"id\"");
+			}
+
+			if (this.attrMap.containsKey("nm")) {
+				this.id = this.attrMap.get("nm");
+			} else {
+				new Exception("missing nessary tag \"nm\"");
+			}
+
+			if (this.attrMap.containsKey("ty")) {
+				this.id = this.attrMap.get("ty");
+			} else {
+				new Exception("missing nessary tag \"ty\"");
+			}
 		}
 
 		public void setID(String id) {

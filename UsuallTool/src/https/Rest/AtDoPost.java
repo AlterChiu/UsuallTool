@@ -1,5 +1,6 @@
 package https.Rest;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -7,17 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
+
 import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.dom4j.DocumentException;
 
 import com.google.gson.JsonElement;
@@ -41,25 +39,59 @@ public class AtDoPost implements AtREST {
 
 	@Override
 	public String getStringRespond() {
-		return getUrlComponent();
+		String content = null;
+		try {
+			content = AtREST.convert.byteToString(getResponse(), this.encode);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return content;
 	}
 
 	@Override
 	public AtXmlReader getXmlRespond() throws DocumentException {
-		return new AtXmlReader(getUrlComponent());
+		String content = null;
+		try {
+			content = AtREST.convert.byteToString(getResponse(), this.encode);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new AtXmlReader(content);
 	}
 
 	@Override
 	public JsonElement getJsonRespond() {
-		return new JsonParser().parse(getUrlComponent());
+		String content = null;
+		try {
+			content = AtREST.convert.byteToString(getResponse(), this.encode);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new JsonParser().parse(content);
 	}
-
+	
+	@Override
+	public byte[] getByte() {
+		byte[] outByte = null;
+		try {
+			outByte = getResponse();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return outByte;
+	}
+	
 	@Override
 	public void setEncode(String encode) {
 		this.encode = encode;
 	}
 
-	private String getUrlComponent() {
+	private byte[] getResponse() throws IOException {
 
 		// setting httpClient
 		HttpClientBuilder builder = HttpClientBuilder.create();
@@ -86,34 +118,24 @@ public class AtDoPost implements AtREST {
 			e.printStackTrace();
 		}
 
-		// respond success
-		List<String> respond = new ArrayList<>();
-		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			HttpEntity entity = response.getEntity();
+		// get byte
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		response.getEntity().writeTo(baos);
 
-			if (entity != null) {
-				String entityStr = null;
-				try {
-					entityStr = EntityUtils.toString(entity, this.encode);
-					respond.add(entityStr);
-				} catch (ParseException | IOException e) {
-					e.printStackTrace();
-				}
-			}
-
-			// close http
-			try {
-				response.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			try {
-				client.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		// close http
+		try {
+			response.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			client.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
-		return String.join("\r\n", respond);
+		return baos.toByteArray();
 	}
+
+
 }

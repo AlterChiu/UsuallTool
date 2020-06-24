@@ -1,20 +1,17 @@
 package https.Rest;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
-import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.dom4j.DocumentException;
 
 import com.google.gson.JsonElement;
@@ -23,7 +20,7 @@ import com.google.gson.JsonParser;
 import usualTool.AtXmlReader;
 
 public class AtDoGet implements AtREST {
-	private String encode = AtREST.ENCODE_UTF8;
+	private static String encode = AtREST.ENCODE_UTF8;
 	private Map<String, String> urlProperties = new TreeMap<>();
 	private String url = "";
 
@@ -38,26 +35,59 @@ public class AtDoGet implements AtREST {
 
 	@Override
 	public String getStringRespond() {
-		return getUrlComponent();
+		String content = null;
+		try {
+			content = AtREST.convert.byteToString(getResponse(getFullURL()), AtDoGet.encode);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return content;
 	}
 
 	@Override
 	public AtXmlReader getXmlRespond() throws DocumentException {
-		return new AtXmlReader(getUrlComponent());
+		String content = null;
+		try {
+			content = AtREST.convert.byteToString(getResponse(getFullURL()), AtDoGet.encode);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new AtXmlReader(content);
 	}
 
 	@Override
 	public JsonElement getJsonRespond() {
-		return new JsonParser().parse(getUrlComponent());
+		String content = null;
+		try {
+			content = AtREST.convert.byteToString(getResponse(getFullURL()), AtDoGet.encode);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new JsonParser().parse(content);
+	}
+
+	@Override
+	public byte[] getByte() {
+		byte[] outByte = null;
+		try {
+			outByte = getResponse(getFullURL());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return outByte;
 	}
 
 	@Override
 	public void setEncode(String encode) {
-		this.encode = encode;
+		AtDoGet.encode = encode;
 	}
 
-	private String getUrlComponent() {
-
+	private String getFullURL() {
 		// create url properties
 		List<String> urlProperties = new ArrayList<>();
 		for (String key : this.urlProperties.keySet()) {
@@ -68,6 +98,11 @@ public class AtDoGet implements AtREST {
 		StringBuilder fullURL = new StringBuilder();
 		fullURL.append(this.url + "?");
 		fullURL.append(String.join("&", urlProperties));
+
+		return fullURL.toString();
+	}
+
+	public static byte[] getResponse(String fullURL) throws IOException {
 
 		// get restful respond
 		HttpClientBuilder builder = HttpClientBuilder.create();
@@ -80,21 +115,9 @@ public class AtDoGet implements AtREST {
 			e.printStackTrace();
 		}
 
-		// build respond String
-		List<String> respond = new ArrayList<>();
-		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			HttpEntity entity = response.getEntity();
-
-			if (entity != null) {
-				String entityStr = null;
-				try {
-					entityStr = EntityUtils.toString(entity, this.encode);
-					respond.add(entityStr);
-				} catch (ParseException | IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		// get byte
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		response.getEntity().writeTo(baos);
 
 		// close http
 		try {
@@ -102,12 +125,14 @@ public class AtDoGet implements AtREST {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
 		try {
 			client.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		return String.join("\r\n", respond);
+		return baos.toByteArray();
 	}
+
 }

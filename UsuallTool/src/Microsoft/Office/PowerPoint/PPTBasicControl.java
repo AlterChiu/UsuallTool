@@ -6,15 +6,21 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.poi.sl.usermodel.FreeformShape;
+import javax.imageio.ImageIO;
+
 import org.apache.poi.util.IOUtils;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFAutoShape;
@@ -28,7 +34,7 @@ import org.apache.poi.xslf.usermodel.XSLFTextBox;
 
 import geo.gdal.GdalGlobal;
 
-public class PPTBasicControl {
+public class PPTBasicControl  implements Closeable{
 	private XMLSlideShow pptFile = new XMLSlideShow();
 	private String filePath;
 
@@ -43,7 +49,7 @@ public class PPTBasicControl {
 		this.pptFile = new XMLSlideShow(inputstream);
 		this.filePath = filePath;
 	}
-
+	
 	public final void close() {
 
 		// save file
@@ -79,6 +85,20 @@ public class PPTBasicControl {
 
 	public List<XSLFSlide> getSlides() {
 		return this.pptFile.getSlides();
+	}
+
+	public Map<String, PPTObject> getPPTObjects(int slideIndex) {
+		Map<String, PPTObject> outMap = new HashMap<>();
+
+		getTables(slideIndex).forEach(object -> outMap.put(object.getName(), object));
+
+		getShapes(slideIndex).forEach(object -> outMap.put(object.getName(), object));
+
+		getTextBox(slideIndex).forEach(object -> outMap.put(object.getName(), object));
+
+		getPicture(slideIndex).forEach(object -> outMap.put(object.getName(), object));
+
+		return outMap;
 	}
 
 	public List<PPTTable> getTables(int slideIndex) {
@@ -119,6 +139,19 @@ public class PPTBasicControl {
 			}
 		}
 		return outTextBox;
+	}
+
+	public List<PPTPicture> getPicture(int slideIndex) {
+		List<PPTPicture> outPicture = new ArrayList<>();
+
+		for (XSLFShape shape : this.pptFile.getSlides().get(slideIndex)) {
+
+			// get table object
+			if (shape instanceof XSLFPictureShape) {
+				outPicture.add(new PPTPicture((XSLFPictureShape) shape));
+			}
+		}
+		return outPicture;
 	}
 
 	public void createShape(Path2D path, int slideIndex) {
@@ -232,7 +265,15 @@ public class PPTBasicControl {
 	// <+++++++++++++++++++++++++++++>
 	// <+++++++ public static class ++++++++++>
 	// <+++++++++++++++++++++++++++++>
-	public class PPTTable {
+	public interface PPTObject {
+		public String getName();
+
+		public int getId();
+
+		public String getXmlString();
+	}
+
+	public class PPTTable implements PPTObject {
 		private XSLFTable table;
 
 		public PPTTable(XSLFTable table) {
@@ -280,7 +321,7 @@ public class PPTBasicControl {
 		}
 	}
 
-	public class PPTShape {
+	public class PPTShape implements PPTObject {
 		public XSLFSimpleShape shape;
 
 		public PPTShape(XSLFSimpleShape shape) {
@@ -322,9 +363,13 @@ public class PPTBasicControl {
 		public String getXmlString() {
 			return this.shape.getXmlObject().toString();
 		}
+
+		public int getId() {
+			return this.shape.getShapeId();
+		}
 	}
 
-	public class PPTTextBox {
+	public class PPTTextBox implements PPTObject {
 		private XSLFTextBox textBox;
 
 		public PPTTextBox(XSLFTextBox textBox) {
@@ -371,9 +416,13 @@ public class PPTBasicControl {
 			return this.textBox.getXmlObject().toString();
 		}
 
+		public int getId() {
+			return this.textBox.getShapeId();
+		}
+
 	}
 
-	public class PPTPicture {
+	public class PPTPicture implements PPTObject {
 		private XSLFPictureShape picture;
 
 		public PPTPicture(XSLFPictureShape picture) {
@@ -393,11 +442,44 @@ public class PPTBasicControl {
 		}
 
 		public void replacePicture(String picturePath) throws FileNotFoundException, IOException {
-			this.picture.getPictureData().setData(IOUtils.toByteArray(new FileInputStream(picturePath)));
+			byte[] byteArray = IOUtils.toByteArray(new FileInputStream(picturePath));
+			replacePicture(byteArray);
+		}
+
+		public void replacePicture(byte[] byteArray) throws IOException {
+			ByteArrayInputStream bis = new ByteArrayInputStream(byteArray);
+			BufferedImage bImage = ImageIO.read(bis);
+
+			int sourceWidth = bImage.getWidth();
+			int sourceHeight = bImage.getHeight();
+			double sourceRatio = sourceHeight * 1.0 / sourceWidth;
+
+			Rectangle targetRec = this.picture.getAnchor().getBounds();
+			double targetWidth = targetRec.getWidth();
+			double reTargetHeight = sourceRatio * targetWidth;
+
+			double targetMinX = targetRec.getCenterX() - 0.5 * targetWidth;
+			double targetMinY = targetRec.getCenterY() - 0.5 * reTargetHeight;
+
+			Rectangle reTargetRec = new Rectangle((int) targetMinX, (int) targetMinY, (int) targetWidth,
+					(int) reTargetHeight);
+
+			this.picture.setAnchor(reTargetRec);
+			this.picture.getPictureData().setData(byteArray);
 		}
 
 		public byte[] getPictrueByte() {
 			return this.picture.getPictureData().getData();
+		}
+
+		public int getId() {
+			return this.picture.getShapeId();
+		}
+
+		@Override
+		public String getXmlString() {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 
