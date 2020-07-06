@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
-import org.gdal.ogr.ogr;
 
 import usualTool.AtCommonMath;
 
@@ -58,22 +57,11 @@ public class IrregularReachBasicControl {
 		List<Geometry> outList = new ArrayList<>();
 
 		// merge all geometry to multiStringLine
-		while (this.geoList.size() != 1) {
-			List<Geometry> temptGeometryList = new ArrayList<>();
-
-			for (int index = 0; index < this.geoList.size(); index = index + 2) {
-				try {
-					temptGeometryList.add(this.geoList.get(index).Union(this.geoList.get(index + 1)));
-				} catch (Exception e) {
-					temptGeometryList.add(this.geoList.get(index));
-				}
-			}
-			this.geoList = temptGeometryList;
-		}
+		Geometry mergeLine = GdalGlobal.mergePolygons(this.geoList);
 
 		// split multiStringLine to several stringLine
-		for (int index = 0; index < this.geoList.get(0).GetGeometryCount(); index++) {
-			outList.add(this.geoList.get(0).GetGeometryRef(index));
+		for (int index = 0; index < mergeLine.GetGeometryCount(); index++) {
+			outList.add(mergeLine.GetGeometryRef(index));
 		}
 
 		this.geoList.clear();
@@ -82,10 +70,27 @@ public class IrregularReachBasicControl {
 
 	private void process() {
 
+		// detect is multiLineString
+		List<Geometry> temptGeoList = new ArrayList<>();
+		this.geoList.forEach(geometry -> {
+
+			if (geometry.GetGeometryName().toUpperCase().equals("LINESTRING")) {
+				temptGeoList.add(geometry);
+
+			} else if (geometry.GetGeometryName().toUpperCase().equals("MULTILINESTRING")) {
+				for (int muliLineStringIndex = 0; muliLineStringIndex < geometry
+						.GetGeometryCount(); muliLineStringIndex++) {
+					temptGeoList.add(geometry.GetGeometryRef(muliLineStringIndex).Boundary());
+				}
+			}
+		});
+		this.geoList.clear();
+		this.geoList = temptGeoList;
+
 		// sorted end point and start point
 		Set<String> pointsSet = new HashSet<>();
 		this.geoList.forEach(geo -> {
-			for (int index = 0; index < geo.GetPointCount(); index = index + geo.GetPointCount() - 1) {
+			for (int index = 0; index < geo.GetPointCount(); index++) {
 				String xString = AtCommonMath.getDecimal_String(geo.GetX(index), dataDecimale);
 				String yString = AtCommonMath.getDecimal_String(geo.GetY(index), dataDecimale);
 				pointsSet.add(xString + "_" + yString);
@@ -102,30 +107,42 @@ public class IrregularReachBasicControl {
 
 		// link each points to reach
 		for (int index = 0; index < this.geoList.size(); index++) {
-			String point1 = AtCommonMath.getDecimal_String(this.geoList.get(index).GetX(0), dataDecimale) + "_"
+
+			// get start point
+			String startPoint = AtCommonMath.getDecimal_String(this.geoList.get(index).GetX(0), dataDecimale) + "_"
 					+ AtCommonMath.getDecimal_String(this.geoList.get(index).GetY(0), dataDecimale);
-			String point2 = AtCommonMath.getDecimal_String(
-					this.geoList.get(index).GetX(geoList.get(index).GetPointCount() - 1), dataDecimale) + "_"
-					+ AtCommonMath.getDecimal_String(
-							this.geoList.get(index).GetY(geoList.get(index).GetPointCount() - 1), dataDecimale);
 
-			List<Integer> temptEdgePointIndex = new ArrayList<>(
-					Arrays.asList(this.nodeMap.get(point1).getIndex(), this.nodeMap.get(point2).getIndex()));
-			Collections.sort(temptEdgePointIndex);
-			String edgeName = String.join("_",
-					temptEdgePointIndex.parallelStream().map(d -> String.valueOf(d)).collect(Collectors.toList()));
+			// loop for others point
+			for (int pointIndex = 1; pointIndex < this.geoList.get(index).GetPointCount(); pointIndex++) {
+				String nextPoint = AtCommonMath.getDecimal_String(this.geoList.get(index).GetX(pointIndex),
+						dataDecimale) + "_"
+						+ AtCommonMath.getDecimal_String(this.geoList.get(index).GetY(pointIndex), dataDecimale);
 
-			// establish edge class
-			this.edgeMap.put(edgeName, new EdgeClass());
-			this.edgeMap.get(edgeName).setIndex(index);
-			this.edgeMap.get(edgeName).setName(edgeName);
-			this.edgeMap.get(edgeName).addNode(this.nodeMap.get(point1));
-			this.edgeMap.get(edgeName).addNode(this.nodeMap.get(point2));
-			this.edgeMap.get(edgeName).setGeo(this.geoList.get(index));
+				// skip same point
+				if (!startPoint.equals(nextPoint)) {
 
-			// link nodeClass in edgeClass
-			this.nodeMap.get(point1).addEdge(this.edgeMap.get(edgeName));
-			this.nodeMap.get(point2).addEdge(this.edgeMap.get(edgeName));
+					// setting edgeName
+					List<Integer> temptEdgePointIndex = new ArrayList<>(Arrays
+							.asList(this.nodeMap.get(startPoint).getIndex(), this.nodeMap.get(nextPoint).getIndex()));
+					Collections.sort(temptEdgePointIndex);
+					String edgeName = String.join("_", temptEdgePointIndex.parallelStream().map(d -> String.valueOf(d))
+							.collect(Collectors.toList()));
+
+					// establish edge class
+					this.edgeMap.put(edgeName, new EdgeClass());
+					this.edgeMap.get(edgeName).setIndex(index);
+					this.edgeMap.get(edgeName).setName(edgeName);
+					this.edgeMap.get(edgeName).addNode(this.nodeMap.get(startPoint));
+					this.edgeMap.get(edgeName).addNode(this.nodeMap.get(nextPoint));
+
+					// link nodeClass in edgeClass
+					this.nodeMap.get(startPoint).addEdge(this.edgeMap.get(edgeName));
+					this.nodeMap.get(nextPoint).addEdge(this.edgeMap.get(edgeName));
+
+					// next point
+					startPoint = nextPoint;
+				}
+			}
 		}
 
 	}
@@ -136,6 +153,52 @@ public class IrregularReachBasicControl {
 
 	public List<Geometry> getGeometry() {
 		return this.geoList;
+	}
+
+	public List<Geometry> getReLinkedEdge() {
+		List<Geometry> outList = new ArrayList<>();
+
+		// node control
+		Map<String, Integer> nodeUsedCount = new HashMap<>(); // key=nodeName , value = usedCount
+		this.nodeMap.keySet().forEach(nodeID -> {
+			if (this.nodeMap.get(nodeID).isEndPoint())
+				nodeUsedCount.put(nodeID, 0);
+		});
+
+		this.nodesList.forEach(nodeID -> {
+			NodeClass node = this.nodeMap.get(nodeID);
+
+			// if is endPoint, and not used, start detecting
+			if (node.isEndPoint() && nodeUsedCount.get(node.getId()) < node.getEdgeSize()) {
+
+				// check node used count
+				node.getEdge().forEach(linkedEdge -> {
+
+					// get start point
+					List<Double[]> groupedLineString = new ArrayList<>();
+					groupedLineString.add(new Double[] { node.getX(), node.getY() });
+
+					// detecting other node
+					EdgeClass currentEdge = linkedEdge;
+					NodeClass currentNode = node;
+					NodeClass otherNode = currentEdge.getOtherNode(currentNode);
+
+					while (!otherNode.isEndPoint()) {
+						groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY() });
+						currentEdge = otherNode.getOtherEdges(currentEdge).get(0);
+						currentNode = otherNode;
+						otherNode = currentEdge.getOtherNode(otherNode);
+					}
+					groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY() });
+					outList.add(GdalGlobal.CreateLine(groupedLineString));
+
+					// end, add node used count to map
+					nodeUsedCount.put(otherNode.getId(), nodeUsedCount.get(otherNode.getId()) + 1);
+					nodeUsedCount.put(node.getId(), nodeUsedCount.get(node.getId()) + 1);
+				});
+			}
+		});
+		return outList;
 	}
 
 	public List<NodeClass> getNodeList() {
@@ -268,10 +331,6 @@ public class IrregularReachBasicControl {
 			this.nodeList.add(node);
 		}
 
-		public void setGeo(Geometry geo) {
-			this.geo = geo;
-		}
-
 		public void setName(String name) {
 			this.id = name;
 		}
@@ -301,6 +360,14 @@ public class IrregularReachBasicControl {
 		}
 
 		public Geometry getGeo() {
+			if (this.geo == null) {
+				List<Double[]> points = new ArrayList<>();
+				this.nodeList.forEach(node -> {
+					points.add(new Double[] { node.getX(), node.getY() });
+				});
+				this.geo = GdalGlobal.CreateLine(points);
+			}
+
 			return this.geo;
 		}
 
@@ -318,7 +385,7 @@ public class IrregularReachBasicControl {
 		}
 
 		public double getLength() {
-			return this.geo.Length();
+			return this.getGeo().Length();
 		}
 
 		public List<Geometry> getGroupGeomtry(NodeClass startNode, EdgeClass directionEdge) {

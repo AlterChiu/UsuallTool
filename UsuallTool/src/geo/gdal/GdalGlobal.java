@@ -75,15 +75,16 @@ public class GdalGlobal {
 	public static List<Path2D> GeomertyToPath2D(Geometry geometry) throws IOException {
 		List<Path2D> outList = new ArrayList<>();
 
-		if (geometry.GetGeometryName().toUpperCase().equals("POLYGON")
-				|| geometry.GetGeometryName().toUpperCase().equals("POLYLINE")) {
+		if (geometry.GetGeometryName().toUpperCase().equals("POLYGON")) {
 			outList.add(GeomertyToPath2D_Polygon(geometry.GetGeometryRef(0)));
 
-		} else if (geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYGON")
-				|| geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYLINE")) {
+		} else if (geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYGON")) {
 			for (int index = 0; index < geometry.GetGeometryCount(); index++) {
 				outList.add(GeomertyToPath2D_BoundaryPolygon(geometry.GetGeometryRef(index)));
 			}
+		} else if (geometry.GetGeometryName().toUpperCase().equals("POLYLINE")
+				|| geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYLINE")) {
+			throw new IOException("not allowable for geometry type LineString");
 		} else {
 			throw new IOException("not correct geometry type");
 		}

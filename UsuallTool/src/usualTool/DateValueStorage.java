@@ -227,7 +227,7 @@ public class DateValueStorage {
 				String temptFrontDateFormat = this.dateFormat.split("dd")[0] + "dd";
 				String temptFrontDate = TimeTranslate.getDateStringTranslte(temptDate, this.dateFormat,
 						temptFrontDateFormat);
-				
+
 				String temptBackDateFormat = this.dateFormat.split("dd")[1];
 				String temptBackDate = TimeTranslate.getTimeString(0, temptBackDateFormat);
 
@@ -434,9 +434,11 @@ public class DateValueStorage {
 			// set Station values
 			String id = content[0][column];
 			List<String> temptList = new ArrayList<>();
-			System.out.println(id);
 			for (int row = 1; row < content.length; row++) {
-				temptList.add(content[row][column]);
+				try {
+					temptList.add(content[row][column]);
+				} catch (Exception e) {
+				}
 			}
 			outMap.put(id, temptList);
 		}

@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
+import org.apache.poi.sl.usermodel.TextShape.TextPlaceholder;
 import org.apache.poi.util.IOUtils;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
 import org.apache.poi.xslf.usermodel.XSLFAutoShape;
@@ -31,10 +32,11 @@ import org.apache.poi.xslf.usermodel.XSLFSimpleShape;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFTable;
 import org.apache.poi.xslf.usermodel.XSLFTextBox;
+import org.apache.poi.xslf.usermodel.XSLFTextRun;
 
 import geo.gdal.GdalGlobal;
 
-public class PPTBasicControl  implements Closeable{
+public class PPTBasicControl implements Closeable {
 	private XMLSlideShow pptFile = new XMLSlideShow();
 	private String filePath;
 
@@ -49,7 +51,7 @@ public class PPTBasicControl  implements Closeable{
 		this.pptFile = new XMLSlideShow(inputstream);
 		this.filePath = filePath;
 	}
-	
+
 	public final void close() {
 
 		// save file
@@ -81,6 +83,17 @@ public class PPTBasicControl  implements Closeable{
 
 	public void deletSlide(int index) {
 		this.pptFile.removeSlide(index);
+	}
+
+	public void copySlide(int sourceSlideIndex) {
+		List<XSLFSlide> slides = this.getSlides();
+		XSLFSlide sourceSlide = slides.get(sourceSlideIndex);
+
+		int targetSlidesIndex = slides.size();
+		this.addNewSlide();
+		XSLFSlide targetSlide = slides.get(targetSlidesIndex);
+
+		sourceSlide.getShapes().forEach(shape -> targetSlide.addShape(shape));
 	}
 
 	public List<XSLFSlide> getSlides() {
@@ -265,6 +278,7 @@ public class PPTBasicControl  implements Closeable{
 	// <+++++++++++++++++++++++++++++>
 	// <+++++++ public static class ++++++++++>
 	// <+++++++++++++++++++++++++++++>
+
 	public interface PPTObject {
 		public String getName();
 
@@ -272,7 +286,6 @@ public class PPTBasicControl  implements Closeable{
 
 		public String getXmlString();
 	}
-
 	public class PPTTable implements PPTObject {
 		private XSLFTable table;
 
@@ -332,6 +345,10 @@ public class PPTBasicControl  implements Closeable{
 			this.shape.setFillColor(color);
 		}
 
+		public Color getFillColor() {
+			return this.shape.getFillColor();
+		}
+
 		public void setFillColor(String color) {
 			this.setFillColor(Color.decode(color));
 		}
@@ -342,6 +359,10 @@ public class PPTBasicControl  implements Closeable{
 
 		public void setLineColor(String color) {
 			this.setLineColor(Color.decode(color));
+		}
+
+		public Color getLineColor() {
+			return this.shape.getLineColor();
 		}
 
 		public void reShape(Graphics2D graphic) {
@@ -381,7 +402,20 @@ public class PPTBasicControl  implements Closeable{
 		}
 
 		public void setText(String text) {
-			this.textBox.setText(text);
+			Color color = Color.black;
+			Boolean bold = true;
+			String font = "微軟正黑體";
+			double fontSize = 16;
+
+			this.setText(text, color, font, bold, fontSize);
+		}
+
+		public void setTextCenter(Boolean boo) {
+			if (boo) {
+				this.textBox.setTextPlaceholder(TextPlaceholder.CENTER_BODY);
+			} else {
+				this.textBox.setTextPlaceholder(TextPlaceholder.BODY);
+			}
 		}
 
 		public void setFillColor(Color color) {
@@ -392,12 +426,39 @@ public class PPTBasicControl  implements Closeable{
 			this.setFillColor(Color.decode(color));
 		}
 
+		public Color getFillColor() {
+			return this.textBox.getFillColor();
+		}
+
 		public void setLineColor(Color color) {
 			this.textBox.setLineColor(color);
 		}
 
 		public void setLineColor(String color) {
 			this.textBox.setLineColor(Color.decode(color));
+		}
+
+		public Color getLineColor() {
+			return this.textBox.getLineColor();
+		}
+
+		public void setText(String text, Color color, String font, Boolean bold, double fontSize) {
+			this.textBox.clearText();
+
+			XSLFTextRun textRun = this.textBox.addNewTextParagraph().addNewTextRun();
+			textRun.setBold(bold);
+			textRun.setText(text);
+			textRun.setFontColor(color);
+			textRun.setFontSize(fontSize);
+			textRun.setFontFamily(font);
+		}
+
+		public void setTextColor(String color) {
+			this.textBox.setLineColor(Color.decode(color));
+		}
+
+		public Color getTextColor() {
+			return this.textBox.getLineColor();
 		}
 
 		public String getName() {

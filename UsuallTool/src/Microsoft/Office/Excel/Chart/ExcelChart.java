@@ -5,12 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-
-import Microsoft.Office.Excel.ExcelBasicControl;
-import geo.gdal.GdalGlobal;
-import geo.grass.GrassGlobal;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 

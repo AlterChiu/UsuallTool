@@ -92,7 +92,6 @@ public class AtMatrix {
 		return this;
 	}
 
-
 	public AtMatrix trans() {
 		List<Double[]> matrixValue = new ArrayList<>();
 
