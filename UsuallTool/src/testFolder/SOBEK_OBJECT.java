@@ -1,6 +1,18 @@
 package testFolder;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import org.gdal.ogr.Geometry;
+
+import geo.gdal.IrregularReachBasicControl;
+import geo.gdal.IrregularReachBasicControl.NodeClass;
+import usualTool.AtCommonMath;
 
 public class SOBEK_OBJECT {
 
@@ -8,16 +20,26 @@ public class SOBEK_OBJECT {
 		private Geometry geo;
 		private double[] firstPoint;
 		private double[] secondPoint;
-		private double distance = Double.POSITIVE_INFINITY;
-		private int linkedDirection = -1; // 0 for first point , 1 for secondPoint
 
+		private double distance = Double.POSITIVE_INFINITY;
+		private int linkedDirection = -1; // 0 for HeadToHead , 1 for HeadToEnd
 		private int linkedPointID = -1;
 		private int id = -1;
+
+		private Set<SobekBankPoint> bankPoints = new HashSet<>();
+		private Map<String, Integer> nodeContainer = new HashMap<>();
 
 		public SobekBankLine(Geometry geo) {
 			this.geo = geo;
 			this.firstPoint = new double[] { geo.GetX(0), geo.GetY(0) };
 			this.secondPoint = new double[] { geo.GetX(geo.GetPointCount() - 1), geo.GetY(geo.GetPointCount() - 1) };
+			for (int index = 0; index < geo.GetPointCount(); index++) {
+				String xString = AtCommonMath.getDecimal_String(geo.GetX(index),
+						IrregularReachBasicControl.dataDecimale);
+				String yString = AtCommonMath.getDecimal_String(geo.GetY(index),
+						IrregularReachBasicControl.dataDecimale);
+				this.nodeContainer.put(xString + "_" + yString, index);
+			}
 		}
 
 		public Geometry getGeo() {
@@ -40,6 +62,7 @@ public class SOBEK_OBJECT {
 			return this.id;
 		}
 
+		// 0 for HeadToHead , 1 for HeadToEnd
 		public int getLinkedDirection() {
 			return this.linkedDirection;
 		}
@@ -88,10 +111,11 @@ public class SOBEK_OBJECT {
 				this.distance = distance;
 				this.linkedPointID = otherBankLine.getID();
 
+				// 0 for HeadToHead , 1 for HeadToEnd
 				if (lengthHeadToHead > lengthHeadToEnd) {
-					this.linkedDirection = 1; // fisrt point link to second
+					this.linkedDirection = 1;
 				} else {
-					this.linkedDirection = 0; // first point link to first
+					this.linkedDirection = 0;
 				}
 			}
 
@@ -100,16 +124,84 @@ public class SOBEK_OBJECT {
 				otherBankLine.setDistance(distance);
 				otherBankLine.setLinkedPointID(this.id);
 
+				// 0 for HeadToHead , 1 for HeadToEnd
 				if (lengthHeadToHead > lengthHeadToEnd) {
-					// fisrt point link to second
 					otherBankLine.setLinkedDirection(1);
 				} else {
-					// first point link to first
 					otherBankLine.setLinkedDirection(0);
 				}
 			}
 
 			return this.distance;
 		}
+
+		// if not contain return -1
+		public int isNodeContain(NodeClass node) {
+			return Optional.ofNullable(this.nodeContainer.get(node.getId())).orElse(-1);
+		}
+
+		public int isNodeContain(String nodeName) {
+			return Optional.ofNullable(this.nodeContainer.get(nodeName)).orElse(-1);
+		}
+
+		public void addBankPoint(Geometry geo) {
+			SobekBankPoint temptBankPoint = new SobekBankPoint(geo);
+			temptBankPoint.setBelongBankLineID(this.id);
+			temptBankPoint.setIndexInBelongBankLine(this.nodeContainer.get(temptBankPoint.getID()));
+			this.bankPoints.add(temptBankPoint);
+		}
+
+		public List<SobekBankPoint> getBankPoints() {
+			return new ArrayList<>(this.bankPoints);
+		}
 	}
+
+	public static class SobekBankPoint {
+		private Geometry geo;
+		private String id; // x_y
+		private int belongBankLineID = -1;
+		private int indexInBelongBankLine = -1;
+		
+		
+		public SobekBankPoint(Geometry geo) {
+			String xString = AtCommonMath.getDecimal_String(geo.GetX(), IrregularReachBasicControl.dataDecimale);
+			String yString = AtCommonMath.getDecimal_String(geo.GetY(), IrregularReachBasicControl.dataDecimale);
+			this.id = xString + "_" + yString;
+			this.geo = geo;
+		}
+
+		public void setBelongBankLineID(int index) {
+			this.belongBankLineID = index;
+		}
+
+		public void setIndexInBelongBankLine(int index) {
+			this.indexInBelongBankLine = index;
+		}
+
+		public String getID() {
+			return this.id;
+		}
+
+		public int getBelongBankLineID() {
+			return this.belongBankLineID;
+		}
+
+		public int getIndexInBelongBankLine() {
+			return this.indexInBelongBankLine;
+		}
+
+		public double getX() {
+			return this.geo.GetX();
+		}
+
+		public double getY() {
+			return this.geo.GetY();
+		}
+
+		public Geometry getGeo() {
+			return this.geo;
+		}
+
+	}
+
 }

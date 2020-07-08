@@ -7,7 +7,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
@@ -18,6 +20,8 @@ public class IrregularReachBasicControl {
 
 	public static int dataDecimale = 4;
 	private List<Geometry> geoList = new ArrayList<>();
+	private List<Map<String, Object>> geoAttrList = new ArrayList<>();
+	private String identifiedKey = "ID";
 
 	// node key : x + "_" + y
 	private List<String> nodesList = new ArrayList<>();
@@ -30,11 +34,20 @@ public class IrregularReachBasicControl {
 	 * <=============== Constructor ==========================>
 	 */
 	public IrregularReachBasicControl(String fileAdd) {
-		this.geoList = new SpatialReader(fileAdd).getGeometryList();
+		SpatialReader sp = new SpatialReader(fileAdd);
+		this.geoList = sp.getGeometryList();
+		this.geoAttrList = sp.getAttributeTable();
 		process();
 	}
 
 	public IrregularReachBasicControl(List<Geometry> geoList) {
+		this.geoList = geoList;
+		for (int index = 0; index < this.geoList.size(); index++) {
+			Map<String, Object> temptMap = new HashMap<>();
+			temptMap.put("ID", index);
+			this.geoAttrList.add(temptMap);
+		}
+
 		process();
 	}
 
@@ -111,12 +124,14 @@ public class IrregularReachBasicControl {
 			// get start point
 			String startPoint = AtCommonMath.getDecimal_String(this.geoList.get(index).GetX(0), dataDecimale) + "_"
 					+ AtCommonMath.getDecimal_String(this.geoList.get(index).GetY(0), dataDecimale);
+			this.nodeMap.get(startPoint).addGeoAttr(this.geoAttrList.get(index));// add geoIndex to nodeClass
 
 			// loop for others point
 			for (int pointIndex = 1; pointIndex < this.geoList.get(index).GetPointCount(); pointIndex++) {
 				String nextPoint = AtCommonMath.getDecimal_String(this.geoList.get(index).GetX(pointIndex),
 						dataDecimale) + "_"
 						+ AtCommonMath.getDecimal_String(this.geoList.get(index).GetY(pointIndex), dataDecimale);
+				this.nodeMap.get(nextPoint).addGeoAttr(this.geoAttrList.get(index));// add geoIndex to nodeClass
 
 				// skip same point
 				if (!startPoint.equals(nextPoint)) {
@@ -134,6 +149,7 @@ public class IrregularReachBasicControl {
 					this.edgeMap.get(edgeName).setName(edgeName);
 					this.edgeMap.get(edgeName).addNode(this.nodeMap.get(startPoint));
 					this.edgeMap.get(edgeName).addNode(this.nodeMap.get(nextPoint));
+					this.edgeMap.get(edgeName).setGeoAttr(this.geoAttrList.get(index));// add geoIndex to edgeClass
 
 					// link nodeClass in edgeClass
 					this.nodeMap.get(startPoint).addEdge(this.edgeMap.get(edgeName));
@@ -217,6 +233,41 @@ public class IrregularReachBasicControl {
 		return this.edgeMap;
 	}
 
+	public Map<Object, List<NodeClass>> getNodeInGeometry(String identityKey) {
+		Map<Object, List<NodeClass>> outMap = new TreeMap<>();
+
+		this.nodesList.forEach(nodeKey -> {
+			NodeClass temptClass = this.nodeMap.get(nodeKey);
+
+			temptClass.getGeoAttr().forEach(geoAttr -> {
+				List<NodeClass> temptList = Optional.ofNullable(outMap.get(geoAttr.get(identityKey)))
+						.orElse(new ArrayList<>());
+				temptList.add(temptClass);
+
+				outMap.put(geoAttr.get(identityKey), temptList);
+			});
+		});
+
+		return outMap;
+	}
+
+	public Map<Object, List<EdgeClass>> getEdgeInGeometry(String identityKey) {
+		Map<Object, List<EdgeClass>> outMap = new TreeMap<>();
+
+		this.edgeMap.keySet().forEach(edgeKey -> {
+			EdgeClass temptClass = this.edgeMap.get(edgeKey);
+
+			Map<String, Object> geoAttr = temptClass.getGeoAttr();
+			List<EdgeClass> temptList = Optional.ofNullable(outMap.get(geoAttr.get(identityKey)))
+					.orElse(new ArrayList<>());
+			temptList.add(temptClass);
+
+			outMap.put(geoAttr.get(identityKey), temptList);
+		});
+
+		return outMap;
+	}
+
 	/*
 	 * <=============== private class ==========================>
 	 */
@@ -224,9 +275,9 @@ public class IrregularReachBasicControl {
 		private Set<EdgeClass> edgeList = new HashSet<>();
 		private String id = "";
 		private int index = -1;
-		private int groupIndex = -1;
 		private double x = -999;
 		private double y = -999;
+		private Set<Map<String, Object>> geoAttr = new HashSet<>();
 
 		public NodeClass() {
 
@@ -256,12 +307,12 @@ public class IrregularReachBasicControl {
 			this.index = index;
 		}
 
-		public void setGroupIndex(int index) {
-			this.groupIndex = index;
-		}
-
 		public List<EdgeClass> getEdge() {
 			return new ArrayList<>(edgeList);
+		}
+
+		public void addGeoAttr(Map<String, Object> geoAttr) {
+			this.geoAttr.add(geoAttr);
 		}
 
 		public String getId() {
@@ -270,10 +321,6 @@ public class IrregularReachBasicControl {
 
 		public int getIndex() {
 			return this.index;
-		}
-
-		public int getGroudIndex() {
-			return this.groupIndex;
 		}
 
 		public double getX() {
@@ -305,6 +352,10 @@ public class IrregularReachBasicControl {
 			return GdalGlobal.pointToGeometry(new Double[] { this.x, this.y });
 		}
 
+		public List<Map<String, Object>> getGeoAttr() {
+			return new ArrayList<>(this.geoAttr);
+		}
+
 		public List<EdgeClass> getOtherEdges(EdgeClass edge) {
 			List<EdgeClass> outList = new ArrayList<>();
 			this.edgeList.forEach(temptEdge -> {
@@ -324,8 +375,8 @@ public class IrregularReachBasicControl {
 		private Set<NodeClass> nodeList = new HashSet<>();
 		private String id = "";
 		private int index = -1;
-		private int groupIndex = -1;
 		private Geometry geo = null;
+		private Map<String, Object> geoAttr = new HashMap<>();
 
 		public void addNode(NodeClass node) {
 			this.nodeList.add(node);
@@ -339,8 +390,8 @@ public class IrregularReachBasicControl {
 			this.index = index;
 		}
 
-		public void setGroupIndex(int index) {
-			this.groupIndex = index;
+		public void setGeoAttr(Map<String, Object> geoAttr) {
+			this.geoAttr = geoAttr;
 		}
 
 		public List<NodeClass> getNode() {
@@ -353,10 +404,6 @@ public class IrregularReachBasicControl {
 
 		public int getIndex() {
 			return this.index;
-		}
-
-		public int getGroupIndex() {
-			return this.groupIndex;
 		}
 
 		public Geometry getGeo() {
@@ -386,6 +433,10 @@ public class IrregularReachBasicControl {
 
 		public double getLength() {
 			return this.getGeo().Length();
+		}
+
+		public Map<String, Object> getGeoAttr() {
+			return this.geoAttr;
 		}
 
 		public List<Geometry> getGroupGeomtry(NodeClass startNode, EdgeClass directionEdge) {

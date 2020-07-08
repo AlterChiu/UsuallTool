@@ -106,7 +106,8 @@ public class SpatialReader {
 			feature.remove(oldFieldName);
 		});
 	}
-
+	
+	
 	public int getEPSG() {
 		return this.EPSG;
 	}

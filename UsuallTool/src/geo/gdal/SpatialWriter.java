@@ -123,6 +123,11 @@ public class SpatialWriter {
 		return this;
 	}
 
+	public SpatialWriter addFieldType(String titleName, String type) {
+		this.fieldType.put(titleName, type);
+		return this;
+	}
+
 	public SpatialWriter addFeature(Geometry geometry, Map<String, Object> feature) {
 		this.geometryList.add(geometry);
 		this.attribute.add(feature);
@@ -306,7 +311,7 @@ public class SpatialWriter {
 					}
 				}
 			}
-			
+
 			// geometry
 			feature.SetGeometry(this.geometryList.get(index));
 			outLayer.CreateFeature(feature);
