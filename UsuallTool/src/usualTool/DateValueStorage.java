@@ -28,6 +28,7 @@ public class DateValueStorage {
 	private String startDate = "2000/01/01 00:00";
 	private String endDate = "2020/12/31 00:00";
 	private String dateKey = "date";
+	private int dataDecimal = 4;
 	private Map<String, List<String>> fileContent = new LinkedHashMap<>();
 
 	// <++++++++++++++++++++++++++++++++++++++++++++++>
@@ -402,6 +403,103 @@ public class DateValueStorage {
 	public void saveToYear(String saveAdd, StaticsModel staticsModel) throws IOException, ParseException {
 		new AtFileWriter(dateStorageFromMapToArray(toYear(staticsModel), this.dateKey), saveAdd).csvWriter();
 	}
+
+	public String[][] getDateValues() {
+		return dateStorageFromMapToArray(this.fileContent, this.dateKey);
+	}
+
+	public void saveDateValues(String saveAdd) throws IOException {
+		new AtFileWriter(getDateValues(), saveAdd).csvWriter();
+	}
+
+	// detectingSecond : detect front and back from missing time
+	// (total=2*detectingSecond)
+	// WARNING : timeSteps must be equal
+	public void interpolation(int detectingSecond) throws ParseException {
+
+		// initial properties
+		List<String> dateList = this.fileContent.get(this.dateKey);
+		int timeStepSecond = AtCommonMath.getDecimal_Int((TimeTranslate.getDateLong(dateList.get(1), this.dateFormat)
+				- TimeTranslate.getDateLong(dateList.get(0), this.dateFormat)) / 1000, 1);
+		int detecLength = detectingSecond / timeStepSecond;
+
+		// interpolation each station values
+		this.fileContent.keySet().forEach(stationID -> {
+			if (!stationID.equals(this.dateKey)) {
+				List<String> dataValues = this.fileContent.get(stationID);
+
+				List<String> outList = new ArrayList<>();
+				for (int index = 0; index < dataValues.size(); index++) {
+					try {
+						// if value is reasonable
+						Double.parseDouble(dataValues.get(index));
+						outList.add(dataValues.get(index));
+
+						// if not reasonable
+					} catch (Exception e) {
+
+						// look back
+						int backIndex = -1;
+						double backValue = -1;
+						for (int detect = 1; detect <= detecLength; detect++) {
+							if (index - detect < 0 || backIndex != -1) {
+								break;
+							}
+
+							// find first backValue
+							try {
+								backValue = Double.parseDouble(dataValues.get(index - detect));
+								backIndex = index - detect;
+							} catch (Exception e1) {
+							}
+						}
+
+						// look front
+						int frontIndex = -1;
+						double frontValue = -1;
+						for (int detect = 1; detect <= detecLength; detect++) {
+							if (index + detect == dataValues.size() || frontIndex != -1) {
+								break;
+							}
+
+							// find first frontValue
+							try {
+								frontValue = Double.parseDouble(dataValues.get(index - detect));
+								frontIndex = index + detect;
+							} catch (Exception e1) {
+							}
+						}
+
+						// interpolation
+						if (frontIndex != -1 && backIndex != -1) {
+							double valueDiffer = (frontValue - backValue) / (frontIndex - backIndex);
+
+							// remove empty values
+							for (int emptyIndex = 0; emptyIndex < index - backIndex - 1; emptyIndex++) {
+								outList.remove(outList.size() - 1);
+							}
+
+							// add new interPolationValues
+							for (int newIndex = 1; newIndex <= frontIndex - backIndex; newIndex++) {
+								outList.add(AtCommonMath.getDecimal_String(valueDiffer * newIndex + backValue,
+										dataDecimal));
+							}
+
+							// move index to frontIndex
+							index = frontIndex;
+
+						} else {
+							outList.add("");
+						}
+					}
+				}
+
+				this.fileContent.put(stationID, outList);
+			}
+		});
+
+	}
+
 	// <====================================================================>
 
 	// <++++++++++++++++++++++++++++++++++++++++++++++>
@@ -426,7 +524,7 @@ public class DateValueStorage {
 		return outList.parallelStream().toArray(String[][]::new); // output
 	}
 
-	public Map<String, List<String>> dateStorageFromArrayToMap(String[][] content) {
+	private Map<String, List<String>> dateStorageFromArrayToMap(String[][] content) {
 		Map<String, List<String>> outMap = new LinkedHashMap<>();
 
 		for (int column = 0; column < content[0].length; column++) {
@@ -438,6 +536,7 @@ public class DateValueStorage {
 				try {
 					temptList.add(content[row][column]);
 				} catch (Exception e) {
+					temptList.add("");
 				}
 			}
 			outMap.put(id, temptList);

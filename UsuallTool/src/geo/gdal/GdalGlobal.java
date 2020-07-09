@@ -30,6 +30,7 @@ public class GdalGlobal {
 	public static String gdalBinFolder = qgisBinFolder + "bin\\";
 	public static String sagaBinFolder = qgisBinFolder + "apps\\saga-ltr\\";
 	public static String grassBinFolder = qgisBinFolder + "apps\\grass\\grass78\\bin\\";
+	public static String qgisProcessingPluigins = qgisBinFolder + "apps\\qgis-ltr\\python\\plugins";
 
 	public static String temptFolder = qgisBinFolder + "temptFolder";
 
@@ -499,15 +500,44 @@ public class GdalGlobal {
 	public static List<String> GDAL_EnviromentStarting() {
 		List<String> outList = new ArrayList<>();
 		outList.add("@echo off");
-		outList.add("call \"%~dp0\\o4w_env.bat\"");
+		outList.add("call \"" + gdalBinFolder + "\\o4w_env.bat\"");
 		outList.add("call \"%OSGEO4W_ROOT%\\apps\\grass\\grass78\\etc\\env.bat\"");
-		outList.add("call qt5_env.bat");
-		outList.add("call py3_env.bat");
+		outList.add("call " + gdalBinFolder + "\\qt5_env.bat");
+		outList.add("call " + gdalBinFolder + "\\py3_env.bat");
 		outList.add("@echo off");
 		outList.add(
 				"path %OSGEO4W_ROOT%\\apps\\qgis-ltr\\bin;%OSGEO4W_ROOT%\\apps\\grass\\grass78\\lib;%OSGEO4W_ROOT%\\apps\\grass\\grass78\\bin;%PATH%");
 		outList.add("set QGIS_PREFIX_PATH=%OSGEO4W_ROOT:\\=/%/apps/qgis-ltr");
 		outList.add("set GDAL_FILENAME_IS_UTF8=YES");
+		
+		// for python
+		outList.add("set QT_PLUGIN_PATH=%OSGEO4W_ROOT%\\apps\\qgis-ltr\\qtplugins;%OSGEO4W_ROOT%\\apps\\qt5\\plugins");
+		outList.add("set PYTHONPATH=%OSGEO4W_ROOT%\\apps\\qgis-ltr\\python;%PYTHONPATH%");
+		return outList;
+	}
+
+	public static List<String> QGIS_Processing_PythonInitialize() {
+		List<String> outList = new ArrayList<>();
+		outList.add("import sys");
+		outList.add("sys.path.append(\"" + qgisProcessingPluigins.replace("\\", "/") + "\")");
+		
+		
+		outList.add("from qgis.core import (");
+		outList.add("     QgsApplication,");
+		outList.add("     QgsProcessingFeedback,");
+		outList.add("     QgsVectorLayer");
+		outList.add(")");
+		
+		
+		outList.add("QgsApplication.setPrefixPath('/usr', True)");
+		outList.add("qgs = QgsApplication([], False)");
+		outList.add("qgs.initQgis()");
+		
+		
+		outList.add("import processing");
+		outList.add("from processing.core.Processing import Processing");
+		outList.add("Processing.initialize()");
+		
 		return outList;
 	}
 

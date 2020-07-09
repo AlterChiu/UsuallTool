@@ -269,7 +269,7 @@ public class AsciiBasicControl implements Cloneable {
 		for (int rowCount = -1 * gridCount; rowCount < gridCount; rowCount++) {
 			for (int columnCount = -1 * gridCount; columnCount < gridCount; columnCount++) {
 				String temptValue = this.getValue(columnCount + column, rowCount + row);
-				
+
 				if (!temptValue.equals(this.getNullValue())) {
 					outList.add(Double.parseDouble(temptValue));
 				}
@@ -309,6 +309,36 @@ public class AsciiBasicControl implements Cloneable {
 						if (temptDoubleValue >= minValue && temptDoubleValue < maxValue) {
 							valueList.add(temptDoubleValue);
 						}
+					}
+				}
+			}
+		}
+		return valueList;
+	}
+
+	public List<Integer[]> getPolygonPositionList(Path2D path) {
+		Rectangle pathBoundary = path.getBounds();
+		double maxX = pathBoundary.getMaxX();
+		double minX = pathBoundary.getMinX();
+		double maxY = pathBoundary.getMaxY();
+		double minY = pathBoundary.getMinY();
+
+		/*
+		 * get the mean value in the
+		 */
+		List<Integer[]> valueList = new ArrayList<Integer[]>();
+		String nullValue = this.getNullValue();
+		int[] startPosition = this.getPosition(minX, maxY);
+		int[] endPosition = this.getPosition(maxX, minY);
+		for (int row = startPosition[1]; row <= endPosition[1]; row++) {
+			for (int column = startPosition[0]; column <= endPosition[0]; column++) {
+				String temptValue = this.getValue(column, row);
+				if (!temptValue.equals(nullValue)) {
+
+					// if the grid center is inside the polygon
+					double[] temptCoordinate = this.getCoordinate(column, row);
+					if (path.contains(temptCoordinate[0], temptCoordinate[1])) {
+						valueList.add(new Integer[] { column, row });
 					}
 				}
 			}
@@ -365,6 +395,24 @@ public class AsciiBasicControl implements Cloneable {
 
 	public AsciiBasicControl setValue(int x, int y, String value) {
 		this.asciiContent[y + 6][x] = value;
+		return this;
+	}
+
+	public AsciiBasicControl setValue(Path2D path, String value) {
+		List<Integer[]> positions = this.getPolygonPositionList(path);
+		positions.forEach(position -> {
+			int column = position[0];
+			int row = position[1];
+
+			this.setValue(column, row, value);
+		});
+		return this;
+	}
+
+	public AsciiBasicControl setValue(Geometry geo, String value) throws IOException {
+		GdalGlobal.GeomertyToPath2D(geo).forEach(path -> {
+			this.setValue(path, value);
+		});
 		return this;
 	}
 
