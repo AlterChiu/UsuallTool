@@ -11,6 +11,7 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_Merge {
+	private String temptFolder = GdalGlobal.temptFolder + "RasterMerge\\";
 	private static String tmeptRunFileName = "gdal_merge_tempt.bat";
 
 	/*
@@ -50,15 +51,16 @@ public class GDAL_RASTER_Merge {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
-		for (String fileName : new File(GdalGlobal.temptFolder).list()) {
-			FileFunction.delete(GdalGlobal.temptFolder + "\\" + fileName);
+		FileFunction.newFolder(this.temptFolder);
+		for (String fileName : new File(this.temptFolder).list()) {
+			FileFunction.delete(this.temptFolder + "\\" + fileName);
 		}
 
 		/*
 		 * setting temptFile fileName
 		 */
-		String temptFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, ".txt");
-		String temptFileDirection = GdalGlobal.temptFolder + "\\" + temptFileName;
+		String temptFileName = GdalGlobal.newTempFileName(this.temptFolder, ".txt");
+		String temptFileDirection = this.temptFolder + "\\" + temptFileName;
 
 		/*
 		 * copy file to temptFolder
@@ -66,8 +68,8 @@ public class GDAL_RASTER_Merge {
 		List<String> mergeList = new ArrayList<>();
 		for (String temptFile : this.mergeFiles) {
 			String sourceFileExtension = temptFile.substring(temptFile.lastIndexOf("."));
-			String sourceFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, sourceFileExtension);
-			String sourceFileAdd = GdalGlobal.temptFolder + "\\" + sourceFileName;
+			String sourceFileName = GdalGlobal.newTempFileName(this.temptFolder, sourceFileExtension);
+			String sourceFileAdd = this.temptFolder + "\\" + sourceFileName;
 
 			FileFunction.copyFile(temptFile, sourceFileAdd);
 			mergeList.add("\"" + sourceFileAdd + "\"");
@@ -77,8 +79,8 @@ public class GDAL_RASTER_Merge {
 		 * merged file SavedAdd
 		 */
 		String targetFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
-		String targetFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, targetFileExtension);
-		String targetFileAdd = GdalGlobal.temptFolder + "\\" + targetFileName;
+		String targetFileName = GdalGlobal.newTempFileName(this.temptFolder, targetFileExtension);
+		String targetFileAdd = this.temptFolder + "\\" + targetFileName;
 
 		/*
 		 * setting inputFile

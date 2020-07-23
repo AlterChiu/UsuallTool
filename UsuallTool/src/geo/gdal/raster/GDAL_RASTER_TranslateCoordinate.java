@@ -10,6 +10,7 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_TranslateCoordinate {
+	private String temptFolder = GdalGlobal.temptFolder + "RasterTanslate\\";
 
 	private String originalFile = "";
 	private int inputCoordinate = 0;
@@ -26,15 +27,23 @@ public class GDAL_RASTER_TranslateCoordinate {
 
 	public void save(String saveAdd, int outputCoordinate) throws IOException, InterruptedException {
 		/*
+		 * clear gdalGlobal temptFolder
+		 */
+		FileFunction.newFolder(this.temptFolder);
+		for (String fileName : new File(this.temptFolder).list()) {
+			FileFunction.delete(this.temptFolder + "\\" + fileName);
+		}
+		
+		/*
 		 * save sourceFile to temptFolder
 		 */
 		String sourceFileExtension = this.originalFile.substring(this.originalFile.lastIndexOf("."));
 		String saveFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
 
-		String sourceWorkSpace = GdalGlobal.temptFolder + "\\"
-				+ GdalGlobal.newTempFileName(GdalGlobal.temptFolder + "\\", "") + "\\";
-		String targetWorkSpace = GdalGlobal.temptFolder + "\\"
-				+ GdalGlobal.newTempFileName(GdalGlobal.temptFolder + "\\", "") + "\\";
+		String sourceWorkSpace = this.temptFolder + "\\"
+				+ GdalGlobal.newTempFileName(this.temptFolder + "\\", "") + "\\";
+		String targetWorkSpace = this.temptFolder + "\\"
+				+ GdalGlobal.newTempFileName(this.temptFolder + "\\", "") + "\\";
 
 		FileFunction.newFolder(sourceWorkSpace);
 		FileFunction.newFolder(targetWorkSpace);
@@ -106,7 +115,6 @@ public class GDAL_RASTER_TranslateCoordinate {
 		Process runProcess = pb.start();
 		runProcess.waitFor();
 
-		
 		FileFunction.copyFile(temptSaveFile, saveAdd);
 		FileFunction.delete(sourceWorkSpace);
 		FileFunction.delete(targetWorkSpace);

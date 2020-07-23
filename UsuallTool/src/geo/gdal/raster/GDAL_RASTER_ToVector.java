@@ -18,6 +18,8 @@ import usualTool.AtCommonMath;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_ToVector {
+	private String temptFolder = GdalGlobal.temptFolder + "RasterToVector\\";
+
 	/*
 	 * this function will not using gda_polygonize function because there is
 	 * something not so customize So I making this processing to translate raster
@@ -53,15 +55,16 @@ public class GDAL_RASTER_ToVector {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
-		for (String fileName : new File(GdalGlobal.temptFolder).list()) {
-			FileFunction.delete(GdalGlobal.temptFolder + "\\" + fileName);
+		FileFunction.newFolder(this.temptFolder);
+		for (String fileName : new File(this.temptFolder).list()) {
+			FileFunction.delete(this.temptFolder + "\\" + fileName);
 		}
 
 		/*
 		 * setting temptFile fileName
 		 */
-		String temptFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, ".txt");
-		String temptFileDirection = GdalGlobal.temptFolder + temptFileName;
+		String temptFileName = GdalGlobal.newTempFileName(this.temptFolder, ".txt");
+		String temptFileDirection = this.temptFolder + temptFileName;
 
 		// translate raster data to asciiFormat
 		GDAL_RASTER_TranslateFormat rasterTranslate = new GDAL_RASTER_TranslateFormat(this.inputFile);

@@ -13,21 +13,21 @@ import geo.gdal.SpatialWriter;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
-public class GDAL_VECTOR_Voronoi {
-	private String temptFolder = GdalGlobal.temptFolder + "Voronoi";
-	private String inputLayer = temptFolder + "\\temptPoints.shp";
-	private double buffer = 0.0;
+public class GDAL_VECTOR_SplitByLine {
+	private String temptFolder = GdalGlobal.temptFolder + "SplitByLine";
+	private String inputLayer = temptFolder + "\\temptShp.shp";
+	private String splitLineLayer = temptFolder + "\\splitLine.shp";
+	private List<Geometry> splitLines = new ArrayList<>();
 
-	public GDAL_VECTOR_Voronoi(String inputLayer) {
-		List<Geometry> geoList = new SpatialReader(inputLayer).getGeometryList();
+	public GDAL_VECTOR_SplitByLine(String inputLayer) {
+		processing(new SpatialReader(inputLayer).getGeometryList());
+	}
+
+	public GDAL_VECTOR_SplitByLine(List<Geometry> geoList) {
 		processing(geoList);
 	}
 
-	public GDAL_VECTOR_Voronoi(List<Geometry> geoList) {
-		processing(geoList);
-	}
-
-	public GDAL_VECTOR_Voronoi(Geometry geo) {
+	public GDAL_VECTOR_SplitByLine(Geometry geo) {
 		List<Geometry> geoList = new ArrayList<>();
 		geoList.add(geo);
 		processing(geoList);
@@ -41,29 +41,34 @@ public class GDAL_VECTOR_Voronoi {
 		}
 
 		// translate shapeFile to points
-		List<Geometry> outPoints = new ArrayList<>();
-
-		geoList.forEach(geo -> {
-			GdalGlobal.GeometryToPointGeos(geo).forEach(point -> {
-				outPoints.add(point);
-			});
-		});
-		new SpatialWriter().setGeoList(outPoints).saveAsShp(this.inputLayer);
+		new SpatialWriter().setGeoList(geoList).saveAsShp(this.inputLayer);
 	}
 
-	public void setBuffer(double buffer) {
-		this.buffer = buffer;
+	public void addSplitLine(List<Geometry> splitLines) {
+		splitLines.forEach(geo -> this.splitLines.add(geo));
+	}
+
+	public void addSplitLine(Geometry splitLine) {
+		this.splitLines.add(splitLine);
+	}
+
+	public void addSplitLine(String splitLineSHP) {
+		new SpatialReader(splitLineSHP).getGeometryList().forEach(geo -> this.splitLines.add(geo));
 	}
 
 	public void saveAsShp(String saveAdd) throws IOException, InterruptedException {
+
+		// save split line to new shapeFile
+		new SpatialWriter().setGeoList(this.splitLines).saveAsShp(this.splitLineLayer);
+
 		List<String> batContent = new ArrayList<>();
 
 		// initial GdalPython enviroment
 		GdalGlobal.GDAL_EnviromentStarting().forEach(command -> batContent.add(command));
-		batContent.add("\"%PYTHONHOME%\\python\" AtVoronoiPolygons.py");
+		batContent.add("\"%PYTHONHOME%\\python\" AtSplitByLine.py");
 		batContent.add("exit");
 		new AtFileWriter(batContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//AtVoronoiPolygons.bat").textWriter("");
+				GdalGlobal.gdalBinFolder + "//AtSplitByLine.bat").textWriter("");
 
 		// initial QgisAlogrithm pythonFile
 		List<String> pythonContent = new ArrayList<>();
@@ -75,17 +80,17 @@ public class GDAL_VECTOR_Voronoi {
 		parameter.append("\"INPUT\":\"");
 		parameter.append(this.inputLayer.replace("\\", "/") + "\",");
 
-		parameter.append("\"BUFFER\":");
-		parameter.append(buffer + ",");
+		parameter.append("\"LINES\":\"");
+		parameter.append(this.splitLineLayer.replace("\\", "/") + "\",");
 
 		parameter.append("\"OUTPUT\":\"");
 		parameter.append(saveAdd.replace("\\", "/") + "\"}");
 		pythonContent.add(parameter.toString());
 
 		// create pythonAlogrithm processing
-		pythonContent.add("processing.run('qgis:voronoipolygons',parameter)");
+		pythonContent.add("processing.run('qgis:splitwithlines',parameter)");
 		new AtFileWriter(pythonContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//AtVoronoiPolygons.py").textWriter("");
+				GdalGlobal.gdalBinFolder + "//AtSplitByLine.py").textWriter("");
 
 		// run batFile
 		List<String> command = new ArrayList<>();
@@ -94,7 +99,7 @@ public class GDAL_VECTOR_Voronoi {
 		command.add("start");
 		command.add("/wait");
 		command.add("/B");
-		command.add("AtVoronoiPolygons.bat");
+		command.add("AtSplitByLine.bat");
 
 		// run command
 		ProcessBuilder pb = new ProcessBuilder();

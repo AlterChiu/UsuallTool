@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import org.gdal.gdal.gdal;
@@ -91,6 +92,24 @@ public class SpatialReader {
 		return this.attributeTitleType;
 	}
 
+	public Map<String, List<Geometry>> getGeoListMap(String columnID) {
+		if (!this.attributeTitleType.containsKey(columnID)) {
+			new Exception("No such column ID in this spatialFile");
+			return null;
+		}
+
+		Map<String, List<Geometry>> outMap = new LinkedHashMap<>();
+		for (int index = 0; index < this.geometryList.size(); index++) {
+			String attrValue = (String) this.featureTable.get(index).get(columnID);
+
+			List<Geometry> temptGeoList = Optional.ofNullable(outMap.get(attrValue)).orElse(new ArrayList<>());
+			temptGeoList.add(this.geometryList.get(index));
+			outMap.put(attrValue, temptGeoList);
+		}
+
+		return outMap;
+	}
+
 	public void reNameFeild(String oldFieldName, String newFeildName) {
 
 		// change type
@@ -106,8 +125,7 @@ public class SpatialReader {
 			feature.remove(oldFieldName);
 		});
 	}
-	
-	
+
 	public int getEPSG() {
 		return this.EPSG;
 	}
@@ -185,7 +203,7 @@ public class SpatialReader {
 		for (int index = 0; index < layerDefn.GetFieldCount(); index++) {
 			// get title name
 			attributeTitles.add(layerDefn.GetFieldDefn(index).GetName());
-			
+
 			// get title style
 			attributeTitleType.put(layerDefn.GetFieldDefn(index).GetName(),
 					layerDefn.GetFieldDefn(index).GetTypeName().toUpperCase());

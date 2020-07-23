@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.gdal.ogr.Geometry;
+
 import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
+import geo.gdal.SpatialReader;
 
 public class GDAL_VECTOR_Translate {
 
@@ -97,4 +100,5 @@ public class GDAL_VECTOR_Translate {
 		Process runProcess = pb.start();
 		runProcess.waitFor();
 	}
+
 }

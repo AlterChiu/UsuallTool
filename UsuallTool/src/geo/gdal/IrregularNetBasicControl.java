@@ -277,8 +277,9 @@ public class IrregularNetBasicControl {
 	// <=====================================================>
 	public class EdgeClass {
 		public double nullValue = -999.0;
-		private Set<NodeClass> linkedNode = new HashSet<>();
-		private Set<FaceClass> linkedFace = new HashSet<>();
+		private Set<NodeClass> linkedNode = new LinkedHashSet<>();
+		private Set<FaceClass> linkedFace = new LinkedHashSet<>();
+		private Set<EdgeClass> linkedEdge = null;
 		private String key = "";
 
 		public void setKey(String key) {
@@ -315,6 +316,19 @@ public class IrregularNetBasicControl {
 			return new ArrayList<>(this.linkedFace);
 		}
 
+		public List<EdgeClass> getLinkedEdge() {
+			if (linkedEdge == null) {
+				Set<EdgeClass> outEdgeList = new LinkedHashSet<>();
+				this.linkedNode.forEach(node -> {
+					node.getOtherEdge(this).forEach(temptEdge -> {
+						outEdgeList.add(temptEdge);
+					});
+				});
+				this.linkedEdge = outEdgeList;
+			}
+			return new ArrayList<>(linkedEdge);
+		}
+
 		public double getCenterX() {
 			return AtCommonMath.getDecimal_Double(
 					(this.getLinkedNode().get(0).getX() + this.getLinkedNode().get(1).getX()) / 2, dataDecimal);
@@ -325,33 +339,52 @@ public class IrregularNetBasicControl {
 					(this.getLinkedNode().get(0).getY() + this.getLinkedNode().get(1).getY()) / 2, dataDecimal);
 		}
 
+		public NodeClass getOtherNode(NodeClass temptNode) {
+			List<NodeClass> temptNodeList = new ArrayList<>(this.linkedNode);
+			if (temptNodeList.get(0) == temptNode) {
+				return temptNodeList.get(1);
+			} else {
+				return temptNodeList.get(0);
+			}
+		}
+
+		public FaceClass getOtherFace(FaceClass temptFace) {
+			List<FaceClass> temptFaceList = new ArrayList<>(this.linkedFace);
+			if (temptFaceList.get(0) == temptFace) {
+				return temptFaceList.get(1);
+			} else {
+				return temptFaceList.get(0);
+			}
+		}
+
 		public String getKey() {
 			return this.key;
 		}
 
-		protected void clear() {
+		public boolean isContain(NodeClass temptNodeClass) {
+			if (this.linkedNode.contains(temptNodeClass)) {
+				return true;
+			} else {
+				return false;
+			}
+		}
 
-			// remove linked
-			this.linkedFace.forEach(face -> {
-				try {
-					face.getLinkedEdge().remove(this);
-				} catch (Exception e) {
-				}
-			});
+		public boolean isLinked(EdgeClass temptEdgeClass) {
+			getLinkedEdge();
 
-			this.linkedNode.forEach(node -> {
-				try {
-					node.getLinkedEdge().remove(this);
-				} catch (Exception e) {
-				}
-			});
+			if (this.linkedEdge.contains(temptEdgeClass)) {
+				return true;
+			} else {
+				return false;
+			}
+		}
 
-			// remove catch
-			this.linkedFace.clear();
-			this.linkedNode.clear();
-
-			// remove global
-			edgeMap.remove(this.key);
+		public boolean isLinked(FaceClass temptFaceClass) {
+			if (this.linkedFace.contains(temptFaceClass)) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 
@@ -362,9 +395,9 @@ public class IrregularNetBasicControl {
 		private double value = nullValue;
 		private Geometry geo = null;
 		private String faceKey = "";
-		private Set<EdgeClass> linkedEdge = new HashSet<>();
-		private Set<NodeClass> linkedNode = new HashSet<>();
-		private Set<FaceClass> linkedFace = null;
+		private Set<EdgeClass> linkedEdge = new LinkedHashSet<>();
+		private Set<NodeClass> linkedNode = new LinkedHashSet<>();
+		private Set<FaceClass> linkedFace = new LinkedHashSet<>();
 		private int index = -1;
 
 		public void setFaceKey(String key) {
@@ -453,26 +486,6 @@ public class IrregularNetBasicControl {
 
 		public int getIndex() {
 			return this.index;
-		}
-
-		public void remove() {
-			for (EdgeClass temptEdge : this.linkedEdge) {
-				if (temptEdge.getLinkedFace().size() == 1) {
-					temptEdge.clear();
-				} else {
-					temptEdge.getLinkedFace().remove(this);
-				}
-			}
-
-			for (NodeClass temptNode : this.linkedNode) {
-				if (temptNode.getLinkedFace().size() == 1) {
-					temptNode.clear();
-				} else {
-					temptNode.getLinkedFace().remove(this);
-				}
-			}
-
-			this.clear();
 		}
 
 		protected void clear() {
@@ -565,34 +578,25 @@ public class IrregularNetBasicControl {
 			return new ArrayList<>(this.linkedFace);
 		}
 
-		protected void clear() {
-
-			// remove linked
-			this.linkedEdge.forEach(edge -> {
-				try {
-					edge.getLinkedNode().remove(this);
-				} catch (Exception e) {
-				}
-			});
-
-			this.linkedFace.forEach(face -> {
-				try {
-					face.getLinkedNode().remove(this);
-				} catch (Exception e) {
-				}
-			});
-
-			// remove catch
-			this.linkedEdge.clear();
-			this.linkedFace.clear();
-			nodeMap.remove(nodeList.get(index));
-			nodeList.remove(index);
-
-			// resort nodeList
-			for (int tempt = index; tempt < nodeList.size(); tempt++) {
-				nodeMap.get(nodeList.get(tempt)).setIndex(tempt);
+		public List<FaceClass> getOtherFace(FaceClass temptFaceClass) {
+			Set<FaceClass> outFaceList = new HashSet<>(this.linkedFace);
+			try {
+				outFaceList.remove(temptFaceClass);
+			} catch (Exception e) {
 			}
+			return new ArrayList<>(outFaceList);
 		}
+
+		public List<EdgeClass> getOtherEdge(EdgeClass temptEdgeClass) {
+			Set<EdgeClass> outEdgeList = new HashSet<>(this.linkedEdge);
+			try {
+				outEdgeList.remove(temptEdgeClass);
+			} catch (Exception e) {
+			}
+
+			return new ArrayList<>(outEdgeList);
+		}
+
 	}
 
 }

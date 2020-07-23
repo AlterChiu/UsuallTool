@@ -51,6 +51,17 @@ public class IrregularReachBasicControl {
 		process();
 	}
 
+	public IrregularReachBasicControl(Geometry geo) {
+		this.geoList.add(geo);
+		for (int index = 0; index < this.geoList.size(); index++) {
+			Map<String, Object> temptMap = new HashMap<>();
+			temptMap.put("ID", index);
+			this.geoAttrList.add(temptMap);
+		}
+
+		process();
+	}
+
 	public IrregularReachBasicControl(String fileAdd, Boolean regeneratGeometry) {
 		if (regeneratGeometry)
 			geoListRegenerate();
@@ -85,20 +96,28 @@ public class IrregularReachBasicControl {
 
 		// detect is multiLineString
 		List<Geometry> temptGeoList = new ArrayList<>();
-		this.geoList.forEach(geometry -> {
+		List<Map<String, Object>> temptAttrList = new ArrayList<>();
+		for (int index = 0; index < this.geoList.size(); index++) {
+			Geometry geometry = this.geoList.get(index);
+			Map<String, Object> temptAttr = this.geoAttrList.get(index);
 
 			if (geometry.GetGeometryName().toUpperCase().equals("LINESTRING")) {
 				temptGeoList.add(geometry);
+				temptAttrList.add(temptAttr);
 
 			} else if (geometry.GetGeometryName().toUpperCase().equals("MULTILINESTRING")) {
 				for (int muliLineStringIndex = 0; muliLineStringIndex < geometry
 						.GetGeometryCount(); muliLineStringIndex++) {
-					temptGeoList.add(geometry.GetGeometryRef(muliLineStringIndex).Boundary());
+					temptGeoList.add(geometry.GetGeometryRef(muliLineStringIndex));
+					temptAttrList.add(temptAttr);
 				}
 			}
-		});
+		}
 		this.geoList.clear();
 		this.geoList = temptGeoList;
+
+		this.geoAttrList.clear();
+		this.geoAttrList = temptAttrList;
 
 		// sorted end point and start point
 		Set<String> pointsSet = new HashSet<>();
@@ -441,6 +460,26 @@ public class IrregularReachBasicControl {
 
 		public List<Geometry> getGroupGeomtry(NodeClass startNode, EdgeClass directionEdge) {
 			return getGroupGeometry_cooperate(startNode, directionEdge);
+		}
+
+		public Boolean containNode(String nodeKey) {
+			Boolean returnBoolean = false;
+			for (NodeClass node : this.nodeList) {
+				if (node.getId().equals(nodeKey)) {
+					returnBoolean = true;
+				}
+			}
+			return returnBoolean;
+		}
+
+		public Boolean containNode(NodeClass node) {
+			Boolean returnBoolean = false;
+			for (NodeClass temptNode : this.nodeList) {
+				if (temptNode.getId().equals(node.getId())) {
+					returnBoolean = true;
+				}
+			}
+			return returnBoolean;
 		}
 	}
 

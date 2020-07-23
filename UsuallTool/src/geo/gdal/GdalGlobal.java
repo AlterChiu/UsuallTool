@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
@@ -19,6 +21,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import usualTool.AtCommonMath;
 import usualTool.MathEqualtion.RandomMaker;
 
 public class GdalGlobal {
@@ -26,13 +29,13 @@ public class GdalGlobal {
 	/*
 	 * library & temptFolder
 	 */
-	public static String qgisBinFolder = "K:\\Qgis\\3.4.13\\";
+	public static String qgisBinFolder = "K:\\Qgis\\3.10.7\\";
 	public static String gdalBinFolder = qgisBinFolder + "bin\\";
 	public static String sagaBinFolder = qgisBinFolder + "apps\\saga-ltr\\";
 	public static String grassBinFolder = qgisBinFolder + "apps\\grass\\grass78\\bin\\";
 	public static String qgisProcessingPluigins = qgisBinFolder + "apps\\qgis-ltr\\python\\plugins";
 
-	public static String temptFolder = qgisBinFolder + "temptFolder";
+	public static String temptFolder = qgisBinFolder + "temptFolder\\";
 
 	/*
 	 * Coordinate System
@@ -44,6 +47,8 @@ public class GdalGlobal {
 	public static int TWD67_119 = 3827;
 	public static String TWD97_121_prj4 = "Proj4: +proj=tmerc +lat_0=0 +lon_0=121 +k=0.9999 +x_0=250000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
 	public static String WGS84_prj4 = "Proj4: +proj=longlat +datum=WGS84 +no_defs";
+
+	public static int dataDecimale = 4;
 
 	public static Geometry GeometryTranslator(Geometry geo, int importCoordinate, int outputCoordinate) {
 		SpatialReference inputSpatital = new SpatialReference();
@@ -73,18 +78,58 @@ public class GdalGlobal {
 		return temptGeo;
 	}
 
+	public static List<Geometry> GeometryToPointGeos(Geometry geo) {
+		Set<String> coordinateKeys = GeometryToPointKeySet(geo);
+
+		List<Geometry> outGeoList = new ArrayList<>();
+		coordinateKeys.forEach(pointKey -> {
+			String[] point = pointKey.split("_");
+			double x = Double.parseDouble(point[0]);
+			double y = Double.parseDouble(point[1]);
+			outGeoList.add(GdalGlobal.CreatePoint(x, y));
+		});
+
+		return outGeoList;
+	}
+
+	public static List<Geometry> MultiPolyToPolies(Geometry multiPolygon) {
+		List<Geometry> outList = new ArrayList<>();
+		if (multiPolygon.GetGeometryName().toUpperCase().contains("MULTI")) {
+			for (int index = 0; index < multiPolygon.GetGeometryCount(); index++) {
+				MultiPolyToPolies(multiPolygon.GetGeometryRef(index)).forEach(geo -> outList.add(geo));
+			}
+		} else {
+			outList.add(multiPolygon);
+		}
+		return outList;
+	}
+
+	public static Set<String> GeometryToPointKeySet(Geometry geometry) {
+		Set<String> coordinateKeys = new HashSet<>();
+
+		MultiPolyToPolies(geometry).forEach(geo -> {
+			for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
+
+				Geometry temptGeo = geo.GetGeometryRef(geoCount);
+				for (double[] point : temptGeo.GetPoints()) {
+					String xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
+					String yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
+					coordinateKeys.add(xString + "_" + yString);
+				}
+			}
+		});
+		return coordinateKeys;
+	}
+
 	public static List<Path2D> GeomertyToPath2D(Geometry geometry) throws IOException {
 		List<Path2D> outList = new ArrayList<>();
 
-		if (geometry.GetGeometryName().toUpperCase().equals("POLYGON")) {
-			outList.add(GeomertyToPath2D_Polygon(geometry.GetGeometryRef(0)));
+		if (geometry.GetGeometryName().toUpperCase().equals("POLYGON")
+				|| geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYGON")) {
+			GeomertyToPath2D_PolygonProcessing(geometry).forEach(path -> outList.add(path));
 
-		} else if (geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYGON")) {
-			for (int index = 0; index < geometry.GetGeometryCount(); index++) {
-				outList.add(GeomertyToPath2D_BoundaryPolygon(geometry.GetGeometryRef(index)));
-			}
-		} else if (geometry.GetGeometryName().toUpperCase().equals("POLYLINE")
-				|| geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYLINE")) {
+		} else if (geometry.GetGeometryName().toUpperCase().equals("LINESTRING")
+				|| geometry.GetGeometryName().toUpperCase().equals("MULTILINESTRING")) {
 			throw new IOException("not allowable for geometry type LineString");
 		} else {
 			throw new IOException("not correct geometry type");
@@ -92,25 +137,28 @@ public class GdalGlobal {
 		return outList;
 	}
 
-	private static Path2D GeomertyToPath2D_BoundaryPolygon(Geometry geometry) {
-		Path2D outPath = new Path2D.Double();
+	private static List<Path2D> GeomertyToPath2D_PolygonProcessing(Geometry geometry) {
+		List<Path2D> pathList = new ArrayList<>();
 
-		Geometry temptGeo = geometry.Boundary();
-		outPath.moveTo(temptGeo.GetPoint(0)[0], temptGeo.GetPoint(0)[1]);
-		for (int index = 1; index < temptGeo.GetPointCount(); index++) {
-			outPath.lineTo(temptGeo.GetPoint(index)[0], temptGeo.GetPoint(index)[1]);
+		if (geometry.GetGeometryName().toUpperCase().contains("MULTI")) {
+			Geometry temptGeo = geometry.Boundary();
+			for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
+				GeomertyToPath2D_PolygonProcessing(temptGeo.GetGeometryRef(geoCount))
+						.forEach(path -> pathList.add(path));
+			}
+		} else {
+			for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
+				Path2D outPath = new Path2D.Double();
+				Geometry temptGeo = geometry.GetGeometryRef(0);
+
+				outPath.moveTo(temptGeo.GetPoint(0)[0], temptGeo.GetPoint(0)[1]);
+				for (int index = 1; index < temptGeo.GetPointCount(); index++) {
+					outPath.lineTo(temptGeo.GetPoint(index)[0], temptGeo.GetPoint(index)[1]);
+				}
+				pathList.add(outPath);
+			}
 		}
-		return outPath;
-	}
-
-	private static Path2D GeomertyToPath2D_Polygon(Geometry geometry) {
-		Path2D outPath = new Path2D.Double();
-
-		outPath.moveTo(geometry.GetPoint(0)[0], geometry.GetPoint(0)[1]);
-		for (int index = 1; index < geometry.GetPointCount(); index++) {
-			outPath.lineTo(geometry.GetPoint(index)[0], geometry.GetPoint(index)[1]);
-		}
-		return outPath;
+		return pathList;
 	}
 
 	public static Path2D pathFixPoint(Path2D path, double leftBottomX, double leftBottomY) {
@@ -509,7 +557,7 @@ public class GdalGlobal {
 				"path %OSGEO4W_ROOT%\\apps\\qgis-ltr\\bin;%OSGEO4W_ROOT%\\apps\\grass\\grass78\\lib;%OSGEO4W_ROOT%\\apps\\grass\\grass78\\bin;%PATH%");
 		outList.add("set QGIS_PREFIX_PATH=%OSGEO4W_ROOT:\\=/%/apps/qgis-ltr");
 		outList.add("set GDAL_FILENAME_IS_UTF8=YES");
-		
+
 		// for python
 		outList.add("set QT_PLUGIN_PATH=%OSGEO4W_ROOT%\\apps\\qgis-ltr\\qtplugins;%OSGEO4W_ROOT%\\apps\\qt5\\plugins");
 		outList.add("set PYTHONPATH=%OSGEO4W_ROOT%\\apps\\qgis-ltr\\python;%PYTHONPATH%");
@@ -520,24 +568,25 @@ public class GdalGlobal {
 		List<String> outList = new ArrayList<>();
 		outList.add("import sys");
 		outList.add("sys.path.append(\"" + qgisProcessingPluigins.replace("\\", "/") + "\")");
-		
-		
+
 		outList.add("from qgis.core import (");
 		outList.add("     QgsApplication,");
 		outList.add("     QgsProcessingFeedback,");
 		outList.add("     QgsVectorLayer");
 		outList.add(")");
-		
-		
+		outList.add("import qgis.utils");
+
 		outList.add("QgsApplication.setPrefixPath('/usr', True)");
 		outList.add("qgs = QgsApplication([], False)");
 		outList.add("qgs.initQgis()");
-		
-		
+
 		outList.add("import processing");
+		outList.add("from qgis.analysis import QgsNativeAlgorithms");
+
 		outList.add("from processing.core.Processing import Processing");
 		outList.add("Processing.initialize()");
-		
+		outList.add("QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())");
+
 		return outList;
 	}
 

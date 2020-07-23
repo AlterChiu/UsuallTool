@@ -13,21 +13,20 @@ import geo.gdal.SpatialWriter;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
-public class GDAL_VECTOR_Voronoi {
-	private String temptFolder = GdalGlobal.temptFolder + "Voronoi";
-	private String inputLayer = temptFolder + "\\temptPoints.shp";
-	private double buffer = 0.0;
+public class GDAL_VECTOR_Defensify {
+	private String temptFolder = GdalGlobal.temptFolder + "DensifyInterva";
+	private String inputLayer = temptFolder + "\\temptShp.shp";
+	private double interval = 1.0;
 
-	public GDAL_VECTOR_Voronoi(String inputLayer) {
-		List<Geometry> geoList = new SpatialReader(inputLayer).getGeometryList();
+	public GDAL_VECTOR_Defensify(String inputLayer) {
+		processing(new SpatialReader(inputLayer).getGeometryList());
+	}
+
+	public GDAL_VECTOR_Defensify(List<Geometry> geoList) {
 		processing(geoList);
 	}
 
-	public GDAL_VECTOR_Voronoi(List<Geometry> geoList) {
-		processing(geoList);
-	}
-
-	public GDAL_VECTOR_Voronoi(Geometry geo) {
+	public GDAL_VECTOR_Defensify(Geometry geo) {
 		List<Geometry> geoList = new ArrayList<>();
 		geoList.add(geo);
 		processing(geoList);
@@ -41,18 +40,11 @@ public class GDAL_VECTOR_Voronoi {
 		}
 
 		// translate shapeFile to points
-		List<Geometry> outPoints = new ArrayList<>();
-
-		geoList.forEach(geo -> {
-			GdalGlobal.GeometryToPointGeos(geo).forEach(point -> {
-				outPoints.add(point);
-			});
-		});
-		new SpatialWriter().setGeoList(outPoints).saveAsShp(this.inputLayer);
+		new SpatialWriter().setGeoList(geoList).saveAsShp(this.inputLayer);
 	}
 
-	public void setBuffer(double buffer) {
-		this.buffer = buffer;
+	public void setInterval(double interval) {
+		this.interval = interval;
 	}
 
 	public void saveAsShp(String saveAdd) throws IOException, InterruptedException {
@@ -60,10 +52,10 @@ public class GDAL_VECTOR_Voronoi {
 
 		// initial GdalPython enviroment
 		GdalGlobal.GDAL_EnviromentStarting().forEach(command -> batContent.add(command));
-		batContent.add("\"%PYTHONHOME%\\python\" AtVoronoiPolygons.py");
+		batContent.add("\"%PYTHONHOME%\\python\" AtDefensifyInterval.py");
 		batContent.add("exit");
 		new AtFileWriter(batContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//AtVoronoiPolygons.bat").textWriter("");
+				GdalGlobal.gdalBinFolder + "//AtDefensifyInterval.bat").textWriter("");
 
 		// initial QgisAlogrithm pythonFile
 		List<String> pythonContent = new ArrayList<>();
@@ -75,17 +67,17 @@ public class GDAL_VECTOR_Voronoi {
 		parameter.append("\"INPUT\":\"");
 		parameter.append(this.inputLayer.replace("\\", "/") + "\",");
 
-		parameter.append("\"BUFFER\":");
-		parameter.append(buffer + ",");
+		parameter.append("\"INTERVAL\":");
+		parameter.append(this.interval + ",");
 
 		parameter.append("\"OUTPUT\":\"");
 		parameter.append(saveAdd.replace("\\", "/") + "\"}");
 		pythonContent.add(parameter.toString());
 
 		// create pythonAlogrithm processing
-		pythonContent.add("processing.run('qgis:voronoipolygons',parameter)");
+		pythonContent.add("processing.run('native:densifygeometriesgivenaninterval',parameter)");
 		new AtFileWriter(pythonContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//AtVoronoiPolygons.py").textWriter("");
+				GdalGlobal.gdalBinFolder + "//AtDefensifyInterval.py").textWriter("");
 
 		// run batFile
 		List<String> command = new ArrayList<>();
@@ -94,7 +86,7 @@ public class GDAL_VECTOR_Voronoi {
 		command.add("start");
 		command.add("/wait");
 		command.add("/B");
-		command.add("AtVoronoiPolygons.bat");
+		command.add("AtDefensifyInterval.bat");
 
 		// run command
 		ProcessBuilder pb = new ProcessBuilder();

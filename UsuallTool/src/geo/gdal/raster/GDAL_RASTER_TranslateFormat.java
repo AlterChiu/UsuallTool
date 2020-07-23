@@ -10,6 +10,7 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_TranslateFormat {
+	private String temptFolder = GdalGlobal.temptFolder + "RasterTranslateFormat\\";
 
 	private String nullValue = "-999";
 	private String originalFile = "";
@@ -39,6 +40,13 @@ public class GDAL_RASTER_TranslateFormat {
 	}
 
 	public void save(String saveAdd, String dataType) throws IOException, InterruptedException {
+		/*
+		 * clear gdalGlobal temptFolder
+		 */
+		FileFunction.newFolder(this.temptFolder);
+		for (String fileName : new File(this.temptFolder).list()) {
+			FileFunction.delete(this.temptFolder + "\\" + fileName);
+		}
 
 		/*
 		 * save sourceFile to temptFolder
@@ -46,14 +54,11 @@ public class GDAL_RASTER_TranslateFormat {
 		String sourceFileExtension = this.originalFile.substring(this.originalFile.lastIndexOf("."));
 		String saveFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
 
-		String newWorkSpace = GdalGlobal.temptFolder + "\\"
-				+ GdalGlobal.newTempFileName(GdalGlobal.temptFolder + "\\", "") + "\\";
+		String newWorkSpace = this.temptFolder + "\\" + GdalGlobal.newTempFileName(this.temptFolder + "\\", "") + "\\";
 		FileFunction.newFolder(newWorkSpace);
 
-		String temptSorceFile = newWorkSpace
-				+ GdalGlobal.newTempFileName(GdalGlobal.temptFolder + "\\", sourceFileExtension);
-		String temptSaveFile = newWorkSpace
-				+ GdalGlobal.newTempFileName(GdalGlobal.temptFolder + "\\", saveFileExtension);
+		String temptSorceFile = newWorkSpace + GdalGlobal.newTempFileName(this.temptFolder + "\\", sourceFileExtension);
+		String temptSaveFile = newWorkSpace + GdalGlobal.newTempFileName(this.temptFolder + "\\", saveFileExtension);
 		FileFunction.copyFile(this.originalFile, temptSorceFile);
 
 		/*

@@ -2,7 +2,8 @@ package testFolder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,8 +27,8 @@ public class SOBEK_OBJECT {
 		private int linkedPointID = -1;
 		private int id = -1;
 
-		private Set<SobekBankPoint> bankPoints = new HashSet<>();
-		private Map<String, Integer> nodeContainer = new HashMap<>();
+		private Set<SobekBankPoint> bankPoints = new LinkedHashSet<>();
+		private Map<String, Integer> nodeContainer = new LinkedHashMap<>();
 
 		public SobekBankLine(Geometry geo) {
 			this.geo = geo;
@@ -52,6 +53,12 @@ public class SOBEK_OBJECT {
 
 		public double[] getSecondPoint() {
 			return this.secondPoint;
+		}
+
+		public List<String> getPointKeys() {
+			List<String> temptNodeList = new ArrayList<>();
+			this.nodeContainer.keySet().forEach(key -> temptNodeList.add(key));
+			return temptNodeList;
 		}
 
 		public void setID(int id) {
@@ -161,8 +168,7 @@ public class SOBEK_OBJECT {
 		private String id; // x_y
 		private int belongBankLineID = -1;
 		private int indexInBelongBankLine = -1;
-		
-		
+
 		public SobekBankPoint(Geometry geo) {
 			String xString = AtCommonMath.getDecimal_String(geo.GetX(), IrregularReachBasicControl.dataDecimale);
 			String yString = AtCommonMath.getDecimal_String(geo.GetY(), IrregularReachBasicControl.dataDecimale);
