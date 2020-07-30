@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ import usualTool.AtCommonMath;
 
 public class IrregularNetBasicControl {
 	private int dataDecimal = 4;
+	private List<Geometry> geoList = new ArrayList<>();;
 
 	// key : Point index , from small to large
 	private Map<String, FaceClass> faceMap = new LinkedHashMap<>();
@@ -32,21 +34,25 @@ public class IrregularNetBasicControl {
 	private List<String> nodeList = new ArrayList<>();
 
 	public IrregularNetBasicControl(List<Geometry> geoList) {
-		this.processing(geoList);
+		geoList.forEach(geo -> this.geoList.add(geo));
+		this.processing();
 	}
 
 	public IrregularNetBasicControl(SpatialReader spatialFile) {
-		this.processing(spatialFile.getGeometryList());
+		spatialFile.getGeometryList().forEach(geo -> this.geoList.add(geo));
+		this.processing();
 	}
 
 	public IrregularNetBasicControl(List<Geometry> geoList, int dataDecimal) {
+		geoList.forEach(geo -> this.geoList.add(geo));
 		this.dataDecimal = dataDecimal;
-		this.processing(geoList);
+		this.processing();
 	}
 
 	public IrregularNetBasicControl(SpatialReader spatialFile, int dataDecimal) {
+		spatialFile.getGeometryList().forEach(geo -> this.geoList.add(geo));
 		this.dataDecimal = dataDecimal;
-		this.processing(spatialFile.getGeometryList());
+		this.processing();
 	}
 
 	// <=====================================================>
@@ -61,10 +67,7 @@ public class IrregularNetBasicControl {
 	private List<Geometry> preCehck_MultiPolygon(List<Geometry> geoList) {
 		List<Geometry> temptGeoList = new ArrayList<>();
 		geoList.forEach(geo -> {
-
-			for (int index = 0; index < geo.GetGeometryCount(); index++) {
-				temptGeoList.add(geo.GetGeometryRef(index));
-			}
+			GdalGlobal.MultiPolyToSingle(geo).forEach(splitGeo -> temptGeoList.add(splitGeo));
 		});
 		geoList.clear();
 		geoList = temptGeoList;
@@ -76,13 +79,9 @@ public class IrregularNetBasicControl {
 	// <=====================================================>
 	private void sortedNodes(List<Geometry> geoList) {
 		// oder all points
-		gdal.AllRegister();
 		Set<String> temptNodeSet = new LinkedHashSet<>();
 		for (Geometry geo : geoList) {
-			for (int index = 0; index < geo.GetPointCount(); index++) {
-				temptNodeSet.add(AtCommonMath.getDecimal_String(geo.GetX(index), this.dataDecimal) + "_"
-						+ AtCommonMath.getDecimal_String(geo.GetY(index), this.dataDecimal));
-			}
+			GdalGlobal.GeometryToPointKeySet(geo, this.dataDecimal).forEach(keySet -> temptNodeSet.add(keySet));
 		}
 
 		// create all node class
@@ -97,87 +96,85 @@ public class IrregularNetBasicControl {
 		}
 	}
 
-	private void processing(List<Geometry> geoList) {
+	private void processing() {
 
 		// check geoLists
-		geoList = preCheck(geoList);
+		this.geoList = preCheck(this.geoList);
 
 		// map every point and also create the list of it
 		sortedNodes(geoList);
 
 		// run all polygon
-		for (Geometry geo : geoList) {
+		for (Geometry temptGeo : geoList) {
+			if (temptGeo.GetGeometryCount() == 1) {
 
-			FaceClass temptFace = new FaceClass();
-			List<String> faceKeyList = new ArrayList<>();
+				Geometry geo = temptGeo.GetGeometryRef(0);
+				FaceClass temptFace = new FaceClass();
+				List<String> faceKeyList = new ArrayList<>();
 
-			// startPoint
-			String startPointKey = AtCommonMath.getDecimal_String(geo.GetX(0), this.dataDecimal) + "_"
-					+ AtCommonMath.getDecimal_String(geo.GetY(0), this.dataDecimal);
+				// startPoint
+				String startPointKey = AtCommonMath.getDecimal_String(geo.GetX(0), this.dataDecimal) + "_"
+						+ AtCommonMath.getDecimal_String(geo.GetY(0), this.dataDecimal);
 
-			// nextPoint
-			for (int index = 1; index <= geo.GetPointCount(); index++) {
+				// nextPoint
+				for (int index = 1; index <= geo.GetPointCount(); index++) {
 
-				// check for the last point to start point
-				String currentPointKey;
-				if (index == geo.GetPointCount()) {
-					currentPointKey = AtCommonMath.getDecimal_String(geo.GetX(0), this.dataDecimal) + "_"
-							+ AtCommonMath.getDecimal_String(geo.GetY(0), this.dataDecimal);
-					faceKeyList.add(String.valueOf(this.nodeMap.get(currentPointKey).getIndex()));
-				} else {
-					currentPointKey = AtCommonMath.getDecimal_String(geo.GetX(index), this.dataDecimal) + "_"
-							+ AtCommonMath.getDecimal_String(geo.GetY(index), this.dataDecimal);
-					faceKeyList.add(String.valueOf(this.nodeMap.get(currentPointKey).getIndex()));
+					// check for the last point to start point
+					String currentPointKey;
+					if (index == geo.GetPointCount()) {
+						currentPointKey = AtCommonMath.getDecimal_String(geo.GetX(0), this.dataDecimal) + "_"
+								+ AtCommonMath.getDecimal_String(geo.GetY(0), this.dataDecimal);
+					} else {
+						currentPointKey = AtCommonMath.getDecimal_String(geo.GetX(index), this.dataDecimal) + "_"
+								+ AtCommonMath.getDecimal_String(geo.GetY(index), this.dataDecimal);
+					}
+
+					if (!currentPointKey.equals(startPointKey)) {
+						faceKeyList.add(String.valueOf(this.nodeMap.get(currentPointKey).getIndex()));
+						this.nodeMap.get(currentPointKey).addFace(temptFace);
+
+						// edge
+						List<String> edgeKeyList = Arrays.asList(this.nodeMap.get(startPointKey).getIndex() + "",
+								this.nodeMap.get(currentPointKey).getIndex() + "");
+						Collections.sort(edgeKeyList);
+						String edgeKey = String.join("_", edgeKeyList);
+
+						EdgeClass temptEdgeClass = Optional.ofNullable(this.edgeMap.get(edgeKey))
+								.orElse(new EdgeClass());
+						temptEdgeClass.setKey(edgeKey);
+						temptEdgeClass.addFace(temptFace);
+						temptEdgeClass.addNode(this.nodeMap.get(startPointKey));
+						temptEdgeClass.addNode(this.nodeMap.get(currentPointKey));
+						this.edgeMap.put(edgeKey, temptEdgeClass);
+
+						// linked face and node to edgeClass
+						temptFace.addEdge(temptEdgeClass);
+						this.nodeMap.get(startPointKey).addEdge(temptEdgeClass);
+						this.nodeMap.get(currentPointKey).addEdge(temptEdgeClass);
+					}
+
+					// refresh
+					startPointKey = currentPointKey;
 				}
-				this.nodeMap.get(currentPointKey).addFace(temptFace);
 
-				// edge
-				EdgeClass temptEdgeClass;
-				List<String> edgeKeyList = Arrays.asList(this.nodeMap.get(startPointKey).getIndex() + "",
-						this.nodeMap.get(currentPointKey).getIndex() + "");
-				Collections.sort(edgeKeyList);
-				String edgeKey = String.join("_", edgeKeyList);
+				// face
+				Collections.sort(faceKeyList);
+				String faceKey = String.join("_", faceKeyList);
+				Geometry centroid = geo.Centroid();
+				temptFace.setIndex(this.faceList.size());
+				temptFace.setFaceKey(faceKey);
+				temptFace.setCenterX(centroid.GetX());
+				temptFace.setCenterY(centroid.GetY());
+				temptFace.setGeometry(temptGeo);
+				faceKeyList.forEach(index -> {
+					temptFace.addNode(this.nodeMap.get(this.nodeList.get(Integer.parseInt(index))));
+				});
 
-				try {
-					// check is there exist edgeClass
-					// if exist extends the original one
-					this.edgeMap.get(edgeKey).getKey();
-					temptEdgeClass = this.edgeMap.get(edgeKey);
-					temptEdgeClass.addFace(temptFace);
-
-				} catch (Exception e) {
-					// create a new edgeClass, input every property it needs
-					temptEdgeClass = new EdgeClass();
-					temptEdgeClass.setKey(edgeKey);
-					temptEdgeClass.addFace(temptFace);
-					temptEdgeClass.addNode(this.nodeMap.get(startPointKey));
-					temptEdgeClass.addNode(this.nodeMap.get(currentPointKey));
-				}
-				this.edgeMap.put(edgeKey, temptEdgeClass);
-
-				// linked face and node to edgeClass
-				temptFace.addEdge(temptEdgeClass);
-				this.nodeMap.get(startPointKey).addEdge(temptEdgeClass);
-				this.nodeMap.get(currentPointKey).addEdge(temptEdgeClass);
-
-				// refresh
-				startPointKey = currentPointKey;
+				this.faceMap.put(faceKey, temptFace);
+				this.faceList.add(faceKey);
+			} else {
+				new Exception("Skip Linearing while IrregularNetBasicControl");
 			}
-
-			// face
-			Collections.sort(faceKeyList);
-			String faceKey = String.join("_", faceKeyList);
-			Geometry centroid = geo.Centroid();
-			temptFace.setFaceKey(faceKey);
-			temptFace.setCenterX(centroid.GetX());
-			temptFace.setCenterY(centroid.GetY());
-			temptFace.setGeometry(geo);
-			faceKeyList.forEach(index -> {
-				temptFace.addNode(this.nodeMap.get(this.nodeList.get(Integer.parseInt(index))));
-			});
-			temptFace.setIndex(this.faceList.size());
-			this.faceMap.put(faceKey, temptFace);
-			this.faceList.add(faceKey);
 		}
 	}
 
@@ -280,6 +277,7 @@ public class IrregularNetBasicControl {
 		private Set<NodeClass> linkedNode = new LinkedHashSet<>();
 		private Set<FaceClass> linkedFace = new LinkedHashSet<>();
 		private Set<EdgeClass> linkedEdge = null;
+		private Geometry geo = null;
 		private String key = "";
 
 		public void setKey(String key) {
@@ -341,7 +339,7 @@ public class IrregularNetBasicControl {
 
 		public NodeClass getOtherNode(NodeClass temptNode) {
 			List<NodeClass> temptNodeList = new ArrayList<>(this.linkedNode);
-			if (temptNodeList.get(0) == temptNode) {
+			if (temptNodeList.get(0).getIndex() == temptNode.getIndex()) {
 				return temptNodeList.get(1);
 			} else {
 				return temptNodeList.get(0);
@@ -350,7 +348,7 @@ public class IrregularNetBasicControl {
 
 		public FaceClass getOtherFace(FaceClass temptFace) {
 			List<FaceClass> temptFaceList = new ArrayList<>(this.linkedFace);
-			if (temptFaceList.get(0) == temptFace) {
+			if (temptFaceList.get(0).getIndex() == temptFace.getIndex()) {
 				return temptFaceList.get(1);
 			} else {
 				return temptFaceList.get(0);
@@ -361,30 +359,52 @@ public class IrregularNetBasicControl {
 			return this.key;
 		}
 
-		public boolean isContain(NodeClass temptNodeClass) {
-			if (this.linkedNode.contains(temptNodeClass)) {
-				return true;
-			} else {
-				return false;
+		public double getLength() {
+			return this.getGeo().Length();
+		}
+
+		public Geometry getGeo() {
+			if (this.geo == null) {
+				List<Double[]> temptList = new ArrayList<>();
+				this.linkedNode.forEach(node -> temptList.add(new Double[] { node.getX(), node.getY() }));
+				this.geo = GdalGlobal.CreateLine(temptList);
 			}
+			return this.geo;
+		}
+
+		public boolean isContain(NodeClass temptNodeClass) {
+			boolean returnBoolean = false;
+			for (NodeClass node : this.linkedNode) {
+				if (temptNodeClass.getIndex() == node.getIndex()) {
+					returnBoolean = true;
+					break;
+				}
+			}
+			return returnBoolean;
 		}
 
 		public boolean isLinked(EdgeClass temptEdgeClass) {
 			getLinkedEdge();
 
-			if (this.linkedEdge.contains(temptEdgeClass)) {
-				return true;
-			} else {
-				return false;
+			boolean returnBoolean = false;
+			for (EdgeClass edge : this.linkedEdge) {
+				if (temptEdgeClass.getKey().equals(edge.getKey())) {
+					returnBoolean = true;
+					break;
+				}
 			}
+			return returnBoolean;
 		}
 
 		public boolean isLinked(FaceClass temptFaceClass) {
-			if (this.linkedFace.contains(temptFaceClass)) {
-				return true;
-			} else {
-				return false;
+			boolean returnBoolean = false;
+			for (FaceClass face : this.linkedFace) {
+				if (temptFaceClass.getFaceKey().equals(face.getFaceKey())) {
+					returnBoolean = true;
+					break;
+				}
 			}
+			return returnBoolean;
 		}
 	}
 
@@ -397,7 +417,7 @@ public class IrregularNetBasicControl {
 		private String faceKey = "";
 		private Set<EdgeClass> linkedEdge = new LinkedHashSet<>();
 		private Set<NodeClass> linkedNode = new LinkedHashSet<>();
-		private Set<FaceClass> linkedFace = new LinkedHashSet<>();
+		private Set<FaceClass> linkedFace = null;
 		private int index = -1;
 
 		public void setFaceKey(String key) {
@@ -405,11 +425,7 @@ public class IrregularNetBasicControl {
 		}
 
 		public void setGeometry(Geometry geo) {
-			try {
-				this.geo = GdalGlobal.lineStringToPolygon(geo);
-			} catch (Exception e) {
-				this.geo = geo;
-			}
+			this.geo = geo;
 		}
 
 		public void addNode(NodeClass node) {
@@ -460,6 +476,16 @@ public class IrregularNetBasicControl {
 			return new ArrayList<>(this.linkedFace);
 		}
 
+		public List<EdgeClass> getLinkedEdge(FaceClass faceClass) {
+			List<EdgeClass> outList = new ArrayList<>();
+			this.linkedEdge.forEach(edge -> {
+				if (faceClass.isContain(edge)) {
+					outList.add(edge);
+				}
+			});
+			return outList;
+		}
+
 		public double getCenterX() {
 			return this.centerX;
 		}
@@ -488,27 +514,36 @@ public class IrregularNetBasicControl {
 			return this.index;
 		}
 
-		protected void clear() {
-
-			// remove linked
-			this.linkedEdge.forEach(edge -> edge.linkedFace.remove(this));
-			this.linkedNode.forEach(node -> node.linkedFace.remove(this));
-			this.linkedFace.forEach(face -> face.linkedFace.remove(this));
-
-			// remove catch
-			this.linkedEdge.clear();
-			this.linkedFace.clear();
-			this.linkedNode.clear();
-
-			// resorted list
-			faceMap.remove(this.faceKey);
-			faceList.remove(this.index);
-
-			for (int tempt = index; tempt < faceList.size(); tempt++) {
-				faceMap.get(faceList.get(tempt)).setIndex(tempt);
+		public boolean isContain(EdgeClass edgeClass) {
+			boolean returnBoolean = false;
+			for (EdgeClass edge : this.linkedEdge) {
+				if (edge.getKey().equals(edgeClass.getKey())) {
+					returnBoolean = true;
+					break;
+				}
 			}
-
+			return returnBoolean;
 		}
+
+		public boolean isContain(NodeClass nodeClass) {
+			boolean returnBoolean = false;
+			for (NodeClass node : this.linkedNode) {
+				if (node.getIndex() == nodeClass.getIndex()) {
+					returnBoolean = true;
+					break;
+				}
+			}
+			return returnBoolean;
+		}
+
+		public boolean isEnd() {
+			if (this.getLinkedFace().size() <= 1) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
 	}
 
 	public class NodeClass {

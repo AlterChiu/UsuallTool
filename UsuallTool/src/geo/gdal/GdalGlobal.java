@@ -50,252 +50,41 @@ public class GdalGlobal {
 
 	public static int dataDecimale = 4;
 
-	public static Geometry GeometryTranslator(Geometry geo, int importCoordinate, int outputCoordinate) {
-		SpatialReference inputSpatital = new SpatialReference();
-		inputSpatital.ImportFromEPSG(importCoordinate);
+	// <===================================================>
+	// <======== GEOMETRY CREATOR ============================>
+	// <===================================================>
 
-		SpatialReference outputSpatital = new SpatialReference();
-		outputSpatital.ImportFromEPSG(outputCoordinate);
-
-		CoordinateTransformation geoTrans = new CoordinateTransformation(inputSpatital, outputSpatital);
-		Geometry temptGeo = geo.Clone();
-		temptGeo.Transform(geoTrans);
-
-		return temptGeo;
-	}
-
-	public static Geometry GeometryTranslator(Geometry geo, String importCoordinate, String outputCoordinate) {
-		SpatialReference inputSpatital = new SpatialReference();
-		inputSpatital.ImportFromProj4(importCoordinate);
-
-		SpatialReference outputSpatital = new SpatialReference();
-		outputSpatital.ImportFromProj4(outputCoordinate);
-
-		CoordinateTransformation geoTrans = new CoordinateTransformation(inputSpatital, outputSpatital);
-		Geometry temptGeo = geo.Clone();
-		temptGeo.Transform(geoTrans);
-
-		return temptGeo;
-	}
-
-	public static List<Geometry> GeometryToPointGeos(Geometry geo) {
-		Set<String> coordinateKeys = GeometryToPointKeySet(geo);
-
-		List<Geometry> outGeoList = new ArrayList<>();
-		coordinateKeys.forEach(pointKey -> {
-			String[] point = pointKey.split("_");
-			double x = Double.parseDouble(point[0]);
-			double y = Double.parseDouble(point[1]);
-			outGeoList.add(GdalGlobal.CreatePoint(x, y));
-		});
-
-		return outGeoList;
-	}
-
-	public static List<Geometry> MultiPolyToPolies(Geometry multiPolygon) {
-		List<Geometry> outList = new ArrayList<>();
-		if (multiPolygon.GetGeometryName().toUpperCase().contains("MULTI")) {
-			for (int index = 0; index < multiPolygon.GetGeometryCount(); index++) {
-				MultiPolyToPolies(multiPolygon.GetGeometryRef(index)).forEach(geo -> outList.add(geo));
-			}
-		} else {
-			outList.add(multiPolygon);
-		}
-		return outList;
-	}
-
-	public static Set<String> GeometryToPointKeySet(Geometry geometry) {
-		Set<String> coordinateKeys = new HashSet<>();
-
-		MultiPolyToPolies(geometry).forEach(geo -> {
-			for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
-
-				Geometry temptGeo = geo.GetGeometryRef(geoCount);
-				for (double[] point : temptGeo.GetPoints()) {
-					String xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
-					String yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
-					coordinateKeys.add(xString + "_" + yString);
-				}
-			}
-		});
-		return coordinateKeys;
-	}
-
-	public static List<Path2D> GeomertyToPath2D(Geometry geometry) throws IOException {
-		List<Path2D> outList = new ArrayList<>();
-
-		if (geometry.GetGeometryName().toUpperCase().equals("POLYGON")
-				|| geometry.GetGeometryName().toUpperCase().equals("MULTIPOLYGON")) {
-			GeomertyToPath2D_PolygonProcessing(geometry).forEach(path -> outList.add(path));
-
-		} else if (geometry.GetGeometryName().toUpperCase().equals("LINESTRING")
-				|| geometry.GetGeometryName().toUpperCase().equals("MULTILINESTRING")) {
-			throw new IOException("not allowable for geometry type LineString");
-		} else {
-			throw new IOException("not correct geometry type");
-		}
-		return outList;
-	}
-
-	private static List<Path2D> GeomertyToPath2D_PolygonProcessing(Geometry geometry) {
-		List<Path2D> pathList = new ArrayList<>();
-
-		if (geometry.GetGeometryName().toUpperCase().contains("MULTI")) {
-			Geometry temptGeo = geometry.Boundary();
-			for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
-				GeomertyToPath2D_PolygonProcessing(temptGeo.GetGeometryRef(geoCount))
-						.forEach(path -> pathList.add(path));
-			}
-		} else {
-			for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
-				Path2D outPath = new Path2D.Double();
-				Geometry temptGeo = geometry.GetGeometryRef(0);
-
-				outPath.moveTo(temptGeo.GetPoint(0)[0], temptGeo.GetPoint(0)[1]);
-				for (int index = 1; index < temptGeo.GetPointCount(); index++) {
-					outPath.lineTo(temptGeo.GetPoint(index)[0], temptGeo.GetPoint(index)[1]);
-				}
-				pathList.add(outPath);
-			}
-		}
-		return pathList;
-	}
-
-	public static Path2D pathFixPoint(Path2D path, double leftBottomX, double leftBottomY) {
-		Rectangle rec = path.getBounds();
-		double minX = rec.getMinX();
-		double minY = rec.getMinY();
-
-		double moveX = leftBottomX - minX;
-		double moveY = leftBottomY - minY;
-
-		return pathAdjustPanel(path, moveX, moveY);
-	}
-
-	public static Path2D pathAdjustPanel(Path2D path, double moveX, double moveY) {
-		List<Double[]> pointList = getPathPoints(path);
-		List<Double[]> adjustedPointList = new ArrayList<>();
-
-		pointList.forEach(point -> {
-			double adjustX = point[0] + moveX;
-			double adjustY = point[1] + moveY;
-			adjustedPointList.add(new Double[] { adjustX, adjustY });
-		});
-
-		return CreatePath2D(adjustedPointList);
-	}
-
-	public static Path2D pathAdjustMirroXLine(Path2D path) {
-		Rectangle rec = path.getBounds();
-		double centerY = rec.getCenterY();
-
-		return pathAdjustMirroXLine(path, centerY);
-	}
-
-	public static Path2D pathAdjustMirroXLine(Path2D path, double flipY) {
-		List<Double[]> pointList = getPathPoints(path);
-		List<Double[]> adjustedPointList = new ArrayList<>();
-
-		pointList.forEach(point -> {
-			double adjustX = point[0];
-			double adjustY = flipY * 2 - point[1];
-			adjustedPointList.add(new Double[] { adjustX, adjustY });
-		});
-
-		return CreatePath2D(adjustedPointList);
-	}
-
-	public static Path2D pathAdjustMirroYLine(Path2D path) {
-		Rectangle rec = path.getBounds();
-		double centerX = rec.getCenterX();
-
-		return pathAdjustMirroYLine(path, centerX);
-	}
-
-	public static Path2D pathAdjustMirroYLine(Path2D path, double flipX) {
-
-		List<Double[]> pointList = getPathPoints(path);
-		List<Double[]> adjustedPointList = new ArrayList<>();
-
-		pointList.forEach(point -> {
-			double adjustX = flipX * 2 - point[0];
-			double adjustY = point[1];
-			adjustedPointList.add(new Double[] { adjustX, adjustY });
-		});
-
-		return CreatePath2D(adjustedPointList);
-	}
-
-	public static Path2D pathAdjustRatio(Path2D path, double fixX, double fixY, double ratioX, double ratioY) {
-
-		List<Double[]> pointList = getPathPoints(path);
-		List<Double[]> adjustedPointList = new ArrayList<>();
-
-		pointList.forEach(point -> {
-			double adjustX = fixX + (point[0] - fixX) * ratioX;
-			double adjustY = fixY + (point[1] - fixY) * ratioY;
-			adjustedPointList.add(new Double[] { adjustX, adjustY });
-		});
-
-		return CreatePath2D(adjustedPointList);
-	}
-
-	public static Path2D pathAdjustRatio(Path2D path, double ratio) {
-		Rectangle rec = path.getBounds();
-		return pathAdjustRatio(path, rec.getCenterX(), rec.getCenterY(), ratio, ratio);
-	}
-
-	public static List<Double[]> getPathPoints(Path2D path) {
-		List<Double[]> outList = new ArrayList<>();
-
-		PathIterator temptPathIteratore = path.getPathIterator(null);
-		double coordinate[] = new double[2];
-
-		for (; !temptPathIteratore.isDone(); temptPathIteratore.next()) {
-			temptPathIteratore.currentSegment(coordinate);
-			outList.add(new Double[] { coordinate[0], coordinate[1] });
-		}
-		return outList;
-	}
-
-	public static Geometry Path2DToGeometry(Path2D path) {
-		PathIterator temptPathIteratore = path.getPathIterator(null);
-		double coordinate[] = new double[2];
-
-		// start coordinate
-		temptPathIteratore.currentSegment(coordinate);
-		double startX = coordinate[0];
-		double startY = coordinate[1];
-
-		// output geometry ,start point
+	public static Geometry CreateMultipolygon() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"Polygon\" , \"coordinates\" : [[");
-		sb.append("[" + startX + "," + startY + "],");
-		temptPathIteratore.next();
-
-		for (; !temptPathIteratore.isDone(); temptPathIteratore.next()) {
-			temptPathIteratore.currentSegment(coordinate);
-			sb.append("[" + coordinate[0] + "," + coordinate[1] + "],");
-		}
-		sb.append("[" + startX + "," + startY + "] ]] }");
-
+		sb.append("{\"type\" : \"MultiPolygon\" , \"coordinates\" : [  ]}");
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
-	public static Geometry Path2DToMultiGeometry(List<Path2D> pathList) {
-		Geometry outGeo = CreateMultipolygon();
-
-		pathList.forEach(path -> {
-			outGeo.AddGeometry(Path2DToGeometry(path));
-		});
-
-		return outGeo;
+	public static Geometry CreatePolygon(List<Double[]> points) {
+		return LineToGeometry(points).Polygonize();
 	}
 
+	public static Path2D CreatePath2D(List<Double[]> points) {
+		Path2D outPath = new Path2D.Double();
+
+		outPath.moveTo(points.get(0)[0], points.get(0)[1]);
+		for (int index = 1; index < points.size(); index++) {
+			outPath.lineTo(points.get(index)[0], points.get(index)[1]);
+		}
+		return outPath;
+	}
+
+	/*
+	 * point
+	 */
 	public static Geometry pointToGeometry(Double[] point) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{  \"type\" : \"Point\" , \"coordinates\" : [");
 		sb.append(point[0] + "," + point[1]);
+		try {
+			sb.append("," + point[2]);
+		} catch (Exception e) {
+		}
 		sb.append("]}");
 
 		return Geometry.CreateFromJson(sb.toString());
@@ -309,13 +98,42 @@ public class GdalGlobal {
 		return outGeo;
 	}
 
+	public static Geometry CreateMultiPoint() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"MultiPoint\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
+	}
+
+	public static Geometry CreatePoint(double x, double y) {
+		return CreatePoint(x, y, 0);
+	}
+
+	public static Geometry CreatePoint(double x, double y, double z) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"Point\" , \"coordinates\" : [ " + x + "," + y + "," + z + " ]}");
+		return Geometry.CreateFromJson(sb.toString());
+	}
+
+	/*
+	 * line
+	 */
 	public static Geometry LineToGeometry(List<Double[]> points) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{\"type\" : \"LineString\" , \"coordinates\" : [");
-		sb.append("[" + points.get(0)[0] + "," + points.get(0)[1] + "]");
-		for (int index = 1; index < points.size(); index++) {
-			sb.append(",[" + points.get(index)[0] + "," + points.get(index)[1] + "]");
-		}
+
+		List<String> geoContainer = new ArrayList<>();
+		points.forEach(point -> {
+			StringBuilder temptSB = new StringBuilder();
+			temptSB.append("[" + point[0] + "," + point[1]);
+			try {
+				temptSB.append("," + point[2]);
+			} catch (Exception e) {
+			}
+			temptSB.append("]");
+			geoContainer.add(temptSB.toString());
+		});
+
+		sb.append(String.join(",", geoContainer));
 		sb.append("]}");
 
 		return Geometry.CreateFromJson(sb.toString());
@@ -342,37 +160,6 @@ public class GdalGlobal {
 		return LineToGeometry(temptList);
 	}
 
-	public static Geometry CreateMultipolygon() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"MultiPolygon\" , \"coordinates\" : [  ]}");
-		return Geometry.CreateFromJson(sb.toString());
-	}
-
-	public static Geometry CreatePolygon(List<Double[]> points) {
-		StringBuilder sb = new StringBuilder();
-
-		// make sure it will close to start point
-		points.add(points.get(0));
-
-		sb.append("{\"type\" : \"Polygon\" , \"coordinates\" : [[");
-		sb.append(String.join(",", points.parallelStream().map(point -> "[" + point[0] + "," + point[1] + "]")
-				.collect(Collectors.toList())));
-		sb.append("]]}");
-		return Geometry.CreateFromJson(sb.toString());
-	}
-
-	public static Geometry CreateMultiPoint() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"MultiPoint\" , \"coordinates\" : [  ]}");
-		return Geometry.CreateFromJson(sb.toString());
-	}
-
-	public static Geometry CreatePoint(double x, double y) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"Point\" , \"coordinates\" : [ " + x + "," + y + " ]}");
-		return Geometry.CreateFromJson(sb.toString());
-	}
-
 	public static Geometry CreateMultiLine() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{\"type\" : \"MultiLineString\" , \"coordinates\" : [  ]}");
@@ -389,22 +176,19 @@ public class GdalGlobal {
 	}
 
 	public static Geometry CreateLine(double x1, double y1, double x2, double y2) {
+		return createLine(x1, y1, 0, x2, y2, 0);
+	}
+
+	public static Geometry createLine(double x1, double y1, double z1, double x2, double y2, double z2) {
 		List<Double[]> temptList = new ArrayList<>();
-		temptList.add(new Double[] { x1, y1 });
-		temptList.add(new Double[] { x2, y2 });
+		temptList.add(new Double[] { x1, y1, z1 });
+		temptList.add(new Double[] { x2, y2, z2 });
 		return CreateLine(temptList);
 	}
 
-	public static Path2D CreatePath2D(List<Double[]> points) {
-		Path2D outPath = new Path2D.Double();
-
-		outPath.moveTo(points.get(0)[0], points.get(0)[1]);
-		for (int index = 1; index < points.size(); index++) {
-			outPath.lineTo(points.get(index)[0], points.get(index)[1]);
-		}
-		return outPath;
-	}
-
+	// <===================================================>
+	// <======== GDAL PROCESSING ==============================>
+	// <===================================================>
 	public static Geometry mergePolygons(List<Geometry> geoList, Boolean showDetails) {
 		/*
 		 * check
@@ -507,20 +291,6 @@ public class GdalGlobal {
 		return outList;
 	}
 
-	public static Geometry lineStringToPolygon(Geometry polyLine) {
-		JsonObject polyLineObject = new JsonParser().parse(polyLine.ExportToJson()).getAsJsonObject();
-		JsonArray pointsArray = polyLineObject.get("coordinates").getAsJsonArray();
-
-		JsonObject outObject = new JsonObject();
-		outObject.addProperty("type", "Polygon");
-
-		JsonArray coordinatesArray = new JsonArray();
-		coordinatesArray.add(pointsArray);
-
-		outObject.add("coordinates", coordinatesArray);
-		return ogr.CreateGeometryFromJson(outObject.toString());
-	}
-
 	public static Path2D getGrid(double[] centerPoint, double cellSize) {
 		return getGrid(centerPoint, cellSize, 4);
 	}
@@ -545,6 +315,274 @@ public class GdalGlobal {
 		return temptPath;
 	}
 
+	public static Geometry GeometryTranslator(Geometry geo, int importCoordinate, int outputCoordinate) {
+		SpatialReference inputSpatital = new SpatialReference();
+		inputSpatital.ImportFromEPSG(importCoordinate);
+
+		SpatialReference outputSpatital = new SpatialReference();
+		outputSpatital.ImportFromEPSG(outputCoordinate);
+
+		CoordinateTransformation geoTrans = new CoordinateTransformation(inputSpatital, outputSpatital);
+		Geometry temptGeo = geo.Clone();
+		temptGeo.Transform(geoTrans);
+
+		return temptGeo;
+	}
+
+	public static Geometry GeometryTranslator(Geometry geo, String importCoordinate, String outputCoordinate) {
+		SpatialReference inputSpatital = new SpatialReference();
+		inputSpatital.ImportFromProj4(importCoordinate);
+
+		SpatialReference outputSpatital = new SpatialReference();
+		outputSpatital.ImportFromProj4(outputCoordinate);
+
+		CoordinateTransformation geoTrans = new CoordinateTransformation(inputSpatital, outputSpatital);
+		Geometry temptGeo = geo.Clone();
+		temptGeo.Transform(geoTrans);
+
+		return temptGeo;
+	}
+
+	public static List<Geometry> GeometryToPointGeos(Geometry geo) {
+		Set<String> coordinateKeys = GeometryToPointKeySet(geo);
+
+		List<Geometry> outGeoList = new ArrayList<>();
+		coordinateKeys.forEach(pointKey -> {
+			String[] point = pointKey.split("_");
+			double x = Double.parseDouble(point[0]);
+			double y = Double.parseDouble(point[1]);
+			outGeoList.add(GdalGlobal.CreatePoint(x, y));
+		});
+
+		return outGeoList;
+	}
+
+	public static List<Geometry> MultiPolyToSingle(Geometry multiPolygon) {
+		List<Geometry> outList = new ArrayList<>();
+		if (multiPolygon.GetGeometryName().toUpperCase().contains("MULTI")) {
+			for (int index = 0; index < multiPolygon.GetGeometryCount(); index++) {
+				GdalGlobal.MultiPolyToSingle(multiPolygon.GetGeometryRef(index)).forEach(geo -> outList.add(geo));
+			}
+		} else {
+			outList.add(multiPolygon);
+		}
+		return outList;
+	}
+
+	public static List<Geometry> MultiPolyToSingle(List<Geometry> geos) {
+		List<Geometry> outGeo = new ArrayList<>();
+		geos.forEach(geo -> {
+			MultiPolyToSingle(geo).forEach(temptGeo -> outGeo.add(temptGeo));
+		});
+		return outGeo;
+	}
+
+	public static Set<String> GeometryToPointKeySet(Geometry geometry) {
+		return GeometryToPointKeySet(geometry, GdalGlobal.dataDecimale);
+	}
+
+	public static Set<String> GeometryToPointKeySet(Geometry geometry, int dataDecimale) {
+		Set<String> coordinateKeys = new HashSet<>();
+
+		MultiPolyToSingle(geometry).forEach(geo -> {
+			for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
+
+				Geometry temptGeo = geo.GetGeometryRef(geoCount);
+				for (double[] point : temptGeo.GetPoints()) {
+					String xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
+					String yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
+					coordinateKeys.add(xString + "_" + yString);
+				}
+			}
+		});
+		return coordinateKeys;
+	}
+
+	// <===================================================>
+	// <======== JAVA PATH2D ADJUST FUNCTION ====================>
+	// <===================================================>
+
+	public static Path2D pathFixPoint(Path2D path, double leftBottomX, double leftBottomY) {
+		Rectangle rec = path.getBounds();
+		double minX = rec.getMinX();
+		double minY = rec.getMinY();
+
+		double moveX = leftBottomX - minX;
+		double moveY = leftBottomY - minY;
+
+		return pathAdjustPanel(path, moveX, moveY);
+	}
+
+	public static Path2D pathAdjustPanel(Path2D path, double moveX, double moveY) {
+		List<Double[]> pointList = getPathPoints(path);
+		List<Double[]> adjustedPointList = new ArrayList<>();
+
+		pointList.forEach(point -> {
+			double adjustX = point[0] + moveX;
+			double adjustY = point[1] + moveY;
+			adjustedPointList.add(new Double[] { adjustX, adjustY });
+		});
+
+		return CreatePath2D(adjustedPointList);
+	}
+
+	public static Path2D pathAdjustMirroXLine(Path2D path) {
+		Rectangle rec = path.getBounds();
+		double centerY = rec.getCenterY();
+
+		return pathAdjustMirroXLine(path, centerY);
+	}
+
+	public static Path2D pathAdjustMirroXLine(Path2D path, double flipY) {
+		List<Double[]> pointList = getPathPoints(path);
+		List<Double[]> adjustedPointList = new ArrayList<>();
+
+		pointList.forEach(point -> {
+			double adjustX = point[0];
+			double adjustY = flipY * 2 - point[1];
+			adjustedPointList.add(new Double[] { adjustX, adjustY });
+		});
+
+		return CreatePath2D(adjustedPointList);
+	}
+
+	public static Path2D pathAdjustMirroYLine(Path2D path) {
+		Rectangle rec = path.getBounds();
+		double centerX = rec.getCenterX();
+
+		return pathAdjustMirroYLine(path, centerX);
+	}
+
+	public static Path2D pathAdjustMirroYLine(Path2D path, double flipX) {
+
+		List<Double[]> pointList = getPathPoints(path);
+		List<Double[]> adjustedPointList = new ArrayList<>();
+
+		pointList.forEach(point -> {
+			double adjustX = flipX * 2 - point[0];
+			double adjustY = point[1];
+			adjustedPointList.add(new Double[] { adjustX, adjustY });
+		});
+
+		return CreatePath2D(adjustedPointList);
+	}
+
+	public static Path2D pathAdjustRatio(Path2D path, double fixX, double fixY, double ratioX, double ratioY) {
+
+		List<Double[]> pointList = getPathPoints(path);
+		List<Double[]> adjustedPointList = new ArrayList<>();
+
+		pointList.forEach(point -> {
+			double adjustX = fixX + (point[0] - fixX) * ratioX;
+			double adjustY = fixY + (point[1] - fixY) * ratioY;
+			adjustedPointList.add(new Double[] { adjustX, adjustY });
+		});
+
+		return CreatePath2D(adjustedPointList);
+	}
+
+	public static Path2D pathAdjustRatio(Path2D path, double ratio) {
+		Rectangle rec = path.getBounds();
+		return pathAdjustRatio(path, rec.getCenterX(), rec.getCenterY(), ratio, ratio);
+	}
+
+	public static List<Double[]> getPathPoints(Path2D path) {
+		List<Double[]> outList = new ArrayList<>();
+
+		PathIterator temptPathIteratore = path.getPathIterator(null);
+		double coordinate[] = new double[2];
+
+		for (; !temptPathIteratore.isDone(); temptPathIteratore.next()) {
+			temptPathIteratore.currentSegment(coordinate);
+			outList.add(new Double[] { coordinate[0], coordinate[1] });
+		}
+		return outList;
+	}
+
+	public static List<Path2D> GeomertyToPath2D(Geometry geometry) throws IOException {
+		List<Path2D> outList = new ArrayList<>();
+
+		GdalGlobal.MultiPolyToSingle(geometry).forEach(geo -> {
+			if (geo.GetGeometryName().toUpperCase().equals("POLYGON")
+					|| geo.GetGeometryName().toUpperCase().equals("POLYGONZ")) {
+				outList.add(GeomertyToPath2D_PolygonProcessing(geo));
+			}
+		});
+		return outList;
+	}
+
+	private static Path2D GeomertyToPath2D_PolygonProcessing(Geometry geometry) {
+		Path2D outPath = new Path2D.Double();
+
+		// get basic path
+		Geometry temptGeo = geometry.GetGeometryRef(0);
+		double[] outPathStartPoint = new double[2];
+		outPathStartPoint[0] = temptGeo.GetX(0);
+		outPathStartPoint[1] = temptGeo.GetY(0);
+
+		// picture first path
+		outPath.moveTo(temptGeo.GetPoint(0)[0], temptGeo.GetPoint(0)[1]);
+		for (int index = 1; index < temptGeo.GetPointCount(); index++) {
+			outPath.lineTo(temptGeo.GetPoint(index)[0], temptGeo.GetPoint(index)[1]);
+		}
+		outPath.closePath();
+
+		// get other rings
+		for (int index = 1; index < geometry.GetGeometryCount(); index++) {
+			temptGeo = geometry.GetGeometryRef(index);
+
+			// start from end
+			double[] ringStartPoint = new double[2];
+			ringStartPoint[0] = temptGeo.GetX(temptGeo.GetPointCount());
+			ringStartPoint[1] = temptGeo.GetY(temptGeo.GetPointCount());
+
+			outPath.lineTo(ringStartPoint[0], ringStartPoint[1]);
+			for (int pointIndex = 0; pointIndex < temptGeo.GetPointCount(); pointIndex++) {
+				outPath.lineTo(temptGeo.GetX(pointIndex), temptGeo.GetY(pointIndex));
+			}
+			outPath.lineTo(outPathStartPoint[0], outPathStartPoint[1]);
+		}
+
+		return outPath;
+	}
+
+	public static Geometry Path2DToGeometry(Path2D path) {
+		PathIterator temptPathIteratore = path.getPathIterator(null);
+		double coordinate[] = new double[2];
+
+		// start coordinate
+		temptPathIteratore.currentSegment(coordinate);
+		double startX = coordinate[0];
+		double startY = coordinate[1];
+
+		// output geometry ,start point
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"Polygon\" , \"coordinates\" : [[");
+		sb.append("[" + startX + "," + startY + "],");
+		temptPathIteratore.next();
+
+		for (; !temptPathIteratore.isDone(); temptPathIteratore.next()) {
+			temptPathIteratore.currentSegment(coordinate);
+			sb.append("[" + coordinate[0] + "," + coordinate[1] + "],");
+		}
+		sb.append("[" + startX + "," + startY + "] ]] }");
+
+		return Geometry.CreateFromJson(sb.toString());
+	}
+
+	public static Geometry Path2DToMultiGeometry(List<Path2D> pathList) {
+		Geometry outGeo = CreateMultipolygon();
+
+		pathList.forEach(path -> {
+			outGeo.AddGeometry(Path2DToGeometry(path));
+		});
+
+		return outGeo;
+	}
+
+	// <===================================================>
+	// <======== QGIS ENVIROMENT SETTING========================>
+	// <===================================================>
 	public static List<String> GDAL_EnviromentStarting() {
 		List<String> outList = new ArrayList<>();
 		outList.add("@echo off");
@@ -591,6 +629,7 @@ public class GdalGlobal {
 	}
 
 	// additionFormat should be like this ".csv",".shp"
+
 	public static String newTempFileName(String folder, String additionFormat) {
 		StringBuilder temptName = new StringBuilder();
 

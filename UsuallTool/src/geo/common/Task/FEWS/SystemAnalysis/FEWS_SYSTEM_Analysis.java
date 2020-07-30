@@ -561,12 +561,12 @@ public class FEWS_SYSTEM_Analysis {
 			String countyFolder = workSpace + county + "\\";
 			String eventOutAsciiFolder = countyFolder + "\\EventAscii\\";
 
-			List<AsciiBasicControl> asciiList = new ArrayList<>();
-			for (String asciiFile : new File(eventOutAsciiFolder).list()) {
-				asciiList.add(new AsciiBasicControl(eventOutAsciiFolder + asciiFile));
+			List<String> asciiFileAddList = new ArrayList<>();
+			for (String asciiFileName : new File(eventOutAsciiFolder).list()) {
+				asciiFileAddList.add(eventOutAsciiFolder + asciiFileName);
 			}
 
-			new AtFileWriter(AsciiBasicControl.getMaxAscii(asciiList).getAsciiFile(),
+			new AtFileWriter(AsciiBasicControl.getMaxAscii(asciiFileAddList).getAsciiFile(),
 					countyFolder + "MaxFlood_Event.asc").textWriter(" ");
 		}
 	}
@@ -603,12 +603,12 @@ public class FEWS_SYSTEM_Analysis {
 			String countyFolder = workSpace + county + "\\";
 			String systemOutAsciiFolder = countyFolder + "\\SystemResult\\TimeSteps_Max_TWD97\\";
 
-			List<AsciiBasicControl> asciiList = new ArrayList<>();
-			for (String asciiFile : new File(systemOutAsciiFolder).list()) {
-				asciiList.add(new AsciiBasicControl(systemOutAsciiFolder + asciiFile));
+			List<String> asciiFileAddList = new ArrayList<>();
+			for (String asciiFileName : new File(systemOutAsciiFolder).list()) {
+				asciiFileAddList.add(systemOutAsciiFolder + asciiFileName);
 			}
 
-			new AtFileWriter(AsciiBasicControl.getMaxAscii(asciiList).getAsciiFile(),
+			new AtFileWriter(AsciiBasicControl.getMaxAscii(asciiFileAddList).getAsciiFile(),
 					countyFolder + "MaxFlood_System.asc").textWriter(" ");
 		}
 	}

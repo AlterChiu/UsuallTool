@@ -248,7 +248,9 @@ public class PPTBasicControl implements Closeable {
 			createShape_PrivateFunction(adjustedPath, slideIndex);
 		}
 	}
-
+	
+	
+	
 	private void createShape_PrivateFunction(Path2D path, int slideIndex) {
 		Shape shape = path.createTransformedShape(AffineTransform.getScaleInstance(1, 1));
 		Path2D.Double pathDouble = new Path2D.Double(shape);

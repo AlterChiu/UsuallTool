@@ -58,9 +58,9 @@ public class GDAL_VECTOR_CenterLine {
 		// processing to each geo
 		for (int densitivePolygonIndex = 0; densitivePolygonIndex < reDensitiveVerPolygonsSize; densitivePolygonIndex++) {
 			System.out.print("..." + densitivePolygonIndex * 100 / reDensitiveVerPolygonsSize);
-			
+
 			Geometry multiPolygon = reDensitiveVerPolygons.get(densitivePolygonIndex);
-			GdalGlobal.MultiPolyToPolies(multiPolygon).forEach(polygon -> {
+			GdalGlobal.MultiPolyToSingle(multiPolygon).forEach(polygon -> {
 
 				// do voronoiPolygons
 				GDAL_VECTOR_Voronoi voronoi = new GDAL_VECTOR_Voronoi(polygon);
@@ -77,10 +77,10 @@ public class GDAL_VECTOR_CenterLine {
 					voronoiPolyLineList.add(voronoiPolygon.Boundary());
 				}
 				Geometry voronoiPolyLine = GdalGlobal.mergePolygons(voronoiPolyLineList);
-				
+
 				// select polyLine which within in the polygon
 				GDAL_VECTOR_SelectByLocation selectLocation = new GDAL_VECTOR_SelectByLocation(
-						GdalGlobal.MultiPolyToPolies(voronoiPolyLine));
+						GdalGlobal.MultiPolyToSingle(voronoiPolyLine));
 				selectLocation.getWithin();
 				selectLocation.addIntersectGeo(polygon);
 

@@ -1063,22 +1063,22 @@ public class AsciiBasicControl implements Cloneable {
 		return new AsciiBasicControl(this);
 	}
 
-	public static AsciiBasicControl getMaxAscii(List<AsciiBasicControl> asciiList) throws Exception {
-		AsciiBasicControl outAscii = asciiList.get(0).clone();
+	public static AsciiBasicControl getMaxAscii(List<String> asciiFileList) throws Exception {
+		AsciiBasicControl outAscii = new AsciiBasicControl(asciiFileList.get(0)).clone();
 
-		for (int row = 0; row < outAscii.getRow(); row++) {
-			for (int column = 0; column < outAscii.getColumn(); column++) {
-				String temptValue = outAscii.getValue(column, row);
+		for (String fileAdd : asciiFileList) {
+			AsciiBasicControl temptAscii = new AsciiBasicControl(fileAdd);
 
-				if (!temptValue.equals(outAscii.getNullValue())) {
-					List<Double> temptValueList = new ArrayList<>();
+			for (int row = 0; row < outAscii.getRow(); row++) {
+				for (int column = 0; column < outAscii.getColumn(); column++) {
+					String temptValue = outAscii.getValue(column, row);
 
-					for (AsciiBasicControl ascii : asciiList) {
-						temptValueList.add(Double.parseDouble(ascii.getValue(column, row)));
+					if (!temptValue.equals(outAscii.getNullValue())) {
+
+						if (Double.parseDouble(temptAscii.getValue(column, row)) > Double.parseDouble(temptValue)) {
+							outAscii.setValue(column, row, temptAscii.getValue(column, row));
+						}
 					}
-
-					outAscii.setValue(column, row,
-							AtCommonMath.getListStatistic(temptValueList, StaticsModel.getMax) + "");
 				}
 			}
 		}
