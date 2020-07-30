@@ -4,25 +4,32 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.TreeMap;
+import java.util.stream.Collector;
 
 import org.gdal.ogr.Geometry;
 
 import geo.gdal.GdalGlobal;
+import geo.gdal.IrregularNetBasicControl;
+import geo.gdal.IrregularNetBasicControl.EdgeClass;
+import geo.gdal.IrregularNetBasicControl.FaceClass;
 import geo.gdal.IrregularReachBasicControl;
 import geo.gdal.IrregularReachBasicControl.NodeClass;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
 import geo.gdal.vector.GDAL_VECTOR_CenterLine;
-import geo.gdal.vector.GDAL_VECTOR_SplitByLine;
 import testFolder.SOBEK_OBJECT.SobekBankLine;
 import testFolder.SOBEK_OBJECT.SobekBankPoint;
 import usualTool.AtCommonMath;
+import usualTool.AtFileWriter;
 
 public class HyDEM_SobekObject_Updating {
 	public static int dataDecimal = 4;
@@ -42,10 +49,11 @@ public class HyDEM_SobekObject_Updating {
 	public static String splitLinePairseBankPoints = "SOBEK_BankPointsLine.shp";
 
 	public static String splitHydemPolygons = "HyDEM_SplitPolygons.shp";
-	public static String splitHydemLines = "HyDEM_SpliyLine.shp";
+	public static String splitHydemLines = "HyDEM_SplitLine.shp";
 	public static String mergedHydemPolygons = "HyDEM_MergedBankLine.shp";
 	public static String centerLineHydemPolygons = "HyDEM_CenterLine.shp";
 	public static String bankLineHydem = "HyDEM_BankLine.shp";
+	public static String bankLineHydem_Leveling = "HyDEM_BankLineLevling.csv";
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		// TODO Auto-generated method stub
@@ -60,7 +68,10 @@ public class HyDEM_SobekObject_Updating {
 //		SOBEK_CreateSplitLine();
 
 		// Split polygon by SplitLine
-		HyDEM_SplitPolygonBySplitLine();
+//		HyDEM_SplitPolygonBySplitLine();
+//		HyDEM_ReLinkedBankLine();
+
+		HyDEM_CheckLevelContinue();
 
 	}
 
@@ -114,372 +125,159 @@ public class HyDEM_SobekObject_Updating {
 	}
 
 	// <================================================>
-	// <======== Center Line=== =============================>
-	// <================================================>
-	/*
-	 * @divide HyDEM polygon to "updating" part and "newReach" part
-	 * 
-	 * @ input : sbk_
-	 * 
-	 */
-
-	// <================================================>
-	// <======== pairs bank line =============================>
+	// <====== Create CenterLine from HyDEM BankLine===============>
 	// <================================================>
 
-	/*
-	 * @ check bankLine in sobek object to find out is there any bankLine not paired
-	 * 
-	 * @input : Sbk_Pipe_l.shp
-	 * 
-	 * @output : SobekBankLine_pairesError.shp or SobekBanLine_pairse.shp
-	 * 
-	 */
-	public static void SOBEK_pairsBankLine() {
-		String sobekBankLineFile = sobekObjectWorkSpace + "Sbk_Pipe_l.shp";
-		IrregularReachBasicControl bankLine = new IrregularReachBasicControl(sobekBankLineFile);
+//	public static void HyDEM_CreateCenterLine() {
+//
+//		String bankLineFileAdd = testingWorkSpace + bankLineHydem;
+//		List<>
+//		
+//		
+//		
+//	}
 
-		// initial data
-		List<Geometry> bankGeoLine = bankLine.getReLinkedEdge();
-		List<SobekBankLine> unPariesBankLine = new ArrayList<>();
-		for (int index = 0; index < bankGeoLine.size(); index++) {
-			SobekBankLine temptBankLine = new SobekBankLine(bankGeoLine.get(index));
-			temptBankLine.setID(index);
-			unPariesBankLine.add(temptBankLine);
-		}
+	// <================================================>
+	// <====== Check Leveling Continue of HyDEM BankLine ============>
+	// <================================================>
+	public static void HyDEM_CheckLevelContinue() throws IOException {
+		String bankLineShpAdd = testingWorkSpace + bankLineHydem;
 
-		// detect closest bankLine
-		for (int index = 0; index < unPariesBankLine.size() - 1; index++) {
-			for (int detectIndex = index + 1; detectIndex < unPariesBankLine.size(); detectIndex++) {
-				unPariesBankLine.get(index).getDistance(unPariesBankLine.get(detectIndex));
+		SpatialReader banLineShp = new SpatialReader(bankLineShpAdd);
+		List<Geometry> bankLineGeoList = banLineShp.getGeometryList();
+		List<Map<String, Object>> bankLineAttrList = banLineShp.getAttributeTable();
+
+		Map<String, BankLineLevelingClass> bankLineLeveling = new TreeMap<>();
+
+		for (int index = 0; index < bankLineGeoList.size(); index++) {
+			int id = (int) bankLineAttrList.get(index).get("ID");
+			Geometry temptGeo = bankLineGeoList.get(index);
+			double length = temptGeo.Length();
+
+			List<Double[]> outList = new ArrayList<>();// 0: length persantage, which 0-100 ; 1: z-value
+
+			// get points
+			List<Double[]> temptValueList = new ArrayList<>();
+			for (double[] point : temptGeo.GetPoints()) {
+				temptValueList.add(new Double[] { point[0], point[1], point[2] });
 			}
-		}
 
-		// check detection
-		List<Geometry> errorGeoList = new ArrayList<>();
-		for (int index = 0; index < unPariesBankLine.size() - 1; index++) {
-			int linkedIndex = unPariesBankLine.get(index).getLinkedPointID();
-			if (linkedIndex < 0) {
-				System.out.println("bankLine index " + index + " not pairs");
-				errorGeoList.add(unPariesBankLine.get(index).getGeo());
-			} else {
-				if (unPariesBankLine.get(linkedIndex).getLinkedPointID() != index) {
-					System.out.println("bankLine index " + index + " error\t" + index + "\t" + linkedIndex + "\t"
-							+ unPariesBankLine.get(linkedIndex).getDistance());
-					errorGeoList.add(unPariesBankLine.get(linkedIndex).getGeo());
-					errorGeoList.add(unPariesBankLine.get(index).getGeo());
+			// check level, from low to high
+			if (temptValueList.get(0)[2] > temptValueList.get(temptValueList.size() - 1)[2]) {
+				Collections.reverse(temptValueList);
+			}
+
+			// translate point to , length-Z plot, which length from 0% - 100%
+			double currentLength = 0;
+			double maxSlope = Double.NEGATIVE_INFINITY;
+			Double[] currentPoint = temptValueList.get(0);
+			outList.add(new Double[] { 0., currentPoint[2] });
+
+			for (int pointIndex = 1; pointIndex < temptValueList.size(); pointIndex++) {
+				Double[] nextPoint = temptValueList.get(pointIndex);
+				double nextLength = AtCommonMath.getLength(currentPoint[0], currentPoint[1], nextPoint[0],
+						nextPoint[1]);
+
+				// check slope
+				double slope = Math.abs((currentPoint[2] - nextPoint[2]) / nextLength) * 100;
+				if (slope > maxSlope) {
+					maxSlope = slope;
 				}
+
+				// summary length
+				currentLength = currentLength + nextLength;
+
+				// add to valueList
+				outList.add(new Double[] { currentLength * 100 / length, temptValueList.get(pointIndex)[2] });
+				currentPoint = temptValueList.get(pointIndex);
 			}
-		}
-		if (errorGeoList.size() > 0) {
-			new SpatialWriter().setGeoList(errorGeoList).saveAsShp(testingWorkSpace + pairseBankLine_Error);
-			System.out.println("bankLine paireError, create file " + pairseBankLine_Error);
-			System.out.println("Please check SOBEK objedt file, Sbk_Pipe_l.shp");
 
-			// if no error, create pairse bankLine
-		} else {
-			System.out.println("bankLine pairse complete, create file " + pairseBankLine);
+			BankLineLevelingClass temptStoreClass = new BankLineLevelingClass();
+			temptStoreClass.setID(id + "");
+			temptStoreClass.setTotalLength(length);
+			temptStoreClass.setValueList(outList);
+			temptStoreClass.setSlope(maxSlope);
+			temptStoreClass.setLinkedID((int) bankLineAttrList.get(index).get("LinkedID") + "");
+			bankLineLeveling.put(id + "", temptStoreClass);
 
-			SpatialWriter sobekBankLine = new SpatialWriter();
-			sobekBankLine.addFieldType("ID", "Integer");
-			sobekBankLine.addFieldType("LinkedID", "Integer");
-			sobekBankLine.addFieldType("Direction", "Integer");
-
-			for (int index = 0; index < unPariesBankLine.size(); index++) {
-				Map<String, Object> attrTable = new HashMap<>();
-				attrTable.put("ID", unPariesBankLine.get(index).getID());
-				attrTable.put("LinkedID", unPariesBankLine.get(index).getLinkedPointID());
-				attrTable.put("Direction", unPariesBankLine.get(index).getLinkedDirection());
-				sobekBankLine.addFeature(unPariesBankLine.get(index).getGeo(), attrTable);
-			}
-			sobekBankLine.saveAsShp(testingWorkSpace + pairseBankLine);
 		}
 
-	}
+		// output leveling
+		List<String[]> outContent = new ArrayList<>();
+		outContent.add(new String[] { "ID", "LinkedID", "MaxSlope(%)", "totalLength(m)" });
+		bankLineLeveling.keySet().forEach(key -> {
 
-	// <================================================>
-	// <======== pairs bankPoints ===========================>
-	// <================================================>
+			BankLineLevelingClass temptLeveling = bankLineLeveling.get(key);
+			List<String> temptProperties = new ArrayList<>();
+			temptProperties.add(temptLeveling.getID());
+			temptProperties.add(temptLeveling.getLinkedID());
+			temptProperties.add(temptLeveling.getSlope() + "");
+			temptProperties.add(temptLeveling.getLength() + "");
 
-	/*
-	 * @ check bankPoints in SobekObject to find out is there any bankPoints not
-	 * paired
-	 * 
-	 * 
-	 * @input SobekObject: Sbk_Pipe_l.shp、Sbk_LConn_n.shp
-	 * 
-	 * @input newObject: pairseBankLine.shp
-	 * 
-	 * @output :
-	 * 
-	 * @ bankPoints => pariseBankPointsError or pariseBankPoints
-	 * 
-	 * @ reachPoint => reachNodesShp
-	 * 
-	 * 
-	 */
-	public static void SOBEK_parisCrossSection() {
-
-		// get bank line
-		String pariseBaneLine = testingWorkSpace + pairseBankLine;
-		SpatialReader bankShp = new SpatialReader(pariseBaneLine);
-		List<Geometry> bankGeoList = bankShp.getGeometryList();
-		List<Map<String, Object>> bankAttrList = bankShp.getAttributeTable();
-
-		// create bankLine object
-		Map<Integer, SobekBankLine> sobekBankLineMap = new HashMap<>();
-		for (int index = 0; index < bankGeoList.size(); index++) {
-			Geometry bankLineGeo = bankGeoList.get(index);
-			int bankLineID = (int) bankAttrList.get(index).get("ID");
-			int linkedID = (int) bankAttrList.get(index).get("LinkedID");
-			int linkedDirection = (int) bankAttrList.get(index).get("Direction");
-
-			sobekBankLineMap.put(bankLineID, new SobekBankLine(bankLineGeo));
-			sobekBankLineMap.get(bankLineID).setID(bankLineID);
-			sobekBankLineMap.get(bankLineID).setLinkedPointID(linkedID);
-			sobekBankLineMap.get(bankLineID).setLinkedDirection(linkedDirection);
-		}
-
-		// get crossSection points
-		// crossSection
-		String crossSectionPoint = sobekObjectWorkSpace + "Sbk_LConn_n.shp";
-		SpatialReader crossSectionShp = new SpatialReader(crossSectionPoint);
-		List<Geometry> crossSectionGeoList = crossSectionShp.getGeometryList();
-
-		// crossSection start point
-		String crossSectionStartPoint = sobekObjectWorkSpace + "Sbk_C&LR_n.shp";
-		new SpatialReader(crossSectionStartPoint).getGeometryList().forEach(geo -> crossSectionGeoList.add(geo));
-
-		Map<String, Geometry> crossSectionGeoMap = new HashMap<>();
-		for (int index = 0; index < crossSectionGeoList.size(); index++) {
-			String xString = AtCommonMath.getDecimal_String(crossSectionGeoList.get(index).GetX(),
-					IrregularReachBasicControl.dataDecimale);
-			String yString = AtCommonMath.getDecimal_String(crossSectionGeoList.get(index).GetY(),
-					IrregularReachBasicControl.dataDecimale);
-			String key = xString + "_" + yString;
-			crossSectionGeoMap.put(key, crossSectionGeoList.get(index));
-		}
-
-		// division point to bankPoint, and reach point
-		Set<String> bankPointRecord = new HashSet<>();
-		sobekBankLineMap.keySet().forEach(bankLineKey -> {
-			SobekBankLine temptBankLine = sobekBankLineMap.get(bankLineKey);
-			List<String> temptNodeList = temptBankLine.getPointKeys();
-
-			for (String temptNodeKey : temptNodeList) {
-				if (crossSectionGeoMap.containsKey(temptNodeKey)) {
-					temptBankLine.addBankPoint(crossSectionGeoMap.get(temptNodeKey));
-					bankPointRecord.add(temptNodeKey);
-				}
-			}
+			List<String> temptXList = new ArrayList<>();
+			temptXList.add("Length(%)");
+			List<String> temptZList = new ArrayList<>();
+			temptZList.add("Z-Leveling(m)");
+			temptLeveling.getValueList().forEach(value -> {
+				temptXList.add(value[0] + "");
+				temptZList.add(value[1] + "");
+			});
+			outContent.add(temptProperties.parallelStream().toArray(String[]::new));
+			outContent.add(temptXList.parallelStream().toArray(String[]::new));
+			outContent.add(temptZList.parallelStream().toArray(String[]::new));
 		});
 
-		// pairs bankPoints in bankLine
-		SpatialWriter bankPointsPairs = new SpatialWriter();
-		bankPointsPairs.addFieldType("ID", "String");
-		bankPointsPairs.addFieldType("LinkedID", "String");
-		bankPointsPairs.addFieldType("BankLineID", "Integer");
-
-		List<Geometry> errorBnakPoints = new ArrayList<>();
-		Set<Integer> bankLineRecord = new HashSet<>();
-		for (Integer currentBankLineID : sobekBankLineMap.keySet()) {
-
-			if (!bankLineRecord.contains(currentBankLineID)) {
-				SobekBankLine currentBankLine = sobekBankLineMap.get(currentBankLineID);
-				List<SobekBankPoint> currentBankPoints = currentBankLine.getBankPoints();
-
-				SobekBankLine linkedBankLine = sobekBankLineMap.get(currentBankLine.getLinkedPointID());
-				List<SobekBankPoint> linkedBankPoints = linkedBankLine.getBankPoints();
-
-				// 0 for HeadToHead , 1 for HeadToEnd
-				if (currentBankLine.getLinkedDirection() == 1) {
-					Collections.reverse(currentBankPoints);
-				}
-
-				// check for points number is correct or not
-				if (currentBankPoints.size() != linkedBankPoints.size()) {
-					currentBankPoints.forEach(bnakPoint -> errorBnakPoints.add(bnakPoint.getGeo()));
-					linkedBankPoints.forEach(bnakPoint -> errorBnakPoints.add(bnakPoint.getGeo()));
-				}
-
-				// if no error start pairs
-				else {
-					for (int index = 0; index < currentBankPoints.size(); index++) {
-						SobekBankPoint temptCurrentBankPoint = currentBankPoints.get(index);
-						SobekBankPoint temptLinkedBankPoints = linkedBankPoints.get(index);
-
-						// current feature
-						Map<String, Object> currentAttr = new HashMap<>();
-						currentAttr.put("ID", temptCurrentBankPoint.getID());
-						currentAttr.put("LinkedID", temptLinkedBankPoints.getID());
-						currentAttr.put("BankLineID", temptCurrentBankPoint.getBelongBankLineID());
-						bankPointsPairs.addFeature(temptCurrentBankPoint.getGeo(), currentAttr);
-
-						// linked feature
-						Map<String, Object> linkedtAttr = new HashMap<>();
-						linkedtAttr.put("ID", temptLinkedBankPoints.getID());
-						linkedtAttr.put("LinkedID", temptCurrentBankPoint.getID());
-						linkedtAttr.put("BankLineID", temptLinkedBankPoints.getBelongBankLineID());
-						bankPointsPairs.addFeature(temptLinkedBankPoints.getGeo(), linkedtAttr);
-					}
-
-					// remove bankPoint id from
-					bankLineRecord.add(currentBankLine.getID());
-					bankLineRecord.add(linkedBankLine.getID());
-				}
-			}
-		}
-
-		// create reachPoint and bnakPoint files
-		if (errorBnakPoints.size() != 0) {
-			// throw error message
-			System.out
-					.println("bankPoint pairs error, bankPoint amount not match, create file " + pariseBankPointsError);
-			new SpatialWriter().setGeoList(errorBnakPoints).saveAsShp(testingWorkSpace + pariseBankPointsError);
-			System.out.println("please checkout files, Sbk_LConn_n.shp and Sbk_C&LR_n.shp");
-
-		} else {
-			System.out.println("bankPoint pairs complete, create file " + pariseBankPoints);
-
-			// create bankPoints
-			bankPointsPairs.saveAsShp(testingWorkSpace + pariseBankPoints);
-
-			// create reachPoint
-			List<Geometry> reachPoints = new ArrayList<>();
-			crossSectionGeoMap.keySet().forEach(crossSectionKey -> {
-				if (!bankPointRecord.contains(crossSectionKey))
-					reachPoints.add(crossSectionGeoMap.get(crossSectionKey));
-			});
-			new SpatialWriter().setGeoList(reachPoints).saveAsShp(testingWorkSpace + reachNodesShp);
-		}
+		new AtFileWriter(outContent.parallelStream().toArray(String[][]::new),
+				testingWorkSpace + bankLineHydem_Leveling).csvWriter();
 	}
 
-	// <================================================>
-	// <======== Create SlpitLine =============================>
-	// <================================================>
-	/*
-	 * @ Create splitLine from pairs bankPoints, which double distance of
-	 * pairseBankPoints
-	 * 
-	 * @input : pariseBankPoints
-	 * 
-	 * @output :
-	 * 
-	 * @ SplitLine => splitLinePairseBankPoints
-	 * 
-	 */
-	public static void SOBEK_CreateSplitLine() {
+	private static class BankLineLevelingClass {
+		private List<Double[]> lengthZList = new ArrayList<>();
+		private String id = "";
+		private double totalLength = 0;
+		private double maxSlope = Double.NEGATIVE_INFINITY;
+		private String linkedID = "";
 
-		// read pairs point properties
-		SpatialReader parisBankPoints = new SpatialReader(
-				testingWorkSpace + HyDEM_SobekObject_Updating.pariseBankPoints);
-		List<Map<String, Object>> pointsAttr = parisBankPoints.getAttributeTable();
-		Map<String, List<Geometry>> geoMap = parisBankPoints.getGeoListMap("ID");
-
-		// create pairs line
-		Set<String> usedID = new HashSet<>();
-		List<Geometry> outList = new ArrayList<>();
-		for (int index = 0; index < pointsAttr.size(); index++) {
-			String currentID = (String) pointsAttr.get(index).get("ID");
-			String linkedID = (String) pointsAttr.get(index).get("LinkedID");
-
-			if (!usedID.contains(currentID)) {
-				Geometry currentGeometry = geoMap.get(currentID).get(0);
-				double currentX = currentGeometry.GetX();
-				double currentY = currentGeometry.GetY();
-
-				Geometry linkedGeometry = geoMap.get(linkedID).get(0);
-				double linkedX = linkedGeometry.GetX();
-				double linkedY = linkedGeometry.GetY();
-
-				double outX1 = currentX + 0.5 * (currentX - linkedX) / 2;
-				double outY1 = currentY + 0.5 * (currentY - linkedY) / 2;
-				double outX2 = linkedX + 0.5 * (linkedX - currentX) / 2;
-				double outY2 = linkedY + 0.5 * (linkedY - currentY) / 2;
-
-				outList.add(GdalGlobal.CreateLine(outX1, outY1, outX2, outY2));
-			}
-
-			usedID.add(currentID);
-			usedID.add(linkedID);
+		public void setLinkedID(String linkedID) {
+			this.linkedID = linkedID;
 		}
 
-		new SpatialWriter().setGeoList(outList)
-				.saveAsShp(testingWorkSpace + HyDEM_SobekObject_Updating.splitLinePairseBankPoints);
-		System.out.println("create split line complete, " + HyDEM_SobekObject_Updating.splitLinePairseBankPoints);
+		public String getLinkedID() {
+			return this.linkedID;
+		}
+
+		public void setSlope(double slope) {
+			this.maxSlope = slope;
+		}
+
+		public double getSlope() {
+			return this.maxSlope;
+		}
+
+		public void setValueList(List<Double[]> valueList) {
+			this.lengthZList = valueList;
+		}
+
+		public void setID(String id) {
+			this.id = id;
+		}
+
+		public void setTotalLength(double length) {
+			this.totalLength = length;
+		}
+
+		public List<Double[]> getValueList() {
+			return this.lengthZList;
+		}
+
+		public String getID() {
+			return this.id;
+		}
+
+		public double getLength() {
+			return this.totalLength;
+		}
+
 	}
-
-	// <================================================>
-	// <======== Split HyDEM polygon by SplitLine==================>
-	// <================================================>
-	/*
-	 * @ split HyDEM polygon by split line
-	 * 
-	 * @ input : splitLinePairseBankPoints, hydemObjectWorkSpace(folder address)
-	 * 
-	 * @ output : splitHydemPolygons
-	 */
-
-	public static void HyDEM_SplitPolygonBySplitLine() throws IOException, InterruptedException {
-		// merge all shp in hydemObjectWorkSpace folder
-		List<Geometry> geoList = new ArrayList<>();
-		for (String fileName : new File(hydemObjectWorkSpace).list()) {
-			if (fileName.contains(".shp")) {
-				new SpatialReader(hydemObjectWorkSpace + "\\" + fileName).getGeometryList()
-						.forEach(geo -> geoList.add(geo));
-			}
-		}
-
-		Geometry mergedBankLine = GdalGlobal.mergePolygons(geoList);
-		System.out.println(mergedBankLine.GetGeometryName());
-		new SpatialWriter().setGeoList(GdalGlobal.MultiPolyToPolies(mergedBankLine))
-				.saveAsShp(testingWorkSpace + mergedHydemPolygons);
-		geoList.clear();
-
-		// get boundary of mergedBankLine
-		Geometry mergedBankLineBoundary = mergedBankLine.GetBoundary();
-		System.out.println(mergedBankLine.GetGeometryName());
-
-		// get split line from splitLinePairseBankPoints
-		// ignore which intersection not equals to 2
-		List<Geometry> splitLineHyDEM = new ArrayList<>();
-		List<Geometry> splitLines = new SpatialReader(testingWorkSpace + splitLinePairseBankPoints).getGeometryList();
-		for (Geometry splitLine : splitLines) {
-			Geometry intersection = splitLine.Intersection(mergedBankLineBoundary);
-			if (intersection.GetGeometryCount() == 2) {
-				Geometry point1 = intersection.GetGeometryRef(0);
-				Geometry point2 = intersection.GetGeometryRef(1);
-
-				splitLineHyDEM.add(GdalGlobal.CreateLine(point1.GetX(), point1.GetY(), point2.GetX(), point2.GetY()));
-			}
-		}
-
-		// output splitLine in bankLine polygon
-		new SpatialWriter().setGeoList(splitLineHyDEM).saveAsShp(testingWorkSpace + splitHydemLines);
-		splitLines.clear();
-
-		// buffer splitLine
-		Geometry dissoveSplitLine = GdalGlobal.CreateMultipolygon();
-		splitLineHyDEM
-				.forEach(splitLine -> dissoveSplitLine.AddGeometry(splitLine.Buffer(Math.pow(0.1, dataDecimal + 2))));
-
-		// split mergedBankLine by dissoveSplitLine
-		new SpatialWriter().setGeoList(GdalGlobal.MultiPolyToPolies(mergedBankLine.Difference(dissoveSplitLine)))
-				.saveAsShp(testingWorkSpace + splitHydemPolygons);
-		System.out.println("create split polygon complete, " + splitHydemPolygons);
-	}
-
-	// <================================================>
-	// <====== ReCraete pairs bankLine from splitHyDEM polygon ========>
-	// <================================================>
-	/*
-	 * @ translate polygons to paired bankLine
-	 * 
-	 * @ input : splitHydemPolygons
-	 * 
-	 * @ output : bankLineHydem
-	 */
-
-//	public 
 
 }

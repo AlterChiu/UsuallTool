@@ -14,38 +14,16 @@ import geo.gdal.SpatialWriter;
 public class HyDEM_SplitPolygonBySplitLine {
 	public static int dataDecimal = 4;
 
-	// workSpace
-	public static String workSpace = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\";
-	public static String sobekObjectWorkSpace = workSpace + "SOBEK物件\\shp-file\\";
-	public static String hydemObjectWorkSpace = workSpace + "溢堤線\\第一期\\";
-	public static String testingWorkSpace = workSpace + "testing\\";
-
-	// creating fileName
-	public static String pairseBankLine_Error = "SOBEK_BankLinepairesError.shp";
-	public static String pairseBankLine = "SOBEK_BankLinepaires.shp";
-	public static String pariseBankPointsError = "SOBEK_BankPointspairesError.shp";
-	public static String pariseBankPoints = "SOBEK_BankPointspaires.shp";
-	public static String reachNodesShp = "SOBEK_ReachNode.shp";
-	public static String splitLinePairseBankPoints = "SOBEK_BankPointsLine.shp";
-
-	public static String splitHydemPolygons = "HyDEM_SplitPolygons.shp";
-	public static String splitHydemLines = "HyDEM_SplitLine.shp";
-	public static String mergedHydemPolygons = "HyDEM_MergedBankLine.shp";
-	public static String centerLineHydemPolygons = "HyDEM_CenterLine.shp";
-	public static String bankLineHydem = "HyDEM_BankLine.shp";
-
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		
-		String testingWorkSpace = HyDEM_SplitPolygonBySplitLine.testingWorkSpace;
-		String hydemObjectWorkSpace = HyDEM_SplitPolygonBySplitLine.hydemObjectWorkSpace;
-		String mergedHydemPolygons = HyDEM_SplitPolygonBySplitLine.mergedHydemPolygons;
-		String splitLinePairseBankPoints = HyDEM_SplitPolygonBySplitLine.splitLinePairseBankPoints;
-		String splitHydemLines = HyDEM_SplitPolygonBySplitLine.splitHydemLines;
-		String splitHydemPolygons = HyDEM_SplitPolygonBySplitLine.splitHydemPolygons;
-		
-		
-		
+
+		String testingWorkSpace = WorkSpace.testingWorkSpace;
+		String hydemObjectWorkSpace = WorkSpace.hydemObjectWorkSpace;
+		String mergedHydemPolygons = WorkSpace.mergedHydemPolygons;
+		String userDefinSplitLine = WorkSpace.userDefineSplitLine;
+		String splitHydemLines = WorkSpace.splitHydemLines;
+		String splitHydemPolygons = WorkSpace.splitHydemPolygons;
+
 		// <================================================>
 		// <======== Split HyDEM polygon by SplitLine==================>
 		// <================================================>
@@ -77,7 +55,7 @@ public class HyDEM_SplitPolygonBySplitLine {
 		// get split line from splitLinePairseBankPoints
 		// ignore which intersection nodes under than 1
 		List<Geometry> splitLineHyDEM = new ArrayList<>();
-		List<Geometry> splitLines = new SpatialReader(testingWorkSpace + splitLinePairseBankPoints).getGeometryList();
+		List<Geometry> splitLines = new SpatialReader(testingWorkSpace + userDefinSplitLine).getGeometryList();
 		int completedPersantage = 0;
 		for (int splitLineIndex = 0; splitLineIndex < splitLines.size(); splitLineIndex++) {
 			double currentPersantage = (int) ((splitLineIndex + 0.) * 100 / splitLines.size());

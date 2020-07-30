@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -78,18 +79,38 @@ public class IrregularNetBasicControl {
 	// Processing
 	// <=====================================================>
 	private void sortedNodes(List<Geometry> geoList) {
-		// oder all points
-		Set<String> temptNodeSet = new LinkedHashSet<>();
-		for (Geometry geo : geoList) {
-			GdalGlobal.GeometryToPointKeySet(geo, this.dataDecimal).forEach(keySet -> temptNodeSet.add(keySet));
-		}
+		Map<String, Double> coordinate_Z = new HashMap<>();
+
+		geoList.forEach(geometry -> {
+			GdalGlobal.MultiPolyToSingle(geometry).forEach(geo -> {
+				for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
+
+					Geometry temptGeo = geo.GetGeometryRef(geoCount);
+					for (double[] point : temptGeo.GetPoints()) {
+						String xString = AtCommonMath.getDecimal_String(point[0], dataDecimal);
+						String yString = AtCommonMath.getDecimal_String(point[1], dataDecimal);
+						String key = xString + "_" + yString;
+
+						double zString = 0.;
+						try {
+							zString = point[2];
+						} catch (Exception e) {
+							System.out.println(123);
+						}
+						coordinate_Z.put(key, zString);
+					}
+				}
+			});
+		});
 
 		// create all node class
-		for (String key : temptNodeSet) {
+		for (String key : coordinate_Z.keySet()) {
 			String[] coordinate = key.split("_");
 			this.nodeMap.put(key, new NodeClass());
 			this.nodeMap.get(key).setX(Double.parseDouble(coordinate[0]));
 			this.nodeMap.get(key).setY(Double.parseDouble(coordinate[1]));
+			this.nodeMap.get(key).setZ(coordinate_Z.get(key));
+
 			this.nodeMap.get(key).setIndex(this.nodeMap.size() - 1);
 			this.nodeMap.get(key).setKey(key);
 			this.nodeList.add(key);
@@ -251,7 +272,7 @@ public class IrregularNetBasicControl {
 		this.edgeMap.keySet().forEach(key -> {
 			List<Double[]> points = new ArrayList<>();
 			this.edgeMap.get(key).getLinkedNode().forEach(node -> {
-				points.add(new Double[] { node.getX(), node.getY() });
+				points.add(new Double[] { node.getX(), node.getY(),node.getZ() });
 			});
 			geoList.add(GdalGlobal.CreateLine(points));
 		});
@@ -366,7 +387,13 @@ public class IrregularNetBasicControl {
 		public Geometry getGeo() {
 			if (this.geo == null) {
 				List<Double[]> temptList = new ArrayList<>();
-				this.linkedNode.forEach(node -> temptList.add(new Double[] { node.getX(), node.getY() }));
+				this.linkedNode.forEach(node -> {
+					List<Double> temptPoint = new ArrayList<>();
+					temptPoint.add(node.getX());
+					temptPoint.add(node.getY());
+					temptPoint.add(node.getZ());
+					temptList.add(temptPoint.parallelStream().toArray(Double[]::new));
+				});
 				this.geo = GdalGlobal.CreateLine(temptList);
 			}
 			return this.geo;

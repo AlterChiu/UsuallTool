@@ -120,19 +120,31 @@ public class IrregularReachBasicControl {
 		this.geoAttrList = temptAttrList;
 
 		// sorted end point and start point
-		Set<String> pointsSet = new HashSet<>();
+		Map<String, Double> pointsMap = new HashMap<>();
 		this.geoList.forEach(geo -> {
 			for (int index = 0; index < geo.GetPointCount(); index++) {
 				String xString = AtCommonMath.getDecimal_String(geo.GetX(index), dataDecimale);
 				String yString = AtCommonMath.getDecimal_String(geo.GetY(index), dataDecimale);
-				pointsSet.add(xString + "_" + yString);
+
+				double z = 0.0;
+				try {
+					z = geo.GetZ(index);
+				} catch (Exception e) {
+				}
+				
+				pointsMap.put(xString + "_" + yString, z);
 			}
 		});
 
 		// establish nodesList and nodesMap
-		this.nodesList = new ArrayList<>(pointsSet);
+		this.nodesList = new ArrayList<>(pointsMap.keySet());
 		for (int index = 0; index < this.nodesList.size(); index++) {
-			this.nodeMap.put(this.nodesList.get(index), new NodeClass());
+			String[] nodeKey = this.nodesList.get(index).split("_");
+			double x = Double.parseDouble(nodeKey[0]);
+			double y = Double.parseDouble(nodeKey[1]);
+			double z = pointsMap.get(this.nodesList.get(index));
+
+			this.nodeMap.put(this.nodesList.get(index), new NodeClass(x, y, z));
 			this.nodeMap.get(this.nodesList.get(index)).setIndex(index);
 			this.nodeMap.get(this.nodesList.get(index)).setName(this.nodesList.get(index));
 		}
@@ -211,7 +223,7 @@ public class IrregularReachBasicControl {
 
 					// get start point
 					List<Double[]> groupedLineString = new ArrayList<>();
-					groupedLineString.add(new Double[] { node.getX(), node.getY() });
+					groupedLineString.add(new Double[] { node.getX(), node.getY(), node.getZ()});
 
 					// detecting other node
 					EdgeClass currentEdge = linkedEdge;
@@ -219,12 +231,12 @@ public class IrregularReachBasicControl {
 					NodeClass otherNode = currentEdge.getOtherNode(currentNode);
 
 					while (!otherNode.isEndPoint()) {
-						groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY() });
+						groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY() , otherNode.getZ()});
 						currentEdge = otherNode.getOtherEdges(currentEdge).get(0);
 						currentNode = otherNode;
 						otherNode = currentEdge.getOtherNode(otherNode);
 					}
-					groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY() });
+					groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY(), otherNode.getZ() });
 					outList.add(GdalGlobal.CreateLine(groupedLineString));
 
 					// end, add node used count to map
@@ -296,19 +308,17 @@ public class IrregularReachBasicControl {
 		private int index = -1;
 		private double x = -999;
 		private double y = -999;
+		private double z = -999;
 		private Set<Map<String, Object>> geoAttr = new HashSet<>();
 
-		public NodeClass() {
-
-		}
-
-		public NodeClass(double x, double y) {
+		public NodeClass(double x, double y, double z) {
 			String id1 = AtCommonMath.getDecimal_String(x, dataDecimale) + "_"
 					+ AtCommonMath.getDecimal_String(y, dataDecimale);
 
 			this.id = id1;
 			this.x = x;
 			this.y = y;
+			this.z = z;
 		}
 
 		public void addEdge(EdgeClass edge) {
@@ -350,6 +360,10 @@ public class IrregularReachBasicControl {
 			return this.y;
 		}
 
+		public double getZ() {
+			return this.z;
+		}
+
 		public Boolean isEndPoint() {
 			if (this.edgeList.size() != 0) {
 				if (this.edgeList.size() != 2) {
@@ -368,7 +382,7 @@ public class IrregularReachBasicControl {
 		}
 
 		public Geometry getGeo() {
-			return GdalGlobal.pointToGeometry(new Double[] { this.x, this.y });
+			return GdalGlobal.pointToGeometry(new Double[] { this.x, this.y , this.z});
 		}
 
 		public List<Map<String, Object>> getGeoAttr() {
@@ -429,7 +443,7 @@ public class IrregularReachBasicControl {
 			if (this.geo == null) {
 				List<Double[]> points = new ArrayList<>();
 				this.nodeList.forEach(node -> {
-					points.add(new Double[] { node.getX(), node.getY() });
+					points.add(new Double[] { node.getX(), node.getY(), node.getZ() });
 				});
 				this.geo = GdalGlobal.CreateLine(points);
 			}

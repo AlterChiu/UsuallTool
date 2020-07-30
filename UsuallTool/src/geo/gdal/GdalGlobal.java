@@ -169,8 +169,28 @@ public class GdalGlobal {
 	public static Geometry CreateLine(List<Double[]> points) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{\"type\" : \"LineString\" , \"coordinates\" : [ ");
-		sb.append(String.join(",", points.parallelStream().map(point -> "[" + point[0] + "," + point[1] + "]")
-				.collect(Collectors.toList())));
+
+		List<String> pointsCoordinates = new ArrayList<>();
+		points.forEach(point -> {
+			StringBuilder temptCoordinate = new StringBuilder();
+			temptCoordinate.append("[");
+			temptCoordinate.append(point[0]);
+			temptCoordinate.append(",");
+			temptCoordinate.append(point[1]);
+
+			try {
+				double z = point[2];
+				temptCoordinate.append(",");
+				temptCoordinate.append(z);
+			} catch (Exception e) {
+				temptCoordinate.append(",0.0");
+			}
+
+			temptCoordinate.append("]");
+			pointsCoordinates.add(temptCoordinate.toString());
+		});
+
+		sb.append(String.join(",", pointsCoordinates));
 		sb.append("]}");
 		return Geometry.CreateFromJson(sb.toString());
 	}
@@ -381,6 +401,36 @@ public class GdalGlobal {
 		return GeometryToPointKeySet(geometry, GdalGlobal.dataDecimale);
 	}
 
+	public static Set<String> GeometryToPointKeySet_Z(Geometry geometry, int dataDecimale) {
+		Set<String> coordinateKeys = new HashSet<>();
+
+		MultiPolyToSingle(geometry).forEach(geo -> {
+			for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
+
+				Geometry temptGeo = geo.GetGeometryRef(geoCount);
+				for (double[] point : temptGeo.GetPoints()) {
+					String xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
+					String yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
+
+					StringBuilder temptOut = new StringBuilder();
+					temptOut.append(xString);
+					temptOut.append("_");
+					temptOut.append(yString);
+
+					try {
+						String zString = AtCommonMath.getDecimal_String(point[2], dataDecimale);
+						temptOut.append("_");
+						temptOut.append(zString);
+					} catch (Exception e) {
+					}
+
+					coordinateKeys.add(temptOut.toString());
+				}
+			}
+		});
+		return coordinateKeys;
+	}
+
 	public static Set<String> GeometryToPointKeySet(Geometry geometry, int dataDecimale) {
 		Set<String> coordinateKeys = new HashSet<>();
 
@@ -391,7 +441,13 @@ public class GdalGlobal {
 				for (double[] point : temptGeo.GetPoints()) {
 					String xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
 					String yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
-					coordinateKeys.add(xString + "_" + yString);
+
+					StringBuilder temptOut = new StringBuilder();
+					temptOut.append(xString);
+					temptOut.append("_");
+					temptOut.append(yString);
+
+					coordinateKeys.add(temptOut.toString());
 				}
 			}
 		});

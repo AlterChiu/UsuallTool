@@ -19,38 +19,17 @@ import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
 import geo.gdal.IrregularNetBasicControl.EdgeClass;
 import geo.gdal.IrregularNetBasicControl.FaceClass;
-import testFolder.HyDEM_SobekObject_Updating.BankLineDetector;
 import testFolder.SOBEK_OBJECT.SobekBankLine;
 
 public class HyDEM_ReLinedBankLine {
 	public static int dataDecimal = 4;
 
-	// workSpace
-	public static String workSpace = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\";
-	public static String sobekObjectWorkSpace = workSpace + "SOBEK物件\\shp-file\\";
-	public static String hydemObjectWorkSpace = workSpace + "溢堤線\\第一期\\";
-	public static String testingWorkSpace = workSpace + "testing\\";
-
-	// creating fileName
-	public static String pairseBankLine_Error = "SOBEK_BankLinepairesError.shp";
-	public static String pairseBankLine = "SOBEK_BankLinepaires.shp";
-	public static String pariseBankPointsError = "SOBEK_BankPointspairesError.shp";
-	public static String pariseBankPoints = "SOBEK_BankPointspaires.shp";
-	public static String reachNodesShp = "SOBEK_ReachNode.shp";
-	public static String splitLinePairseBankPoints = "SOBEK_BankPointsLine.shp";
-
-	public static String splitHydemPolygons = "HyDEM_SplitPolygons.shp";
-	public static String splitHydemLines = "HyDEM_SplitLine.shp";
-	public static String mergedHydemPolygons = "HyDEM_MergedBankLine.shp";
-	public static String centerLineHydemPolygons = "HyDEM_CenterLine.shp";
-	public static String bankLineHydem = "HyDEM_BankLine.shp";
-
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		String testingWorkSpace = HyDEM_ReLinedBankLine.testingWorkSpace;
-		String splitHydemPolygons = HyDEM_ReLinedBankLine.splitHydemPolygons;
-		String bankLineHydem = HyDEM_ReLinedBankLine.bankLineHydem;
+		String testingWorkSpace = WorkSpace.testingWorkSpace;
+		String splitHydemPolygons = WorkSpace.splitHydemPolygons;
+		String bankLineHydem = WorkSpace.bankLineHydem;
 		
 		// <================================================>
 		// <====== ReCraete pairs bankLine from splitHyDEM polygon ========>
@@ -236,7 +215,9 @@ public class HyDEM_ReLinedBankLine {
 			} catch (Exception e) {
 			}
 		}
-
+		
+		
+		
 		// output shp
 		SpatialWriter hyDEMBankLine = new SpatialWriter();
 		hyDEMBankLine.addFieldType("ID", "Integer");
@@ -460,7 +441,8 @@ public class HyDEM_ReLinedBankLine {
 		}
 
 		// outGeo
-		return GdalGlobal.mergePolygons(outGeo);
+		Geometry mergedPolygon =  GdalGlobal.mergePolygons(outGeo);
+		return mergedPolygon;
 	}
 
 }
