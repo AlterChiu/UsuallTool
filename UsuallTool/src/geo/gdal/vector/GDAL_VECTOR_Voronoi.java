@@ -44,8 +44,10 @@ public class GDAL_VECTOR_Voronoi {
 		List<Geometry> outPoints = new ArrayList<>();
 
 		geoList.forEach(geo -> {
-			GdalGlobal.GeometryToPointGeos(geo).forEach(point -> {
-				outPoints.add(point);
+			GdalGlobal.MultiPolyToSingle(geo).forEach(singlePolygon -> {
+				GdalGlobal.GeometryToPointGeos(singlePolygon).forEach(point -> {
+					outPoints.add(point);
+				});
 			});
 		});
 		new SpatialWriter().setGeoList(outPoints).saveAsShp(this.inputLayer);
@@ -105,11 +107,8 @@ public class GDAL_VECTOR_Voronoi {
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
-		String temptSaveFileName = GdalGlobal.newTempFileName(this.temptFolder, ".shp");
-		String temptSaveFileAdd = this.temptFolder + "\\" + temptSaveFileName;
-		this.saveAsShp(temptSaveFileAdd);
-
-		return new SpatialReader(temptSaveFileAdd).getGeometryList();
+		this.saveAsShp(this.temptFolder + "\\temptSave.shp");
+		return new SpatialReader(this.temptFolder + "\\temptSave.shp").getGeometryList();
 	}
 
 }

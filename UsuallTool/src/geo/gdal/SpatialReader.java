@@ -100,7 +100,7 @@ public class SpatialReader {
 
 		Map<String, List<Geometry>> outMap = new LinkedHashMap<>();
 		for (int index = 0; index < this.geometryList.size(); index++) {
-			String attrValue = (String) this.featureTable.get(index).get(columnID);
+			String attrValue = String.valueOf(this.featureTable.get(index).get(columnID));
 
 			List<Geometry> temptGeoList = Optional.ofNullable(outMap.get(attrValue)).orElse(new ArrayList<>());
 			temptGeoList.add(this.geometryList.get(index));

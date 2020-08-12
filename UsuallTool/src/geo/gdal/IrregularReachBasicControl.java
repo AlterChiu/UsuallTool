@@ -3,8 +3,10 @@ package geo.gdal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
 
+import geo.gdal.IrregularNetBasicControl.EdgeClass;
 import usualTool.AtCommonMath;
 
 public class IrregularReachBasicControl {
@@ -131,7 +134,7 @@ public class IrregularReachBasicControl {
 					z = geo.GetZ(index);
 				} catch (Exception e) {
 				}
-				
+
 				pointsMap.put(xString + "_" + yString, z);
 			}
 		});
@@ -202,52 +205,6 @@ public class IrregularReachBasicControl {
 		return this.geoList;
 	}
 
-	public List<Geometry> getReLinkedEdge() {
-		List<Geometry> outList = new ArrayList<>();
-
-		// node control
-		Map<String, Integer> nodeUsedCount = new HashMap<>(); // key=nodeName , value = usedCount
-		this.nodeMap.keySet().forEach(nodeID -> {
-			if (this.nodeMap.get(nodeID).isEndPoint())
-				nodeUsedCount.put(nodeID, 0);
-		});
-
-		this.nodesList.forEach(nodeID -> {
-			NodeClass node = this.nodeMap.get(nodeID);
-
-			// if is endPoint, and not used, start detecting
-			if (node.isEndPoint() && nodeUsedCount.get(node.getId()) < node.getEdgeSize()) {
-
-				// check node used count
-				node.getEdge().forEach(linkedEdge -> {
-
-					// get start point
-					List<Double[]> groupedLineString = new ArrayList<>();
-					groupedLineString.add(new Double[] { node.getX(), node.getY(), node.getZ()});
-
-					// detecting other node
-					EdgeClass currentEdge = linkedEdge;
-					NodeClass currentNode = node;
-					NodeClass otherNode = currentEdge.getOtherNode(currentNode);
-
-					while (!otherNode.isEndPoint()) {
-						groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY() , otherNode.getZ()});
-						currentEdge = otherNode.getOtherEdges(currentEdge).get(0);
-						currentNode = otherNode;
-						otherNode = currentEdge.getOtherNode(otherNode);
-					}
-					groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY(), otherNode.getZ() });
-					outList.add(GdalGlobal.CreateLine(groupedLineString));
-
-					// end, add node used count to map
-					nodeUsedCount.put(otherNode.getId(), nodeUsedCount.get(otherNode.getId()) + 1);
-					nodeUsedCount.put(node.getId(), nodeUsedCount.get(node.getId()) + 1);
-				});
-			}
-		});
-		return outList;
-	}
-
 	public List<NodeClass> getNodeList() {
 		return this.nodeMap.keySet().parallelStream().map(key -> this.nodeMap.get(key)).collect(Collectors.toList());
 	}
@@ -297,6 +254,83 @@ public class IrregularReachBasicControl {
 		});
 
 		return outMap;
+	}
+
+	public Geometry getMaxLengthReach() {
+		List<ReachMaxLength> temptSaveReachClass = new ArrayList<>();
+
+		// start detect
+		this.nodesList.forEach(nodeID -> {
+			NodeClass temptNode = this.nodeMap.get(nodeID);
+			if (temptNode.getEdgeSize() == 1) {
+				temptSaveReachClass.add(new ReachMaxLength(temptNode, temptNode.getEdge().get(0)));
+			}
+		});
+
+		// compare
+		Collections.sort(temptSaveReachClass, new Comparator<ReachMaxLength>() {
+			public int compare(ReachMaxLength r1, ReachMaxLength r2) {
+				return (int) r2.getLength() - (int) r1.getLength();
+			}
+		});
+
+		// make edgeList to geometry
+		List<Geometry> outGeoList = new ArrayList<>();
+		temptSaveReachClass.get(0).getEdgeList().forEach(edge -> {
+			outGeoList.add(edge.getGeo());
+		});
+
+		// output
+		return GdalGlobal.mergePolygons(outGeoList);
+	}
+
+	/*
+	 * <=============== Algorithm ==========================>
+	 */
+	public List<Geometry> getReLinkedEdge() {
+		List<Geometry> outList = new ArrayList<>();
+
+		// node control
+		Map<String, Integer> nodeUsedCount = new HashMap<>(); // key=nodeName , value = usedCount
+		this.nodeMap.keySet().forEach(nodeID -> {
+			if (this.nodeMap.get(nodeID).isEndPoint())
+				nodeUsedCount.put(nodeID, 0);
+		});
+
+		this.nodesList.forEach(nodeID -> {
+			NodeClass node = this.nodeMap.get(nodeID);
+
+			// if is endPoint, and not used, start detecting
+			if (node.isEndPoint() && nodeUsedCount.get(node.getId()) < node.getEdgeSize()) {
+
+				// check node used count
+				node.getEdge().forEach(linkedEdge -> {
+
+					// get start point
+					List<Double[]> groupedLineString = new ArrayList<>();
+					groupedLineString.add(new Double[] { node.getX(), node.getY(), node.getZ() });
+
+					// detecting other node
+					EdgeClass currentEdge = linkedEdge;
+					NodeClass currentNode = node;
+					NodeClass otherNode = currentEdge.getOtherNode(currentNode);
+
+					while (!otherNode.isEndPoint()) {
+						groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY(), otherNode.getZ() });
+						currentEdge = otherNode.getOtherEdges(currentEdge).get(0);
+						currentNode = otherNode;
+						otherNode = currentEdge.getOtherNode(otherNode);
+					}
+					groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY(), otherNode.getZ() });
+					outList.add(GdalGlobal.CreateLine(groupedLineString));
+
+					// end, add node used count to map
+					nodeUsedCount.put(otherNode.getId(), nodeUsedCount.get(otherNode.getId()) + 1);
+					nodeUsedCount.put(node.getId(), nodeUsedCount.get(node.getId()) + 1);
+				});
+			}
+		});
+		return outList;
 	}
 
 	/*
@@ -382,7 +416,7 @@ public class IrregularReachBasicControl {
 		}
 
 		public Geometry getGeo() {
-			return GdalGlobal.pointToGeometry(new Double[] { this.x, this.y , this.z});
+			return GdalGlobal.pointToGeometry(new Double[] { this.x, this.y, this.z });
 		}
 
 		public List<Map<String, Object>> getGeoAttr() {
@@ -497,6 +531,85 @@ public class IrregularReachBasicControl {
 		}
 	}
 
+	public class ReachMaxLength {
+		private NodeClass startNode;
+		private NodeClass endNode;
+		private double totalLength = 0.0;
+		private Set<EdgeClass> pathEdge = new LinkedHashSet<>();
+
+		private ReachMaxLength(NodeClass startNode, EdgeClass directionEdge) {
+			process(startNode, directionEdge);
+		}
+
+		private void process(NodeClass startNode, EdgeClass directionEdge) {
+			this.startNode = startNode;
+			this.pathEdge.add(directionEdge);
+
+			// start
+			NodeClass currentNode = this.startNode;
+			NodeClass nextNode = directionEdge.getOtherNode(startNode);
+			EdgeClass currentEdge = directionEdge;
+
+			while (nextNode.getEdgeSize() != 1) {
+
+				// normal reach
+				if (nextNode.getEdgeSize() == 2) {
+					this.pathEdge.add(currentEdge);
+					this.totalLength = this.totalLength + currentEdge.getLength();
+					currentNode = nextNode;
+					currentEdge = nextNode.getOtherEdges(currentEdge).get(0);
+					nextNode = currentEdge.getOtherNode(currentNode);
+
+					// crossSection
+				} else if (nextNode.getEdgeSize() > 1) {
+
+					// get available reach
+					List<EdgeClass> avaliableDirection = nextNode.getOtherEdges(currentEdge);
+					List<ReachMaxLength> avaliableReach = new ArrayList<>();
+					for (EdgeClass edge : avaliableDirection) {
+						avaliableReach.add(new ReachMaxLength(nextNode, edge));
+					}
+
+					// get max length
+					Collections.sort(avaliableReach, new Comparator<ReachMaxLength>() {
+						public int compare(ReachMaxLength r1, ReachMaxLength r2) {
+							return (int) r2.getLength() - (int) r1.getLength();
+						}
+					});
+
+					// add to this class
+					avaliableReach.get(0).getEdgeList().forEach(edge -> {
+						this.pathEdge.add(edge);
+					});
+
+					// add length
+					this.totalLength = this.totalLength + avaliableReach.get(0).getLength();
+
+					// get endNode
+					nextNode = avaliableReach.get(0).getEndNode();
+					this.pathEdge.add(currentEdge);
+					this.totalLength = this.totalLength + currentEdge.getLength();
+					break;
+				}
+			}
+
+			this.endNode = nextNode;
+		}
+
+		public double getLength() {
+			return this.totalLength;
+		}
+
+		public List<EdgeClass> getEdgeList() {
+			return new ArrayList<>(this.pathEdge);
+		}
+
+		public NodeClass getEndNode() {
+			return this.endNode;
+		}
+
+	}
+
 	protected List<Geometry> getGroupGeometry_cooperate(NodeClass startNode, EdgeClass directionEdge) {
 		List<Geometry> outList = new ArrayList<>();
 
@@ -507,11 +620,8 @@ public class IrregularReachBasicControl {
 			nextNode.getOtherEdges(directionEdge).forEach(otherEdge -> {
 				getGroupGeometry_cooperate(nextNode, otherEdge).forEach(geo -> outList.add(geo));
 			});
-
-		} else {
-			new Exception("node " + nextNode.getId() + " is the end point");
 		}
-
 		return outList;
 	}
+
 }

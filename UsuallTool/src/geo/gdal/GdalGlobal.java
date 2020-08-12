@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import usualTool.AtCommonMath;
+import usualTool.AtFileWriter;
 import usualTool.MathEqualtion.RandomMaker;
 
 public class GdalGlobal {
@@ -61,7 +62,25 @@ public class GdalGlobal {
 	}
 
 	public static Geometry CreatePolygon(List<Double[]> points) {
-		return LineToGeometry(points).Polygonize();
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"Polygon\" , \"coordinates\" : [[");
+
+		List<String> geoContainer = new ArrayList<>();
+		points.forEach(point -> {
+			StringBuilder temptSB = new StringBuilder();
+			temptSB.append("[" + point[0] + "," + point[1]);
+			try {
+				temptSB.append("," + point[2]);
+			} catch (Exception e) {
+			}
+			temptSB.append("]");
+			geoContainer.add(temptSB.toString());
+		});
+
+		sb.append(String.join(",", geoContainer));
+		sb.append("]]}");
+
+		return Geometry.CreateFromJson(sb.toString());
 	}
 
 	public static Path2D CreatePath2D(List<Double[]> points) {
@@ -204,6 +223,55 @@ public class GdalGlobal {
 		temptList.add(new Double[] { x1, y1, z1 });
 		temptList.add(new Double[] { x2, y2, z2 });
 		return CreateLine(temptList);
+	}
+
+	/*
+	 * editor
+	 */
+	public static Geometry GeometryPanel(Geometry geometry, double deltaX, double deltaY, double deltaZ) {
+		Geometry temptGeo = geometry.Clone();
+
+		// for multiPolygon
+		if (geometry.GetGeometryName().toUpperCase().contains("MULT")) {
+
+			for (int multiIndex = 0; multiIndex < geometry.GetGeometryCount(); multiIndex++) {
+				Geometry temptSingleGeo = temptGeo.GetGeometryRef(multiIndex);
+
+				for (int geoCount = 0; geoCount < temptSingleGeo.GetGeometryCount(); geoCount++) {
+					Geometry temptPoly = temptSingleGeo.GetGeometryRef(geoCount);
+
+					for (int pointCount = 0; pointCount < temptPoly.GetPointCount(); pointCount++) {
+						double zValue;
+						try {
+							zValue = temptPoly.GetZ(pointCount);
+						} catch (Exception e) {
+							zValue = 0.0;
+						}
+						temptPoly.SetPoint(pointCount, temptPoly.GetX(pointCount) + deltaX,
+								temptPoly.GetY(pointCount) + deltaY, zValue + deltaZ);
+					}
+				}
+			}
+
+			// for single
+		} else {
+			for (int geoCount = 0; geoCount < temptGeo.GetGeometryCount(); geoCount++) {
+				Geometry temptPoly = temptGeo.GetGeometryRef(geoCount);
+
+				for (int pointCount = 0; pointCount < temptPoly.GetPointCount(); pointCount++) {
+					double zValue;
+					try {
+						zValue = temptPoly.GetZ(pointCount);
+					} catch (Exception e) {
+						zValue = 0.0;
+					}
+					temptPoly.SetPoint(pointCount, temptPoly.GetX(pointCount) + deltaX,
+							temptPoly.GetY(pointCount) + deltaY, zValue + deltaZ);
+				}
+			}
+		}
+
+		return temptGeo;
 	}
 
 	// <===================================================>
@@ -698,6 +766,12 @@ public class GdalGlobal {
 		if (new File(folder + temptWholeName).exists()) {
 			return newTempFileName(folder, additionFormat);
 		} else {
+			try {
+				new AtFileWriter("", folder + "\\" + temptWholeName).textWriter("");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return temptWholeName;
 		}
 	}

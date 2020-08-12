@@ -61,7 +61,7 @@ public class GDAL_VECTOR_SelectByLocation {
 		}
 
 		// translate shapeFile to points
-		new SpatialWriter().setGeoList(geoList).saveAsShp(this.inputLayer);
+		new SpatialWriter().setGeoList(GdalGlobal.MultiPolyToSingle(geoList)).saveAsShp(this.inputLayer);
 	}
 
 	public void addIntersectGeo(Geometry geo) {
@@ -116,7 +116,7 @@ public class GDAL_VECTOR_SelectByLocation {
 
 		// set intersect vector layer
 		String intersectLayerFileName = GdalGlobal.newTempFileName(this.temptFolder, ".shp");
-		String intersectLayerFileAdd = this.temptFolder + "/" + intersectLayerFileName;
+		String intersectLayerFileAdd = this.temptFolder + "\\" + intersectLayerFileName;
 		new SpatialWriter().setGeoList(this.interSectGeoList).saveAsShp(intersectLayerFileAdd);
 
 		List<String> batContent = new ArrayList<>();
@@ -126,7 +126,7 @@ public class GDAL_VECTOR_SelectByLocation {
 		batContent.add("\"%PYTHONHOME%\\python\" AtSelectByLocation.py");
 		batContent.add("exit");
 		new AtFileWriter(batContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//AtSelectByLocation.bat").textWriter("");
+				GdalGlobal.gdalBinFolder + "/AtSelectByLocation.bat").textWriter("");
 
 		// initial QgisAlogrithm pythonFile
 		List<String> pythonContent = new ArrayList<>();
@@ -151,7 +151,7 @@ public class GDAL_VECTOR_SelectByLocation {
 		// create pythonAlogrithm processing
 		pythonContent.add("processing.run('native:extractbylocation',parameter)");
 		new AtFileWriter(pythonContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//AtSelectByLocation.py").textWriter("");
+				GdalGlobal.gdalBinFolder + "\\AtSelectByLocation.py").textWriter("");
 
 		// run batFile
 		List<String> command = new ArrayList<>();
@@ -171,11 +171,8 @@ public class GDAL_VECTOR_SelectByLocation {
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
-		String temptSaveFileName = GdalGlobal.newTempFileName(this.temptFolder, ".shp");
-		String temptSaveFileAdd = this.temptFolder + "\\" + temptSaveFileName;
-		this.saveAsShp(temptSaveFileAdd);
-
-		return new SpatialReader(temptSaveFileAdd).getGeometryList();
+		this.saveAsShp(this.temptFolder + "\\temptSave.shp");
+		return new SpatialReader(this.temptFolder + "\\temptSave.shp").getGeometryList();
 	}
 
 }

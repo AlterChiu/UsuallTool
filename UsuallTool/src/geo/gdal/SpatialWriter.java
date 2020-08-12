@@ -95,6 +95,10 @@ public class SpatialWriter {
 
 	// <=========================================>
 
+	public int getSize() {
+		return this.geometryList.size();
+	}
+
 	/*
 	 * 
 	 * 

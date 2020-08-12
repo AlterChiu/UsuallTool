@@ -97,11 +97,8 @@ public class GDAL_VECTOR_Defensify {
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
-		String temptSaveFileName = GdalGlobal.newTempFileName(this.temptFolder, ".shp");
-		String temptSaveFileAdd = this.temptFolder + "\\" + temptSaveFileName;
-		this.saveAsShp(temptSaveFileAdd);
-
-		return new SpatialReader(temptSaveFileAdd).getGeometryList();
+		this.saveAsShp(this.temptFolder + "\\temptSave.shp");
+		return new SpatialReader(this.temptFolder + "\\temptSave.shp").getGeometryList();
 	}
 
 }

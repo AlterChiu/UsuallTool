@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import usualTool.AtCommonMath;
+
 public class AtCramerEqualtion {
 	private Double[][] matrix;
-	private int equaltions;
+	private int equaltionsNumber;
 
 	// ax + by = c the matrix will be
 	// a1 b1 c1
@@ -20,18 +22,20 @@ public class AtCramerEqualtion {
 	// <=============================>
 	public AtCramerEqualtion(Double[][] matrix) {
 		this.matrix = matrix;
-		this.equaltions = matrix.length;
+		this.equaltionsNumber = matrix.length;
 		double variable = matrix[0].length;
 
-		if (equaltions != (variable - 1)) {
+		if (equaltionsNumber != (variable - 1)) {
 			System.out.println("error in number of variables and equaltions");
 			System.out.println("variable : " + (variable - 1));
-			System.out.println("equaltions : " + equaltions);
+			System.out.println("equaltions : " + equaltionsNumber);
 		}
 
 	}
 	// <=============================>
 
+	// check for, is there any equation that equals to other one
+	// if x1 + y1 = c1 equals to x2 + y2 = c2 return true
 	public Boolean isExistSameEqualtion() {
 		Boolean judgement = false;
 		List<Double[]> matrixList = new ArrayList<Double[]>(Arrays.asList(matrix));
@@ -45,8 +49,8 @@ public class AtCramerEqualtion {
 				// get the magnification of the
 				Set<Double> judgeList = new TreeSet<Double>();
 				for (int coefficientIndex = 0; coefficientIndex < coefficients.length; coefficientIndex++) {
-					judgeList.add(new BigDecimal(coefficients[coefficientIndex] - temptCoefficients[coefficientIndex])
-							.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue());
+					judgeList.add(AtCommonMath.getDecimal_Double(
+							coefficients[coefficientIndex] - temptCoefficients[coefficientIndex], 4));
 				}
 
 				if (judgeList.size() == 1) {
@@ -58,29 +62,33 @@ public class AtCramerEqualtion {
 		}
 
 		this.matrix = matrixList.parallelStream().toArray(Double[][]::new);
-		this.equaltions = matrix.length;
+		this.equaltionsNumber = this.matrix.length;
 
 		return judgement;
 	}
 
+	// get the answer of variables which return by input order
 	public List<Double> getVariables() {
 		List<Double> variableList = new ArrayList<Double>();
 
-		Double[][] deltaMatrix = getCramerMatrix(this.equaltions);
-		for (int variable = 0; variable < this.equaltions; variable++) {
+		Double[][] deltaMatrix = getCramerMatrix(this.equaltionsNumber);
+		for (int variable = 0; variable < this.equaltionsNumber; variable++) {
 			variableList.add(AtDeterminant.getValue(getCramerMatrix(variable)) / AtDeterminant.getValue(deltaMatrix));
 		}
 		return variableList;
 	}
 
+	// cramerMatrix => of matrix A(x,y,constant)
+	// x = determinant(A), which x column switch by constant value
+	// the input variable "index" mean, which variable are calculated now
 	private Double[][] getCramerMatrix(int index) {
 		List<Double[]> outList = new ArrayList<Double[]>();
 
-		for (int row = 0; row < equaltions; row++) {
+		for (int row = 0; row < this.equaltionsNumber; row++) {
 			List<Double> temptRow = new ArrayList<Double>();
-			for (int column = 0; column < equaltions; column++) {
+			for (int column = 0; column < this.equaltionsNumber; column++) {
 				if (column == index) {
-					temptRow.add(this.matrix[row][equaltions]);
+					temptRow.add(this.matrix[row][this.equaltionsNumber]);
 				} else {
 					temptRow.add(this.matrix[row][column]);
 				}

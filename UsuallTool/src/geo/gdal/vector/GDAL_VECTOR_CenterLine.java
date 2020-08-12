@@ -4,25 +4,40 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import org.gdal.ogr.Geometry;
 
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
+import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_VECTOR_CenterLine {
 	private String temptFolder = GdalGlobal.temptFolder + "CenterLine";
 	private List<Geometry> geoList;
 	private double verticeDensitive = 1.0;
+	private List<Map<String, Object>> attrList = null;
+	private Map<String, String> attrType = null;
 
 	// only for polygon
 	public GDAL_VECTOR_CenterLine(String polygonShp) {
-		processing(new SpatialReader(polygonShp).getGeometryList());
+		SpatialReader shpReader = new SpatialReader(polygonShp);
+		this.attrList = shpReader.getAttributeTable();
+		this.attrType = shpReader.getAttributeTitleType();
+		processing(shpReader.getGeometryList());
 	}
 
 	public GDAL_VECTOR_CenterLine(List<Geometry> geoList) {
 		processing(geoList);
+	}
+
+	public GDAL_VECTOR_CenterLine(Geometry geometry) {
+		List<Geometry> temptList = new ArrayList<>();
+		temptList.add(geometry);
+
+		processing(temptList);
 	}
 
 	private void processing(List<Geometry> geoList) {
@@ -53,62 +68,54 @@ public class GDAL_VECTOR_CenterLine {
 		GDAL_VECTOR_Defensify defensify = new GDAL_VECTOR_Defensify(this.geoList);
 		defensify.setInterval(this.verticeDensitive);
 		List<Geometry> reDensitiveVerPolygons = defensify.getGeoList();
-		int reDensitiveVerPolygonsSize = reDensitiveVerPolygons.size();
 
-		// processing to each geo
-		for (int densitivePolygonIndex = 0; densitivePolygonIndex < reDensitiveVerPolygonsSize; densitivePolygonIndex++) {
-			System.out.print("..." + densitivePolygonIndex * 100 / reDensitiveVerPolygonsSize);
-
-			Geometry multiPolygon = reDensitiveVerPolygons.get(densitivePolygonIndex);
-			GdalGlobal.MultiPolyToSingle(multiPolygon).forEach(polygon -> {
-
-				// do voronoiPolygons
-				GDAL_VECTOR_Voronoi voronoi = new GDAL_VECTOR_Voronoi(polygon);
-				List<Geometry> voronoiPolygons = new ArrayList<>();
-				try {
-					voronoiPolygons = voronoi.getGeoList();
-				} catch (IOException | InterruptedException e) {
-					e.printStackTrace();
-				}
-
-				// get polyLine in polygon
-				List<Geometry> voronoiPolyLineList = new ArrayList<>();
-				for (Geometry voronoiPolygon : voronoiPolygons) {
-					voronoiPolyLineList.add(voronoiPolygon.Boundary());
-				}
-				Geometry voronoiPolyLine = GdalGlobal.mergePolygons(voronoiPolyLineList);
-
-				// select polyLine which within in the polygon
-				GDAL_VECTOR_SelectByLocation selectLocation = new GDAL_VECTOR_SelectByLocation(
-						GdalGlobal.MultiPolyToSingle(voronoiPolyLine));
-				selectLocation.getWithin();
-				selectLocation.addIntersectGeo(polygon);
-
-				String temptCenterLineFileName = GdalGlobal.newTempFileName(this.temptFolder, ".shp");
-				String temptCenterLineFileAdd = this.temptFolder + "/" + temptCenterLineFileName;
-				try {
-					selectLocation.saveAsShp(temptCenterLineFileAdd);
-				} catch (IOException | InterruptedException e) {
-					e.printStackTrace();
-				}
-			});
+		// output shpFile
+		SpatialWriter outputShp = new SpatialWriter();
+		if (this.attrType != null) {
+			outputShp.setFieldType(this.attrType);
 		}
 
-		List<Geometry> outList = new ArrayList<>();
-		for (String fileName : new File(this.temptFolder).list()) {
-			if (fileName.contains(".shp")) {
-				new SpatialReader(this.temptFolder + "/" + fileName).getGeometryList().forEach(geo -> outList.add(geo));
+		// do processing for each polygon
+		for (int index = 0; index < reDensitiveVerPolygons.size(); index++) {
+			Geometry reDensitiveVerPolygon = reDensitiveVerPolygons.get(index);
+
+			// do voronoiPolygons
+			GDAL_VECTOR_Voronoi voronoi = new GDAL_VECTOR_Voronoi(reDensitiveVerPolygon);
+			List<Geometry> voronoiPolygons = new ArrayList<>();
+			try {
+				voronoiPolygons = voronoi.getGeoList();
+			} catch (IOException | InterruptedException e) {
+				e.printStackTrace();
 			}
+
+			// get polyLine in polygon
+			List<Geometry> voronoiPolyLineList = new ArrayList<>();
+			for (Geometry voronoiPolygon : voronoiPolygons) {
+				voronoiPolyLineList.add(voronoiPolygon.Boundary());
+			}
+			Geometry voronoiPolyLine = GdalGlobal.mergePolygons(voronoiPolyLineList);
+
+			// select polyLine which within in the polygon
+			GDAL_VECTOR_SelectByLocation selectLocation = new GDAL_VECTOR_SelectByLocation(
+					GdalGlobal.MultiPolyToSingle(voronoiPolyLine));
+			selectLocation.getWithin();
+			selectLocation.addIntersectGeo(reDensitiveVerPolygon);
+
+			// setting output geometry properties
+			Geometry outputGeo = GdalGlobal.mergePolygons(selectLocation.getGeoList());
+			Map<String, Object> temptProperties = null;
+			if (this.attrList != null) {
+				temptProperties = this.attrList.get(index);
+			}
+			outputShp.addFeature(outputGeo, temptProperties);
 		}
-		new SpatialWriter().setGeoList(outList).saceAs(saveAdd, saveingType);
+
+		outputShp.saceAs(saveAdd, saveingType);
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
-		String temptSaveFileName = GdalGlobal.newTempFileName(this.temptFolder, ".shp");
-		String temptSaveFileAdd = this.temptFolder + "\\" + temptSaveFileName;
-		this.saveAsShp(temptSaveFileAdd);
-
-		return new SpatialReader(temptSaveFileAdd).getGeometryList();
+		this.saveAsShp(this.temptFolder + "\\temptSave.shp");
+		return new SpatialReader(this.temptFolder + "\\temptSave.shp").getGeometryList();
 	}
 
 }
