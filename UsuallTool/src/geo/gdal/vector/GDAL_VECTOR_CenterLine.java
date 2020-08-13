@@ -11,7 +11,6 @@ import org.gdal.ogr.Geometry;
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
-import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_VECTOR_CenterLine {
@@ -77,39 +76,42 @@ public class GDAL_VECTOR_CenterLine {
 
 		// do processing for each polygon
 		for (int index = 0; index < reDensitiveVerPolygons.size(); index++) {
-			Geometry reDensitiveVerPolygon = reDensitiveVerPolygons.get(index);
 
-			// do voronoiPolygons
-			GDAL_VECTOR_Voronoi voronoi = new GDAL_VECTOR_Voronoi(reDensitiveVerPolygon);
-			List<Geometry> voronoiPolygons = new ArrayList<>();
+			// skip exception
 			try {
+				Geometry reDensitiveVerPolygon = reDensitiveVerPolygons.get(index);
+
+				// do voronoiPolygons
+				GDAL_VECTOR_Voronoi voronoi = new GDAL_VECTOR_Voronoi(reDensitiveVerPolygon);
+				List<Geometry> voronoiPolygons = new ArrayList<>();
 				voronoiPolygons = voronoi.getGeoList();
-			} catch (IOException | InterruptedException e) {
+
+				// get polyLine in polygon
+				List<Geometry> voronoiPolyLineList = new ArrayList<>();
+				for (Geometry voronoiPolygon : voronoiPolygons) {
+					voronoiPolyLineList.add(voronoiPolygon.Boundary());
+				}
+				Geometry voronoiPolyLine = GdalGlobal.mergePolygons(voronoiPolyLineList);
+
+				// select polyLine which within in the polygon
+				GDAL_VECTOR_SelectByLocation selectLocation = new GDAL_VECTOR_SelectByLocation(
+						GdalGlobal.MultiPolyToSingle(voronoiPolyLine));
+				selectLocation.getWithin();
+				selectLocation.addIntersectGeo(reDensitiveVerPolygon);
+
+				// setting output geometry properties
+				Geometry outputGeo = GdalGlobal.mergePolygons(selectLocation.getGeoList());
+				Map<String, Object> temptProperties = null;
+				if (this.attrList != null) {
+					temptProperties = this.attrList.get(index);
+				}
+				outputShp.addFeature(outputGeo, temptProperties);
+
+				// output exception
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
-			// get polyLine in polygon
-			List<Geometry> voronoiPolyLineList = new ArrayList<>();
-			for (Geometry voronoiPolygon : voronoiPolygons) {
-				voronoiPolyLineList.add(voronoiPolygon.Boundary());
-			}
-			Geometry voronoiPolyLine = GdalGlobal.mergePolygons(voronoiPolyLineList);
-
-			// select polyLine which within in the polygon
-			GDAL_VECTOR_SelectByLocation selectLocation = new GDAL_VECTOR_SelectByLocation(
-					GdalGlobal.MultiPolyToSingle(voronoiPolyLine));
-			selectLocation.getWithin();
-			selectLocation.addIntersectGeo(reDensitiveVerPolygon);
-
-			// setting output geometry properties
-			Geometry outputGeo = GdalGlobal.mergePolygons(selectLocation.getGeoList());
-			Map<String, Object> temptProperties = null;
-			if (this.attrList != null) {
-				temptProperties = this.attrList.get(index);
-			}
-			outputShp.addFeature(outputGeo, temptProperties);
 		}
-
 		outputShp.saceAs(saveAdd, saveingType);
 	}
 

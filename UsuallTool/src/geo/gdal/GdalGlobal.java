@@ -354,14 +354,6 @@ public class GdalGlobal {
 		}
 	}
 
-	public static List<Geometry> splitPolygons(Geometry geo) {
-		List<Geometry> outList = new ArrayList<>();
-		for (int index = 0; index < geo.GetGeometryCount(); index++) {
-			outList.add(geo.GetGeometryRef(index));
-		}
-		return outList;
-	}
-
 	public static List<Path2D> getQualTree_Path(double[] centerPoint, double cellSize) {
 		return getQualTree_Path(centerPoint, cellSize, 4);
 	}
@@ -432,14 +424,15 @@ public class GdalGlobal {
 	}
 
 	public static List<Geometry> GeometryToPointGeos(Geometry geo) {
-		Set<String> coordinateKeys = GeometryToPointKeySet(geo);
+		Set<String> coordinateKeys = GeometryToPointKeySet_Z(geo, dataDecimale);
 
 		List<Geometry> outGeoList = new ArrayList<>();
 		coordinateKeys.forEach(pointKey -> {
 			String[] point = pointKey.split("_");
 			double x = Double.parseDouble(point[0]);
 			double y = Double.parseDouble(point[1]);
-			outGeoList.add(GdalGlobal.CreatePoint(x, y));
+			double z = Double.parseDouble(point[2]);
+			outGeoList.add(GdalGlobal.CreatePoint(x, y, z));
 		});
 
 		return outGeoList;
@@ -473,26 +466,49 @@ public class GdalGlobal {
 		Set<String> coordinateKeys = new HashSet<>();
 
 		MultiPolyToSingle(geometry).forEach(geo -> {
-			for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
 
-				Geometry temptGeo = geo.GetGeometryRef(geoCount);
-				for (double[] point : temptGeo.GetPoints()) {
+			// points
+			if (geo.GetGeometryName().toUpperCase().contains("POINT")) {
+				String xString = AtCommonMath.getDecimal_String(geo.GetX(), dataDecimale);
+				String yString = AtCommonMath.getDecimal_String(geo.GetY(), dataDecimale);
+				String zString;
+				try {
+					zString = AtCommonMath.getDecimal_String(geo.GetZ(), dataDecimale);
+				} catch (Exception e) {
+					zString = AtCommonMath.getDecimal_String(0, dataDecimale);
+				}
+				coordinateKeys.add(xString + "_" + yString + "_" + zString);
+
+				// line
+			} else if (geo.GetGeometryName().toUpperCase().contains("LineString")) {
+				for (double[] point : geo.GetPoints()) {
 					String xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
 					String yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
-
-					StringBuilder temptOut = new StringBuilder();
-					temptOut.append(xString);
-					temptOut.append("_");
-					temptOut.append(yString);
-
+					String zString;
 					try {
-						String zString = AtCommonMath.getDecimal_String(point[2], dataDecimale);
-						temptOut.append("_");
-						temptOut.append(zString);
+						zString = AtCommonMath.getDecimal_String(point[2], dataDecimale);
 					} catch (Exception e) {
+						zString = AtCommonMath.getDecimal_String(0, dataDecimale);
 					}
+					coordinateKeys.add(xString + "_" + yString + "_" + zString);
 
-					coordinateKeys.add(temptOut.toString());
+				}
+
+				// polygon
+			} else if (geo.GetGeometryName().toUpperCase().contains("POLYGON")) {
+				for (int index = 0; index < geo.GetGeometryCount(); index++) {
+					Geometry temptGeo = geo.GetGeometryRef(index);
+					for (double[] point : temptGeo.GetPoints()) {
+						String xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
+						String yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
+						String zString;
+						try {
+							zString = AtCommonMath.getDecimal_String(point[2], dataDecimale);
+						} catch (Exception e) {
+							zString = AtCommonMath.getDecimal_String(0, dataDecimale);
+						}
+						coordinateKeys.add(xString + "_" + yString + "_" + zString);
+					}
 				}
 			}
 		});
@@ -503,19 +519,32 @@ public class GdalGlobal {
 		Set<String> coordinateKeys = new HashSet<>();
 
 		MultiPolyToSingle(geometry).forEach(geo -> {
-			for (int geoCount = 0; geoCount < geometry.GetGeometryCount(); geoCount++) {
+			String xString;
+			String yString;
 
-				Geometry temptGeo = geo.GetGeometryRef(geoCount);
-				for (double[] point : temptGeo.GetPoints()) {
-					String xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
-					String yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
+			// points
+			if (geo.GetGeometryName().toUpperCase().contains("POINT")) {
+				xString = AtCommonMath.getDecimal_String(geo.GetX(), dataDecimale);
+				yString = AtCommonMath.getDecimal_String(geo.GetY(), dataDecimale);
+				coordinateKeys.add(xString + "_" + yString);
 
-					StringBuilder temptOut = new StringBuilder();
-					temptOut.append(xString);
-					temptOut.append("_");
-					temptOut.append(yString);
+				// line
+			} else if (geo.GetGeometryName().toUpperCase().contains("LineString")) {
+				for (double[] point : geo.GetPoints()) {
+					xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
+					yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
+					coordinateKeys.add(xString + "_" + yString);
+				}
 
-					coordinateKeys.add(temptOut.toString());
+				// polygon
+			} else if (geo.GetGeometryName().toUpperCase().contains("POLYGON")) {
+				for (int index = 0; index < geo.GetGeometryCount(); index++) {
+					Geometry temptGeo = geo.GetGeometryRef(index);
+					for (double[] point : temptGeo.GetPoints()) {
+						xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
+						yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
+						coordinateKeys.add(xString + "_" + yString);
+					}
 				}
 			}
 		});

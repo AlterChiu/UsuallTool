@@ -202,11 +202,14 @@ public class WaterSheidSpliting {
 
 		// using intersect to get nodes in mainStream
 		System.out.print("intersect node.....");
-		List<Geometry> otherStream_nodeInMainStream = GdalGlobal
-				.splitPolygons(otherStream_allNodes.Intersection(mainStreamBufferArea));
+		List<Geometry> otherStream_nodeInMainStreams = new ArrayList<>();
+		Geometry otherStream_nodeInMainStream = otherStream_allNodes.Intersection(mainStreamBufferArea);
+		for (int index = 0; index < otherStream_nodeInMainStream.GetGeometryCount(); index++) {
+			otherStream_nodeInMainStreams.add(otherStream_nodeInMainStream.GetGeometryRef(index));
+		}
 
 		// make point to nodeClass
-		otherStream_nodeInMainStream.forEach(geo -> {
+		otherStream_nodeInMainStreams.forEach(geo -> {
 			String key = AtCommonMath.getDecimal_String(geo.GetX(), dataDecimale) + "_"
 					+ AtCommonMath.getDecimal_String(geo.GetY(), dataDecimale);
 			mainStreamNodeMap.put(key, totalNodeMap.get(key));

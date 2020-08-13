@@ -1,5 +1,6 @@
 package geo.common.Task.HyDEM.BankLine;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
 import geo.gdal.vector.GDAL_VECTOR_CenterLine;
+import geo.gdal.vector.GDAL_VECTOR_Defensify;
 
 public class HyDEM_CreateCenterLine {
 	public static int boundaryBufferPersentage = 10; // 10%
@@ -59,9 +61,12 @@ public class HyDEM_CreateCenterLine {
 				usedID.add(bankLineID);
 
 				// add to list
-				CenterLine temptCenterLine = new CenterLine(bankLine1, bankLine2, direction);
-				temptCenterLine.setBankLineID(linkedID, bankLineID);
-				centerLineList.add(temptCenterLine);
+				if (bankLine1.Length() > centerLineVerticeInterval * 4
+						&& bankLine2.Length() > centerLineVerticeInterval * 4) {
+					CenterLine temptCenterLine = new CenterLine(bankLine1, bankLine2, direction);
+					temptCenterLine.setBankLineID(linkedID, bankLineID);
+					centerLineList.add(temptCenterLine);
+				}
 			}
 		}
 
@@ -113,13 +118,32 @@ public class HyDEM_CreateCenterLine {
 		/*
 		 * <+++++++++++++++++CONSTRUCTOR++++++++++++++++++++++>
 		 */
-		public CenterLine(Geometry bankLine1, Geometry bankLine2, int linkedDirection) {
+		public CenterLine(Geometry bankLine1, Geometry bankLine2, int linkedDirection)
+				throws IOException, InterruptedException {
+
+			if (bankLine1.GetPointCount() < 4) {
+				GDAL_VECTOR_Defensify defensify = new GDAL_VECTOR_Defensify(bankLine1);
+				defensify.setInterval(centerLineVerticeInterval);
+				bankLine1 = defensify.getGeoList().get(0);
+			}
+
+			if (bankLine2.GetPointCount() < 4) {
+				GDAL_VECTOR_Defensify defensify = new GDAL_VECTOR_Defensify(bankLine2);
+				defensify.setInterval(centerLineVerticeInterval);
+				bankLine2 = defensify.getGeoList().get(0);
+			}
+
 			// create boundaryPolygon
 			this.bankLineBoundaryPolygon = getPolygon(bankLine1, bankLine2, linkedDirection);
 
 			// create buffer boundaryPolygon
 			Geometry extensionGeometry = getBufferPolygon(bankLine1, bankLine2, linkedDirection);
-			this.bankLineBufferPolygon = this.bankLineBoundaryPolygon.Union(extensionGeometry);
+			try {
+				this.bankLineBufferPolygon = this.bankLineBoundaryPolygon.Union(extensionGeometry);
+			} catch (Exception e) {
+				this.bankLineBufferPolygon = this.bankLineBoundaryPolygon;
+			}
+
 		}
 
 		private Geometry getPolygon(Geometry bankLine1, Geometry bankLine2, int linkedDirection) {
