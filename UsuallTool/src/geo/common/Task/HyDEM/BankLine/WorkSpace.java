@@ -17,7 +17,8 @@ public class WorkSpace {
 	 */
 
 	// workSpace
-	public static String workSpace = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\將軍溪\\";
+	public static String workSpace = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\港尾溝溪\\";
+	public static String sobkeFolder = workSpace + "\\sbk-shp\\";
 	public static String hydemObjectWorkSpace = workSpace + "溢堤線\\";
 	public static String testingWorkSpace = workSpace + "";
 

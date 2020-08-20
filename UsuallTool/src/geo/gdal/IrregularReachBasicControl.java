@@ -378,6 +378,10 @@ public class IrregularReachBasicControl {
 			this.geoAttr.add(geoAttr);
 		}
 
+		public void setZ(double z) {
+			this.z = z;
+		}
+
 		public String getId() {
 			return this.id;
 		}
@@ -423,13 +427,33 @@ public class IrregularReachBasicControl {
 			return new ArrayList<>(this.geoAttr);
 		}
 
-		public List<EdgeClass> getOtherEdges(EdgeClass edge) {
-			List<EdgeClass> outList = new ArrayList<>();
-			this.edgeList.forEach(temptEdge -> {
-				if (edge != temptEdge) {
-					outList.add(temptEdge);
-				}
+		public List<NodeClass> getLinkedNodes() {
+			List<NodeClass> outList = new ArrayList<>();
+			getLinkedEdges().forEach(edge -> {
+				Optional.ofNullable(edge.getOtherNode(this)).ifPresent(node -> outList.add(node));
 			});
+			return outList;
+		}
+
+		public List<EdgeClass> getLinkedEdges() {
+			return new ArrayList<>(this.edgeList);
+		}
+
+		public List<NodeClass> getOtherNodes(NodeClass temptNode) {
+			List<NodeClass> outList = this.getLinkedNodes();
+			try {
+				outList.remove(temptNode);
+			} catch (Exception e) {
+			}
+			return outList;
+		}
+
+		public List<EdgeClass> getOtherEdges(EdgeClass edge) {
+			List<EdgeClass> outList = new ArrayList<>(this.edgeList);
+			try {
+				outList.remove(edge);
+			} catch (Exception e) {
+			}
 			return outList;
 		}
 
@@ -474,13 +498,11 @@ public class IrregularReachBasicControl {
 		}
 
 		public Geometry getGeo() {
-			if (this.geo == null) {
-				List<Double[]> points = new ArrayList<>();
-				this.nodeList.forEach(node -> {
-					points.add(new Double[] { node.getX(), node.getY(), node.getZ() });
-				});
-				this.geo = GdalGlobal.CreateLine(points);
-			}
+			List<Double[]> points = new ArrayList<>();
+			this.nodeList.forEach(node -> {
+				points.add(new Double[] { node.getX(), node.getY(), node.getZ() });
+			});
+			this.geo = GdalGlobal.CreateLine(points);
 
 			return this.geo;
 		}
@@ -491,10 +513,15 @@ public class IrregularReachBasicControl {
 
 		public NodeClass getOtherNode(NodeClass node) {
 			List<NodeClass> temptList = new ArrayList<>(this.nodeList);
-			if (temptList.get(0) == node) {
-				return temptList.get(1);
+			if (!this.nodeList.contains(node)) {
+				new Exception("no such node in edge");
+				return null;
 			} else {
-				return temptList.get(0);
+				if (temptList.get(0) == node) {
+					return temptList.get(1);
+				} else {
+					return temptList.get(0);
+				}
 			}
 		}
 

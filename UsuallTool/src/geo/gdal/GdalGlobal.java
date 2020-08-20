@@ -215,10 +215,10 @@ public class GdalGlobal {
 	}
 
 	public static Geometry CreateLine(double x1, double y1, double x2, double y2) {
-		return createLine(x1, y1, 0, x2, y2, 0);
+		return CreateLine(x1, y1, 0, x2, y2, 0);
 	}
 
-	public static Geometry createLine(double x1, double y1, double z1, double x2, double y2, double z2) {
+	public static Geometry CreateLine(double x1, double y1, double z1, double x2, double y2, double z2) {
 		List<Double[]> temptList = new ArrayList<>();
 		temptList.add(new Double[] { x1, y1, z1 });
 		temptList.add(new Double[] { x2, y2, z2 });
@@ -458,6 +458,20 @@ public class GdalGlobal {
 		return outGeo;
 	}
 
+	public static Set<String> GeometryToPointKeySet(List<Geometry> geoList) {
+		return GeometryToPointKeySet(geoList, GdalGlobal.dataDecimale);
+	}
+
+	public static Set<String> GeometryToPointKeySet(List<Geometry> geoList, int dataDecimale) {
+		Set<String> verticeSet = new HashSet<>();
+		geoList.forEach(geo -> {
+			GeometryToPointKeySet(geo, dataDecimale).forEach(keySet -> {
+				verticeSet.add(keySet);
+			});
+		});
+		return verticeSet;
+	}
+
 	public static Set<String> GeometryToPointKeySet(Geometry geometry) {
 		return GeometryToPointKeySet(geometry, GdalGlobal.dataDecimale);
 	}
@@ -529,7 +543,7 @@ public class GdalGlobal {
 				coordinateKeys.add(xString + "_" + yString);
 
 				// line
-			} else if (geo.GetGeometryName().toUpperCase().contains("LineString")) {
+			} else if (geo.GetGeometryName().toUpperCase().contains("LINESTRING")) {
 				for (double[] point : geo.GetPoints()) {
 					xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
 					yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);

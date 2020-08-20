@@ -78,7 +78,7 @@ public class HyDEM_CheckLevelContinue {
 			double currentLength = 0;
 			double maxSlope = Double.NEGATIVE_INFINITY;
 			Double[] currentPoint = temptValueList.get(0);
-			outList.add(new Double[] { 0., currentPoint[2] });
+			outList.add(new Double[] { 0., currentPoint[2], 0. });
 
 			for (int pointIndex = 1; pointIndex < temptValueList.size(); pointIndex++) {
 				Double[] nextPoint = temptValueList.get(pointIndex);
@@ -95,7 +95,7 @@ public class HyDEM_CheckLevelContinue {
 				currentLength = currentLength + nextLength;
 
 				// add to valueList
-				outList.add(new Double[] { currentLength * 100 / length, temptValueList.get(pointIndex)[2] });
+				outList.add(new Double[] { currentLength * 100 / length, temptValueList.get(pointIndex)[2], slope });
 				currentPoint = temptValueList.get(pointIndex);
 			}
 
@@ -131,24 +131,29 @@ public class HyDEM_CheckLevelContinue {
 		// get max size of xyValues
 		int maxValuesIndex = 0;
 
-		// output Title, x,y
+		// output Title, x,y,slop
 		List<String> xyPlot = new ArrayList<>();
 		xyPlot.add("");
 
 		for (int index = 0; index < key.size(); index++) {
 			xyPlot.add("Length(%)");
 			xyPlot.add("Z-Leveling(m)");
+			xyPlot.add("Slope(%)");
 
 			titleTotalLength.add(AtCommonMath.getDecimal_String(bankLineLeveling.get(key.get(index)).getLength(), 0));
+			titleTotalLength.add("");
 			titleTotalLength.add("");
 
 			titleMaxSlope.add(AtCommonMath.getDecimal_String(bankLineLeveling.get(key.get(index)).getSlope(), 0));
 			titleMaxSlope.add("");
+			titleMaxSlope.add("");
 
 			titleLinkedID.add(bankLineLeveling.get(key.get(index)).getLinkedID());
 			titleLinkedID.add("");
+			titleLinkedID.add("");
 
 			titleID.add(bankLineLeveling.get(key.get(index)).getID());
+			titleID.add("");
 			titleID.add("");
 
 			if (bankLineLeveling.get(key.get(index)).getValueList().size() > maxValuesIndex) {
@@ -172,7 +177,9 @@ public class HyDEM_CheckLevelContinue {
 				try {
 					outputValues.add(temptBankLineLeveling.getValueList().get(valueIndex)[0] + "");
 					outputValues.add(temptBankLineLeveling.getValueList().get(valueIndex)[1] + "");
+					outputValues.add(temptBankLineLeveling.getValueList().get(valueIndex)[2] + "");
 				} catch (Exception e) {
+					outputValues.add("");
 					outputValues.add("");
 					outputValues.add("");
 				}

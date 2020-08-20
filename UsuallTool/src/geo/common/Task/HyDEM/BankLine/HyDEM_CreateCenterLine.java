@@ -29,6 +29,17 @@ public class HyDEM_CreateCenterLine {
 		HyDEM_CreateCenterLine.boundaryBufferPersentage = 10;
 		HyDEM_CreateCenterLine.centerLineVerticeInterval = 5.0;
 
+		// <================================================>
+		// <====== ReCraete pairs bankLine from splitHyDEM polygon ========>
+		// <================================================>
+		/*
+		 * @ translate polygons to paired bankLine
+		 * 
+		 * @ input : splitHydemPolygons
+		 * 
+		 * @ output : bankLineHydem
+		 */
+
 		// read file
 		String hydemBankLineFileAdd = testingWorkSpace + bankLineHydem;
 		SpatialReader hydemBankLine = new SpatialReader(hydemBankLineFileAdd);
@@ -75,35 +86,38 @@ public class HyDEM_CreateCenterLine {
 		System.out.print((int) completedPersantage + "....");
 
 		for (int index = 0; index < centerLineList.size(); index++) {
+			try {
+				// output processing rate
+				double currentPersantage = (int) ((index + 0.) * 100 / centerLineList.size());
+				if (currentPersantage > completedPersantage) {
+					System.out.print((int) currentPersantage + "....");
+					completedPersantage = (int) currentPersantage;
+				}
 
-			// output processing rate
-			double currentPersantage = (int) ((index + 0.) * 100 / centerLineList.size());
-			if (currentPersantage > completedPersantage) {
-				System.out.print((int) currentPersantage + "....");
-				completedPersantage = (int) currentPersantage;
+				// start centerLine processing
+				CenterLine temptCenterLine = centerLineList.get(index);
+
+				// create centerLine by bufferPolygon
+				GDAL_VECTOR_CenterLine centerLineAlgorithm = new GDAL_VECTOR_CenterLine(
+						temptCenterLine.getBufferBankLinePolygon());
+				centerLineAlgorithm.setVerticeDensitive(temptCenterLine.getBankLineSpecificDefensify());
+				List<Geometry> centerLineGeoList = centerLineAlgorithm.getGeoList();
+
+				// clip centerLine by boundary bankLine
+				Geometry mergedCenterLine = GdalGlobal.mergePolygons(centerLineGeoList);
+
+				// output properties
+				Map<String, Object> temptFeature = new HashMap<>();
+				temptFeature.put("ID", centerLineShp.getSize());
+				temptFeature.put("BankID1", temptCenterLine.getBankLineID().get(0));
+				temptFeature.put("BankID2", temptCenterLine.getBankLineID().get(1));
+
+				centerLineShp.addFeature(temptCenterLine.getBankLineBoundaryPolygon().Intersection(mergedCenterLine),
+						temptFeature);
+			} catch (Exception e) {
 			}
-
-			// start centerLine processing
-			CenterLine temptCenterLine = centerLineList.get(index);
-
-			// create centerLine by bufferPolygon
-			GDAL_VECTOR_CenterLine centerLineAlgorithm = new GDAL_VECTOR_CenterLine(
-					temptCenterLine.getBufferBankLinePolygon());
-			centerLineAlgorithm.setVerticeDensitive(centerLineVerticeInterval);
-			List<Geometry> centerLineGeoList = centerLineAlgorithm.getGeoList();
-
-			// clip centerLine by boundary bankLine
-			Geometry mergedCenterLine = GdalGlobal.mergePolygons(centerLineGeoList);
-
-			// output properties
-			Map<String, Object> temptFeature = new HashMap<>();
-			temptFeature.put("ID", centerLineShp.getSize());
-			temptFeature.put("BankID1", temptCenterLine.getBankLineID().get(0));
-			temptFeature.put("BankID2", temptCenterLine.getBankLineID().get(1));
-
-			centerLineShp.addFeature(temptCenterLine.getBankLineBoundaryPolygon().Intersection(mergedCenterLine),
-					temptFeature);
 		}
+		System.out.println();
 
 		// output shpFile
 		centerLineShp.saveAsShp(testingWorkSpace + centerLineHydemPolygons);
@@ -333,6 +347,19 @@ public class HyDEM_CreateCenterLine {
 
 		public List<Integer> getBankLineID() {
 			return this.bankLineID;
+		}
+
+		public double getBankLineSpecificDefensify() {
+			double specificDefensify = this.bankLineBoundaryPolygon.Area()
+					/ (this.bankLineBoundaryPolygon.Boundary().Length() / 2) / 2;
+
+			if (specificDefensify > centerLineVerticeInterval) {
+				return centerLineVerticeInterval;
+			} else if (specificDefensify < 1) {
+				return 1;
+			} else {
+				return (int) specificDefensify;
+			}
 		}
 	}
 

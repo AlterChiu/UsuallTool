@@ -23,14 +23,16 @@ import testFolder.SOBEK_OBJECT.SobekBankLine;
 
 public class HyDEM_ReLinedBankLine {
 	public static int dataDecimal = 4;
+	public static Map<String, List<EdgeClass>> sobekDirection = new HashMap<>();
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		
+
 		String testingWorkSpace = WorkSpace.testingWorkSpace;
 		String splitHydemPolygons = WorkSpace.splitHydemPolygons;
 		String bankLineHydem = WorkSpace.bankLineHydem;
-		
+		String sobekShpFolder = WorkSpace.sobkeFolder;
+
 		// <================================================>
 		// <====== ReCraete pairs bankLine from splitHyDEM polygon ========>
 		// <================================================>
@@ -44,6 +46,14 @@ public class HyDEM_ReLinedBankLine {
 
 		IrregularNetBasicControl splitBanKLinePolygons = new IrregularNetBasicControl(
 				new SpatialReader(testingWorkSpace + splitHydemPolygons));
+
+		// get reach direction while there are multiple direction on crossSection
+		try {
+			sobekDirection = detectDirectionFromSbk(splitBanKLinePolygons.getFaceList(), sobekShpFolder);
+		} catch (Exception e) {
+			new Exception("no sbk-shp files are beeing detected");
+		}
+
 		List<Geometry> outGeo = new ArrayList<>();
 
 		// only store the key of end face, which used
@@ -215,9 +225,7 @@ public class HyDEM_ReLinedBankLine {
 			} catch (Exception e) {
 			}
 		}
-		
-		
-		
+
 		// output shp
 		SpatialWriter hyDEMBankLine = new SpatialWriter();
 		hyDEMBankLine.addFieldType("ID", "Integer");
@@ -291,35 +299,46 @@ public class HyDEM_ReLinedBankLine {
 				 */
 				else if (nextFaceAvalibleDirection.size() > 2) {
 
-					Collections.sort(nextFaceAvalibleDirection, new Comparator<EdgeClass>() {
-						@Override
-						public int compare(EdgeClass e1, EdgeClass e2) {
-							int compare = (int) (e2.getLength() * Math.pow(10, dataDecimal))
-									- (int) (e1.getLength() * Math.pow(10, dataDecimal));
-							if (compare == 0) {
-								return 1;
-							} else {
-								return compare;
+					/*
+					 * decide direction, Sobek rule
+					 */
+					List<EdgeClass> temptDirectionList = new ArrayList<>();
+					if (sobekDirection.containsKey(startFace.getFaceKey())) {
+						temptDirectionList = sobekDirection.get(startFace.getFaceKey());
+
+						/*
+						 * decide direction, basic rule : detect the longest edge
+						 */
+					} else {
+						Collections.sort(nextFaceAvalibleDirection, new Comparator<EdgeClass>() {
+							@Override
+							public int compare(EdgeClass e1, EdgeClass e2) {
+								int compare = (int) (e2.getLength() * Math.pow(10, dataDecimal))
+										- (int) (e1.getLength() * Math.pow(10, dataDecimal));
+								if (compare == 0) {
+									return 1;
+								} else {
+									return compare;
+								}
 							}
-						}
-					});
+						});
 
-					List<EdgeClass> temptList = new ArrayList<>();
-					temptList.add(nextFaceAvalibleDirection.get(0));
-					temptList.add(nextFaceAvalibleDirection.get(1));
-
-					// get not used face which on crossSection
-					for (int index = 2; index < nextFaceAvalibleDirection.size(); index++) {
-						this.leftEdgeFaceKeyMap.put(nextFaceAvalibleDirection.get(index).getKey(),
-								nextFace.getFaceKey());
+						temptDirectionList.add(nextFaceAvalibleDirection.get(0));
+						temptDirectionList.add(nextFaceAvalibleDirection.get(1));
 					}
 
+					// get not used face which on crossSection
+					for (EdgeClass edge : nextFaceAvalibleDirection) {
+						if (!temptDirectionList.contains(edge)) {
+							this.leftEdgeFaceKeyMap.put(edge.getKey(), nextFace.getFaceKey());
+						}
+					}
 					nextFaceAvalibleDirection.clear();
-					nextFaceAvalibleDirection = temptList;
+					nextFaceAvalibleDirection = temptDirectionList;
 
 					// if available direction is include current direction,
 					// add this crossSection face to current bankLine
-					if (temptList.contains(directionEdge)) {
+					if (nextFaceAvalibleDirection.contains(directionEdge)) {
 
 						// check for go back to same crossSection
 						if (!passCrossSectionFaceID.contains(nextFace.getFaceKey())) {
@@ -339,13 +358,13 @@ public class HyDEM_ReLinedBankLine {
 
 						// if not stop detecting bankLine
 					} else {
-						try {
-							Geometry temptGeo = temptGeoList.get(temptGeoList.size() - 1);
-							temptGeoList.remove(temptGeoList.size() - 1);
-							temptGeo = temptGeo.Difference(nextFace.getGeo().Buffer(1));
-							temptGeoList.add(temptGeo);
-						} catch (Exception e) {
-						}
+//						try {
+//							Geometry temptGeo = temptGeoList.get(temptGeoList.size() - 1);
+//							temptGeoList.remove(temptGeoList.size() - 1);
+//							temptGeo = temptGeo.Difference(nextFace.getGeo().Buffer(1));
+//							temptGeoList.add(temptGeo);
+//						} catch (Exception e) {
+//						}
 						break;
 					}
 
@@ -441,8 +460,102 @@ public class HyDEM_ReLinedBankLine {
 		}
 
 		// outGeo
-		Geometry mergedPolygon =  GdalGlobal.mergePolygons(outGeo);
+		Geometry mergedPolygon = GdalGlobal.mergePolygons(outGeo);
 		return mergedPolygon;
+	}
+
+	private static Map<String, List<EdgeClass>> detectDirectionFromSbk(List<FaceClass> faceList, String sbkFolder) {
+
+		// main stream
+		List<Geometry> mainStreamGeoList = new SpatialReader(sbkFolder + "\\Sbk_Lat_n.shp").getGeometryList();
+		Geometry mainStreamGeo = GdalGlobal.mergePolygons(mainStreamGeoList);
+
+//		 other stream
+//		List<Geometry> otherStreamGeoList = new ArrayList<>();
+//
+//		// Sbk_ExtraResistance_n
+//		try {
+//			new SpatialReader(sbkFolder + "\\Sbk_ExtraResistance_n.shp").getGeometryList().forEach(geo -> {
+//				otherStreamGeoList.add(geo);
+//			});
+//		} catch (Exception e) {
+//		}
+//
+//		// SbkUWeir_n
+//		try {
+//			new SpatialReader(sbkFolder + "\\SbkUWeir_n.shp").getGeometryList().forEach(geo -> {
+//				otherStreamGeoList.add(geo);
+//			});
+//		} catch (Exception e) {
+//		}
+//		Geometry otherStreamGeo = GdalGlobal.mergePolygons(otherStreamGeoList);
+
+		// detect edge
+		Map<String, List<EdgeClass>> outMap = new HashMap<>();
+		faceList.forEach(face -> {
+			List<EdgeClass> avaliableDirection = getBankLineAvaliableDirection(face);
+			if (avaliableDirection.size() > 2) {
+				// detect mainStream
+				Geometry mainStreamPoint = face.getGeo().Intersection(mainStreamGeo);
+				if (mainStreamPoint.GetGeometryCount() == 2) {
+					Geometry point1 = mainStreamPoint.GetGeometryRef(0);
+					Geometry point2 = mainStreamPoint.GetGeometryRef(1);
+
+					double mainStreamCenterX = (point1.GetX() + point2.GetX()) / 2;
+					double mainStreamCenterY = (point1.GetY() + point2.GetY()) / 2;
+
+					// vector1
+					double vectorX1 = point1.GetX() - mainStreamCenterX;
+					double vectorY1 = point1.GetY() - mainStreamCenterY;
+					double vector1 = Math.sqrt(Math.pow(vectorX1, 2) + Math.pow(vectorY1, 2));
+					double vectorDegree1 = Double.POSITIVE_INFINITY;
+					EdgeClass direction1 = avaliableDirection.get(0);
+
+					// vector2
+					double vectorX2 = point2.GetX() - mainStreamCenterX;
+					double vectorY2 = point2.GetY() - mainStreamCenterY;
+					double vector2 = Math.sqrt(Math.pow(vectorX2, 2) + Math.pow(vectorY2, 2));
+					double vectorDegree2 = Double.POSITIVE_INFINITY;
+					EdgeClass direction2 = avaliableDirection.get(0);
+
+					// detect direction
+					for (EdgeClass directionEdge : avaliableDirection) {
+						double directionCenterX = directionEdge.getCenterX();
+						double directionCenterY = directionEdge.getCenterY();
+
+						double directionVectorX = directionCenterX - mainStreamCenterX;
+						double directionVectorY = directionCenterY - mainStreamCenterY;
+						double directionVector = Math
+								.sqrt(Math.pow(directionVectorX, 2) + Math.pow(directionVectorY, 2));
+
+						double directionDegree1 = Math
+								.abs(Math.acos((directionVectorX * vectorX1 + directionVectorY * vectorY1)
+										/ (directionVector * vector1)));
+						if (vectorDegree1 > directionDegree1) {
+							vectorDegree1 = directionDegree1;
+							direction1 = directionEdge;
+						}
+
+						double directionDegree2 = Math
+								.abs(Math.acos((directionVectorX * vectorX2 + directionVectorY * vectorY2)
+										/ (directionVector * vector2)));
+						if (vectorDegree2 > directionDegree2) {
+							vectorDegree2 = directionDegree2;
+							direction2 = directionEdge;
+						}
+					}
+
+					// double check, exception while both direction is the same
+					if (direction2 != direction1) {
+						List<EdgeClass> temptEdgeList = new ArrayList<>();
+						temptEdgeList.add(direction1);
+						temptEdgeList.add(direction2);
+						outMap.put(face.getFaceKey(), temptEdgeList);
+					}
+				}
+			}
+		});
+		return outMap;
 	}
 
 }

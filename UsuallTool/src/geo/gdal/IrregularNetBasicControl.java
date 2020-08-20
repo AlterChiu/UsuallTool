@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.gdal.gdal.gdal;
 import org.gdal.ogr.Geometry;
 
 import usualTool.AtCommonMath;
@@ -95,7 +94,6 @@ public class IrregularNetBasicControl {
 						try {
 							zString = point[2];
 						} catch (Exception e) {
-							System.out.println(123);
 						}
 						coordinate_Z.put(key, zString);
 					}
@@ -179,18 +177,18 @@ public class IrregularNetBasicControl {
 				}
 
 				// face
-				Collections.sort(faceKeyList);
-				String faceKey = String.join("_", faceKeyList);
-				Geometry centroid = geo.Centroid();
-				temptFace.setIndex(this.faceList.size());
-				temptFace.setFaceKey(faceKey);
-				temptFace.setCenterX(centroid.GetX());
-				temptFace.setCenterY(centroid.GetY());
-				temptFace.setGeometry(temptGeo);
 				faceKeyList.forEach(index -> {
 					temptFace.addNode(this.nodeMap.get(this.nodeList.get(Integer.parseInt(index))));
 				});
 
+				Geometry centroid = geo.Centroid();
+				temptFace.setIndex(this.faceList.size());
+				temptFace.setCenterX(centroid.GetX());
+				temptFace.setCenterY(centroid.GetY());
+
+				Collections.sort(faceKeyList);
+				String faceKey = String.join("_", faceKeyList);
+				temptFace.setFaceKey(faceKey);
 				this.faceMap.put(faceKey, temptFace);
 				this.faceList.add(faceKey);
 			} else {
@@ -224,6 +222,10 @@ public class IrregularNetBasicControl {
 
 	public List<FaceClass> getFaceList() {
 		return this.faceMap.keySet().parallelStream().map(key -> this.faceMap.get(key)).collect(Collectors.toList());
+	}
+
+	public int getDataDecimal() {
+		return this.dataDecimal;
 	}
 
 	public void exportNodeAsGeoJson(String saveAdd) {
@@ -272,7 +274,7 @@ public class IrregularNetBasicControl {
 		this.edgeMap.keySet().forEach(key -> {
 			List<Double[]> points = new ArrayList<>();
 			this.edgeMap.get(key).getLinkedNode().forEach(node -> {
-				points.add(new Double[] { node.getX(), node.getY(),node.getZ() });
+				points.add(new Double[] { node.getX(), node.getY(), node.getZ() });
 			});
 			geoList.add(GdalGlobal.CreateLine(points));
 		});
@@ -298,7 +300,6 @@ public class IrregularNetBasicControl {
 		private Set<NodeClass> linkedNode = new LinkedHashSet<>();
 		private Set<FaceClass> linkedFace = new LinkedHashSet<>();
 		private Set<EdgeClass> linkedEdge = null;
-		private Geometry geo = null;
 		private String key = "";
 
 		public void setKey(String key) {
@@ -360,19 +361,29 @@ public class IrregularNetBasicControl {
 
 		public NodeClass getOtherNode(NodeClass temptNode) {
 			List<NodeClass> temptNodeList = new ArrayList<>(this.linkedNode);
-			if (temptNodeList.get(0).getIndex() == temptNode.getIndex()) {
-				return temptNodeList.get(1);
+			if (!this.isContain(temptNode)) {
+				new Exception("no such node is containd in edge");
+				return null;
 			} else {
-				return temptNodeList.get(0);
+				if (temptNodeList.get(0).getIndex() == temptNode.getIndex()) {
+					return temptNodeList.get(1);
+				} else {
+					return temptNodeList.get(0);
+				}
 			}
 		}
 
 		public FaceClass getOtherFace(FaceClass temptFace) {
 			List<FaceClass> temptFaceList = new ArrayList<>(this.linkedFace);
-			if (temptFaceList.get(0).getIndex() == temptFace.getIndex()) {
-				return temptFaceList.get(1);
+			if (!this.isLinked(temptFace)) {
+				new Exception("no such face is linked to edge");
+				return null;
 			} else {
-				return temptFaceList.get(0);
+				if (temptFaceList.get(0).getIndex() == temptFace.getIndex()) {
+					return temptFaceList.get(1);
+				} else {
+					return temptFaceList.get(0);
+				}
 			}
 		}
 
@@ -385,18 +396,11 @@ public class IrregularNetBasicControl {
 		}
 
 		public Geometry getGeo() {
-			if (this.geo == null) {
-				List<Double[]> temptList = new ArrayList<>();
-				this.linkedNode.forEach(node -> {
-					List<Double> temptPoint = new ArrayList<>();
-					temptPoint.add(node.getX());
-					temptPoint.add(node.getY());
-					temptPoint.add(node.getZ());
-					temptList.add(temptPoint.parallelStream().toArray(Double[]::new));
-				});
-				this.geo = GdalGlobal.CreateLine(temptList);
-			}
-			return this.geo;
+			List<Double[]> temptList = new ArrayList<>();
+			this.linkedNode.forEach(node -> {
+				temptList.add(new Double[] { node.getX(), node.getY(), node.getZ() });
+			});
+			return GdalGlobal.CreateLine(temptList);
 		}
 
 		public boolean isContain(NodeClass temptNodeClass) {
@@ -440,7 +444,6 @@ public class IrregularNetBasicControl {
 		private double centerX = nullValue;
 		private double centerY = nullValue;
 		private double value = nullValue;
-		private Geometry geo = null;
 		private String faceKey = "";
 		private Set<EdgeClass> linkedEdge = new LinkedHashSet<>();
 		private Set<NodeClass> linkedNode = new LinkedHashSet<>();
@@ -449,10 +452,6 @@ public class IrregularNetBasicControl {
 
 		public void setFaceKey(String key) {
 			this.faceKey = key;
-		}
-
-		public void setGeometry(Geometry geo) {
-			this.geo = geo;
 		}
 
 		public void addNode(NodeClass node) {
@@ -513,6 +512,33 @@ public class IrregularNetBasicControl {
 			return outList;
 		}
 
+		public List<NodeClass> getOtherNode(NodeClass temptNode) {
+			List<NodeClass> outList = this.getLinkedNode();
+			try {
+				outList.remove(temptNode);
+			} catch (Exception e) {
+			}
+			return outList;
+		}
+
+		public List<EdgeClass> getOtherEdge(EdgeClass temptEdge) {
+			List<EdgeClass> outList = this.getLinkedEdge();
+			try {
+				outList.remove(temptEdge);
+			} catch (Exception e) {
+			}
+			return outList;
+		}
+
+		public List<FaceClass> getOtherFace(FaceClass temptFace) {
+			List<FaceClass> outList = this.getLinkedFace();
+			try {
+				outList.remove(temptFace);
+			} catch (Exception e) {
+			}
+			return outList;
+		}
+
 		public double getCenterX() {
 			return this.centerX;
 		}
@@ -526,11 +552,18 @@ public class IrregularNetBasicControl {
 		}
 
 		public double getArea() {
-			return this.geo.Area();
+			return this.getGeo().Area();
 		}
 
 		public Geometry getGeo() {
-			return this.geo;
+			List<NodeClass> nodeList = new ArrayList<>(this.linkedNode);
+			List<Double[]> outList = new ArrayList<>();
+			nodeList.forEach(node -> {
+				outList.add(new Double[] { node.getX(), node.getY(), node.getZ() });
+			});
+			outList.add(new Double[] { nodeList.get(0).getX(), nodeList.get(0).getY(), nodeList.get(0).getZ() });
+
+			return GdalGlobal.CreatePolygon(outList);
 		}
 
 		public String getFaceKey() {
@@ -632,6 +665,18 @@ public class IrregularNetBasicControl {
 			return this.key;
 		}
 
+		public Geometry getGeo() {
+			return GdalGlobal.CreatePoint(this.x, this.y, this.z);
+		}
+
+		public List<NodeClass> getLinkedNode() {
+			List<NodeClass> nodeList = new ArrayList<>();
+			this.getLinkedEdge().forEach(edge -> {
+				Optional.ofNullable(edge.getOtherNode(this)).ifPresent(node -> nodeList.add(node));
+			});
+			return nodeList;
+		}
+
 		public List<EdgeClass> getLinkedEdge() {
 			return new ArrayList<>(this.linkedEdge);
 		}
@@ -657,6 +702,15 @@ public class IrregularNetBasicControl {
 			}
 
 			return new ArrayList<>(outEdgeList);
+		}
+
+		public List<NodeClass> getOtherNode(NodeClass temptNodeClass) {
+			List<NodeClass> outList = this.getLinkedNode();
+			try {
+				outList.remove(temptNodeClass);
+			} catch (Exception e) {
+			}
+			return outList;
 		}
 
 	}
