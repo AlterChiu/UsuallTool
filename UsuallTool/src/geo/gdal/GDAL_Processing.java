@@ -1,3 +1,4 @@
+
 package geo.gdal;
 
 import java.io.File;
@@ -6,9 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.gdal.ogr.Geometry;
-
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
@@ -52,13 +51,13 @@ public class GDAL_Processing {
 			paramteres.put("INPUT", inputAdd);
 
 			// if no address to save file, save to temptFolder
-			String outputTemptFile = GdalGlobal.newTempFileName(this.temptFolder, ".shp");
+			String outputTemptFile = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
 			String outputAdd = Optional.ofNullable(paramteres.get("OUTPUT"))
 					.orElse(this.temptFolder.replace("\\", "/") + "/" + outputTemptFile);
 			paramteres.put("OUTPUT", outputAdd);
 
 		} else if (this.processingAlgrothims.size() == 0) {
-			String outputTemptFile = GdalGlobal.newTempFileName(this.temptFolder, ".shp");
+			String outputTemptFile = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
 			paramteres.put("OUTPUT", this.temptFolder.replace("\\", "/") + "/" + outputTemptFile);
 			paramteres.put("INPUT", this.inputLayer.replace("\\", "/"));
 
@@ -126,7 +125,7 @@ public class GDAL_Processing {
 	}
 
 	public List<Geometry> getDefensigyGeoList() throws IOException, InterruptedException {
-		String temptSaveFileName = GdalGlobal.newTempFileName(this.temptFolder, ".shp");
+		String temptSaveFileName = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
 		String temptSaveFileAdd = this.temptFolder + "\\" + temptSaveFileName;
 		this.saveAsShp(temptSaveFileAdd);
 

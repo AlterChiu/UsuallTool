@@ -1,3 +1,4 @@
+
 package geo.gdal.raster;
 
 import java.awt.geom.Path2D;
@@ -7,9 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.gdal.ogr.Geometry;
-
 import asciiFunction.AsciiBasicControl;
 import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
@@ -55,6 +54,7 @@ public class GDAL_RASTER_ToVector {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
+		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
 		FileFunction.newFolder(this.temptFolder);
 		for (String fileName : new File(this.temptFolder).list()) {
 			FileFunction.delete(this.temptFolder + "\\" + fileName);
@@ -63,7 +63,7 @@ public class GDAL_RASTER_ToVector {
 		/*
 		 * setting temptFile fileName
 		 */
-		String temptFileName = GdalGlobal.newTempFileName(this.temptFolder, ".txt");
+		String temptFileName = GdalGlobal.getTempFileName(this.temptFolder, ".txt");
 		String temptFileDirection = this.temptFolder + temptFileName;
 
 		// translate raster data to asciiFormat
@@ -103,6 +103,7 @@ public class GDAL_RASTER_ToVector {
 		// output geoList and attribute table to spacialFile
 		new SpatialWriter().setGeoList(geoList).setFieldType(dataType).setAttribute(attrData).saceAs(saveAdd,
 				this.outputDataType);
+		FileFunction.delete(this.temptFolder);
 	}
 
 	private Geometry getPolygon(double[] centerPoint, double cellSize) {

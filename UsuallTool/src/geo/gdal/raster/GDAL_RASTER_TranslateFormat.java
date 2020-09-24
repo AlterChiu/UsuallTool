@@ -1,10 +1,10 @@
+
 package geo.gdal.raster;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import geo.gdal.GdalGlobal;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
@@ -43,10 +43,14 @@ public class GDAL_RASTER_TranslateFormat {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
+		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
 		FileFunction.newFolder(this.temptFolder);
 		for (String fileName : new File(this.temptFolder).list()) {
 			FileFunction.delete(this.temptFolder + "\\" + fileName);
 		}
+		String newFolderName = GdalGlobal.getTempFileName(this.temptFolder, "");
+		String newWorkSpace = this.temptFolder + newFolderName + "\\";
+		FileFunction.newFolder(newWorkSpace);
 
 		/*
 		 * save sourceFile to temptFolder
@@ -54,11 +58,9 @@ public class GDAL_RASTER_TranslateFormat {
 		String sourceFileExtension = this.originalFile.substring(this.originalFile.lastIndexOf("."));
 		String saveFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
 
-		String newWorkSpace = this.temptFolder + "\\" + GdalGlobal.newTempFileName(this.temptFolder + "\\", "") + "\\";
-		FileFunction.newFolder(newWorkSpace);
-
-		String temptSorceFile = newWorkSpace + GdalGlobal.newTempFileName(this.temptFolder + "\\", sourceFileExtension);
-		String temptSaveFile = newWorkSpace + GdalGlobal.newTempFileName(this.temptFolder + "\\", saveFileExtension);
+		String temptSorceFile = newWorkSpace + GdalGlobal.getTempFileName(newWorkSpace, sourceFileExtension);
+		String temptSaveFile = this.temptFolder
+				+ GdalGlobal.getTempFileName(this.temptFolder + "\\", saveFileExtension);
 		FileFunction.copyFile(this.originalFile, temptSorceFile);
 
 		/*
@@ -116,7 +118,6 @@ public class GDAL_RASTER_TranslateFormat {
 		 * move temptSaved file to targetAdd
 		 */
 		FileFunction.copyFile(temptSaveFile, saveAdd);
-		FileFunction.delete(newWorkSpace);
-
+		FileFunction.delete(this.temptFolder);
 	}
 }

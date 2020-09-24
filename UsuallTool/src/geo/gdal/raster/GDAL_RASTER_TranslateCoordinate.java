@@ -1,10 +1,10 @@
+
 package geo.gdal.raster;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import geo.gdal.GdalGlobal;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
@@ -29,29 +29,30 @@ public class GDAL_RASTER_TranslateCoordinate {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
+		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
 		FileFunction.newFolder(this.temptFolder);
 		for (String fileName : new File(this.temptFolder).list()) {
 			FileFunction.delete(this.temptFolder + "\\" + fileName);
 		}
-		
+
 		/*
 		 * save sourceFile to temptFolder
 		 */
 		String sourceFileExtension = this.originalFile.substring(this.originalFile.lastIndexOf("."));
 		String saveFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
 
-		String sourceWorkSpace = this.temptFolder + "\\"
-				+ GdalGlobal.newTempFileName(this.temptFolder + "\\", "") + "\\";
-		String targetWorkSpace = this.temptFolder + "\\"
-				+ GdalGlobal.newTempFileName(this.temptFolder + "\\", "") + "\\";
+		String sourceWorkSpace = this.temptFolder + "\\" + GdalGlobal.getTempFileName(this.temptFolder + "\\", "")
+				+ "\\";
+		String targetWorkSpace = this.temptFolder + "\\" + GdalGlobal.getTempFileName(this.temptFolder + "\\", "")
+				+ "\\";
 
 		FileFunction.newFolder(sourceWorkSpace);
 		FileFunction.newFolder(targetWorkSpace);
 
-		String temptSorceFile = sourceWorkSpace + GdalGlobal.newTempFileName(sourceWorkSpace, sourceFileExtension);
+		String temptSorceFile = sourceWorkSpace + GdalGlobal.getTempFileName(sourceWorkSpace, sourceFileExtension);
 		FileFunction.copyFile(this.originalFile, temptSorceFile);
 
-		String temptSaveFile = targetWorkSpace + GdalGlobal.newTempFileName(targetWorkSpace, saveFileExtension);
+		String temptSaveFile = targetWorkSpace + GdalGlobal.getTempFileName(targetWorkSpace, saveFileExtension);
 
 		/*
 		 * setting translate .bat file
@@ -116,8 +117,6 @@ public class GDAL_RASTER_TranslateCoordinate {
 		runProcess.waitFor();
 
 		FileFunction.copyFile(temptSaveFile, saveAdd);
-		FileFunction.delete(sourceWorkSpace);
-		FileFunction.delete(targetWorkSpace);
-
+		FileFunction.delete(this.temptFolder);
 	}
 }

@@ -1,13 +1,11 @@
+
 package geo.common.Task.SOBEK.Modeling;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.gdal.ogr.Geometry;
-
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
@@ -27,9 +25,9 @@ public class ModelingSB_BankLine {
 		 * 
 		 */
 
-		String BankLineFileAdd = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\港尾溝溪-建模測試\\HyDEM_BankLine.shp";
-		String CrossSectionFileAdd = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\港尾溝溪-建模測試\\HyDEM_SplitLine.shp";
-		String outputFileAdd = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\港尾溝溪-建模測試\\ModelingSB_BankLineVertice.shp";
+		String BankLineFileAdd = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\鹽水溪\\HyDEM_BankLine.shp";
+		String CrossSectionFileAdd = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\鹽水溪\\HyDEM_SplitLine.shp";
+		String outputFileAdd = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\鹽水溪\\ModelingSB_BankLineVertice.shp";
 
 		/*
 		 * get CrossSection

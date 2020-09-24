@@ -1,3 +1,4 @@
+
 package geo.gdal;
 
 import java.awt.Rectangle;
@@ -10,19 +11,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.gdal.ogr.Geometry;
-import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 import usualTool.AtCommonMath;
-import usualTool.AtFileWriter;
 import usualTool.MathEqualtion.RandomMaker;
 
 public class GdalGlobal {
@@ -672,45 +664,34 @@ public class GdalGlobal {
 		GdalGlobal.MultiPolyToSingle(geometry).forEach(geo -> {
 			if (geo.GetGeometryName().toUpperCase().equals("POLYGON")
 					|| geo.GetGeometryName().toUpperCase().equals("POLYGONZ")) {
-				outList.add(GeomertyToPath2D_PolygonProcessing(geo));
+				GeomertyToPath2D_PolygonProcessing(geo).forEach(path2D -> outList.add(path2D));
 			}
 		});
 		return outList;
 	}
 
-	private static Path2D GeomertyToPath2D_PolygonProcessing(Geometry geometry) {
-		Path2D outPath = new Path2D.Double();
+	private static List<Path2D> GeomertyToPath2D_PolygonProcessing(Geometry geometry) {
+		List<Path2D> outList = new ArrayList<>();
 
 		// get basic path
-		Geometry temptGeo = geometry.GetGeometryRef(0);
-		double[] outPathStartPoint = new double[2];
-		outPathStartPoint[0] = temptGeo.GetX(0);
-		outPathStartPoint[1] = temptGeo.GetY(0);
+		for (int geoIndex = 0; geoIndex < geometry.GetGeometryCount(); geoIndex++) {
 
-		// picture first path
-		outPath.moveTo(temptGeo.GetPoint(0)[0], temptGeo.GetPoint(0)[1]);
-		for (int index = 1; index < temptGeo.GetPointCount(); index++) {
-			outPath.lineTo(temptGeo.GetPoint(index)[0], temptGeo.GetPoint(index)[1]);
-		}
-		outPath.closePath();
+			Path2D outPath = new Path2D.Double();
+			Geometry temptGeo = geometry.GetGeometryRef(geoIndex);
+			double[] outPathStartPoint = new double[2];
+			outPathStartPoint[0] = temptGeo.GetX(0);
+			outPathStartPoint[1] = temptGeo.GetY(0);
 
-		// get other rings
-		for (int index = 1; index < geometry.GetGeometryCount(); index++) {
-			temptGeo = geometry.GetGeometryRef(index);
-
-			// start from end
-			double[] ringStartPoint = new double[2];
-			ringStartPoint[0] = temptGeo.GetX(temptGeo.GetPointCount());
-			ringStartPoint[1] = temptGeo.GetY(temptGeo.GetPointCount());
-
-			outPath.lineTo(ringStartPoint[0], ringStartPoint[1]);
-			for (int pointIndex = 0; pointIndex < temptGeo.GetPointCount(); pointIndex++) {
-				outPath.lineTo(temptGeo.GetX(pointIndex), temptGeo.GetY(pointIndex));
+			// picture first path
+			outPath.moveTo(temptGeo.GetPoint(0)[0], temptGeo.GetPoint(0)[1]);
+			for (int index = 1; index < temptGeo.GetPointCount(); index++) {
+				outPath.lineTo(temptGeo.GetPoint(index)[0], temptGeo.GetPoint(index)[1]);
 			}
-			outPath.lineTo(outPathStartPoint[0], outPathStartPoint[1]);
+			outPath.closePath();
+			outList.add(outPath);
 		}
 
-		return outPath;
+		return outList;
 	}
 
 	public static Geometry Path2DToGeometry(Path2D path) {
@@ -795,9 +776,7 @@ public class GdalGlobal {
 		return outList;
 	}
 
-	// additionFormat should be like this ".csv",".shp"
-
-	public static String newTempFileName(String folder, String additionFormat) {
+	public static String getTempFileName(String folder, String additionFormat) {
 		StringBuilder temptName = new StringBuilder();
 
 		RandomMaker radom = new RandomMaker();
@@ -807,14 +786,8 @@ public class GdalGlobal {
 		String temptWholeName = temptName.toString() + additionFormat;
 
 		if (new File(folder + temptWholeName).exists()) {
-			return newTempFileName(folder, additionFormat);
+			return getTempFileName(folder, additionFormat);
 		} else {
-			try {
-				new AtFileWriter("", folder + "\\" + temptWholeName).textWriter("");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			return temptWholeName;
 		}
 	}

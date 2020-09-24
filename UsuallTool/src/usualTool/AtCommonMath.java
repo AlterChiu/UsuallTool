@@ -1,3 +1,4 @@
+
 package usualTool;
 
 import java.math.BigDecimal;
@@ -5,7 +6,6 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -177,10 +177,14 @@ public class AtCommonMath {
 	}
 
 	public double getClosestValue(double targetValue) {
+		return getClosestValue(this.valueList, targetValue);
+	}
+
+	public static double getClosestValue(List<Double> valueList, double targetValue) {
 		double dis = Double.POSITIVE_INFINITY;
 		double outValue = Double.NaN;
 
-		for (double temptValue : this.valueList) {
+		for (double temptValue : valueList) {
 			double temptDis = Math.abs(targetValue - temptValue);
 			if (temptDis < dis) {
 				dis = temptDis;

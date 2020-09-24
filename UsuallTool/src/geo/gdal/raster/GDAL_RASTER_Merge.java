@@ -1,10 +1,10 @@
+
 package geo.gdal.raster;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
 import usualTool.AtFileWriter;
@@ -51,6 +51,7 @@ public class GDAL_RASTER_Merge {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
+		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
 		FileFunction.newFolder(this.temptFolder);
 		for (String fileName : new File(this.temptFolder).list()) {
 			FileFunction.delete(this.temptFolder + "\\" + fileName);
@@ -59,7 +60,7 @@ public class GDAL_RASTER_Merge {
 		/*
 		 * setting temptFile fileName
 		 */
-		String temptFileName = GdalGlobal.newTempFileName(this.temptFolder, ".txt");
+		String temptFileName = GdalGlobal.getTempFileName(this.temptFolder, ".txt");
 		String temptFileDirection = this.temptFolder + "\\" + temptFileName;
 
 		/*
@@ -68,7 +69,7 @@ public class GDAL_RASTER_Merge {
 		List<String> mergeList = new ArrayList<>();
 		for (String temptFile : this.mergeFiles) {
 			String sourceFileExtension = temptFile.substring(temptFile.lastIndexOf("."));
-			String sourceFileName = GdalGlobal.newTempFileName(this.temptFolder, sourceFileExtension);
+			String sourceFileName = GdalGlobal.getTempFileName(this.temptFolder, sourceFileExtension);
 			String sourceFileAdd = this.temptFolder + "\\" + sourceFileName;
 
 			FileFunction.copyFile(temptFile, sourceFileAdd);
@@ -79,7 +80,7 @@ public class GDAL_RASTER_Merge {
 		 * merged file SavedAdd
 		 */
 		String targetFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
-		String targetFileName = GdalGlobal.newTempFileName(this.temptFolder, targetFileExtension);
+		String targetFileName = GdalGlobal.getTempFileName(this.temptFolder, targetFileExtension);
 		String targetFileAdd = this.temptFolder + "\\" + targetFileName;
 
 		/*
@@ -129,5 +130,6 @@ public class GDAL_RASTER_Merge {
 		 */
 
 		FileFunction.copyFile(targetFileAdd, saveAdd);
+		FileFunction.delete(this.temptFolder);
 	}
 }

@@ -1,3 +1,4 @@
+
 package asciiFunction;
 
 import java.awt.Rectangle;
@@ -12,13 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
 import org.gdal.ogr.Geometry;
-
 import geo.gdal.GdalGlobal;
 import usualTool.AtCommonMath;
 import usualTool.AtFileReader;
-import usualTool.AtCommonMath.StaticsModel;
 
 public class AsciiBasicControl implements Cloneable {
 	private String[][] asciiContent = null;
@@ -1064,7 +1062,7 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public static AsciiBasicControl getMaxAscii(List<String> asciiFileList) throws Exception {
-		AsciiBasicControl outAscii = new AsciiBasicControl(asciiFileList.get(0)).clone();
+		AsciiBasicControl outAscii = new AsciiBasicControl(asciiFileList.get(0));
 
 		for (String fileAdd : asciiFileList) {
 			AsciiBasicControl temptAscii = new AsciiBasicControl(fileAdd);

@@ -1,12 +1,11 @@
+
 package geo.gdal.vector;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.gdal.ogr.Geometry;
-
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
@@ -34,6 +33,7 @@ public class GDAL_VECTOR_Defensify {
 
 	private void processing(List<Geometry> geoList) {
 		// clear temptFolder
+		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
 		FileFunction.newFolder(this.temptFolder);
 		for (String fileName : new File(this.temptFolder).list()) {
 			FileFunction.delete(this.temptFolder + "\\" + fileName);
@@ -94,11 +94,18 @@ public class GDAL_VECTOR_Defensify {
 		pb.command(command);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
+		this.close();
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
-		this.saveAsShp(this.temptFolder + "\\temptSave.shp");
-		return new SpatialReader(this.temptFolder + "\\temptSave.shp").getGeometryList();
+		String temptSaveName = GdalGlobal.getTempFileName(GdalGlobal.temptFolder, ".shp");
+		this.saveAsShp(GdalGlobal.temptFolder + temptSaveName);
+		List<Geometry> outGeoList = new SpatialReader(GdalGlobal.temptFolder + temptSaveName).getGeometryList();
+		this.close();
+		return outGeoList;
 	}
 
+	private final void close() {
+		FileFunction.delete(this.temptFolder);
+	}
 }

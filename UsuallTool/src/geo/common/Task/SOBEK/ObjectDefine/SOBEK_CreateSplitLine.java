@@ -1,3 +1,4 @@
+
 package geo.common.Task.SOBEK.ObjectDefine;
 
 import java.util.ArrayList;
@@ -5,19 +6,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.gdal.ogr.Geometry;
-
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
 
 public class SOBEK_CreateSplitLine {
 	// workSpace
-	public static String workSpace = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\";
-	public static String sobekObjectWorkSpace = workSpace + "SOBEK物件\\shp-file\\";
-	public static String hydemObjectWorkSpace = workSpace + "溢堤線\\第一期\\";
-	public static String testingWorkSpace = workSpace + "testing\\";
+	public static String workSpace = "E:\\LittleProject\\報告書\\109 - SMM\\測試\\溢堤線更新\\港尾溝溪-建模測試\\";
+	public static String sobekObjectWorkSpace = workSpace + "sbk-shp\\";
+	public static String hydemObjectWorkSpace = workSpace + "溢堤線\\";
+	public static String testingWorkSpace = workSpace;
 
 	// creating fileName
 	public static String pairseBankLine_Error = "SOBEK_BankLinepairesError.shp";

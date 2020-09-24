@@ -1,3 +1,4 @@
+
 package usualTool;
 
 import java.io.File;
@@ -11,14 +12,12 @@ public class FileFunction {
 		try {
 			String filePath = folderPath;
 			filePath = filePath.toString();
-			java.io.File myFilePath = new java.io.File(filePath);
-			if (!myFilePath.exists()) {
-				myFilePath.mkdir();
-			}
+			java.io.File myFilePath = new java.io.File(folderPath);
+			myFilePath.mkdirs();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	
+
 	}
 
 	public static void delete(String path) {

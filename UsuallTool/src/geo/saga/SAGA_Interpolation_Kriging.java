@@ -1,3 +1,4 @@
+
 package geo.saga;
 
 import java.io.File;
@@ -62,7 +63,7 @@ public class SAGA_Interpolation_Kriging {
 
 	// tmeptFile setting
 	private String temptFileName = "";
-	private String temptFileDirection = "";
+	private String temptFileDirection = GdalGlobal.temptFolder + "SagaKrigin";
 
 	/*
 	 ** InterPolationKriging
@@ -92,14 +93,15 @@ public class SAGA_Interpolation_Kriging {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
-		for (String fileName : new File(GdalGlobal.temptFolder).list()) {
-			FileFunction.delete(GdalGlobal.temptFolder + "\\" + fileName);
+		this.temptFileDirection = this.temptFileDirection + GdalGlobal.getTempFileName(this.temptFileDirection, "");
+		for (String fileName : new File(this.temptFileDirection).list()) {
+			FileFunction.delete(this.temptFileDirection + "\\" + fileName);
 		}
 
 		/*
 		 * setting temptFile fileName
 		 */
-		this.temptFileName = GdalGlobal.newTempFileName(GdalGlobal.temptFolder, ".shp");
+		this.temptFileName = GdalGlobal.getTempFileName(GdalGlobal.temptFolder, ".shp");
 		this.temptFileDirection = GdalGlobal.temptFolder + this.temptFileName;
 
 		// convert xyzList to csvFile, which save in temptFile
@@ -293,7 +295,9 @@ public class SAGA_Interpolation_Kriging {
 		// TODO Auto-generated method stub
 		SAGA_RunKriging();
 		GDAL_Translation(this.temptFileDirection + "_pridiction.asc", GdalGlobal_DataFormat.DATAFORMAT_RASTER_AAIGrid);
-		return new AsciiBasicControl(this.temptFileDirection + "_pridiction.asc");
+		AsciiBasicControl outAscii = new AsciiBasicControl(this.temptFileDirection + "_pridiction.asc");
+		this.close();
+		return outAscii;
 	}
 
 	public void saveAsRaster(String saveAdd, String dataFormat) throws InterruptedException, IOException {
@@ -305,5 +309,10 @@ public class SAGA_Interpolation_Kriging {
 		GDAL_Translation(temptSaveFileAdd, dataFormat);
 
 		FileFunction.copyFile(temptSaveFileAdd, saveAdd);
+		this.close();
+	}
+
+	private final void close() {
+		FileFunction.delete(this.temptFileDirection);
 	}
 }
