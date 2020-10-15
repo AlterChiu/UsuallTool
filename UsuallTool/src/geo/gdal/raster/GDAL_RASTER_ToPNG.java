@@ -4,15 +4,17 @@ package geo.gdal.raster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import geo.gdal.GdalGlobal;
+import geo.gdal.RasterReader;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_ToPNG {
-
+	private static double specificNullValue = -1024;
 
 	public static void save(String sourceAdd, Map<Double, Integer[]> colorScale, String saveAdd)
 			throws IOException, InterruptedException {
@@ -31,6 +33,19 @@ public class GDAL_RASTER_ToPNG {
 		String sourceTemptName = GdalGlobal.getTempFileName(temptFolder, sourceFileExtension);
 		String sourceTemptAdd = temptFolder + "\\" + sourceTemptName;
 		FileFunction.copyFile(sourceAdd, sourceTemptAdd);
+
+		// get source properties
+		RasterReader raster = new RasterReader(sourceTemptAdd);
+		double originalNull = raster.getNullValue();
+		raster.setNullValue(GDAL_RASTER_ToPNG.specificNullValue);
+		raster.saveAs(sourceTemptAdd);
+
+		// recreate colorMap
+		Map<Double, Integer[]> temptColorMap = new HashMap<>();
+		temptColorMap.put(originalNull, new Integer[] { 255, 255, 255, 0 });
+		colorScale.keySet().forEach(key -> {
+			temptColorMap.put(key, colorScale.get(key));
+		});
 
 		// setting color table
 		String colorFileName = GdalGlobal.getTempFileName(temptFolder, ".txt");
@@ -67,6 +82,8 @@ public class GDAL_RASTER_ToPNG {
 		runCommand.add("-of");
 		runCommand.add("PNG");
 		runCommand.add("-alpha");
+		runCommand.add("-nearest_color_entry");
+
 		runCommand.add("\"" + sourceTemptAdd + "\"");
 		runCommand.add("\"" + colorFileAdd + "\"");
 		runCommand.add("\"" + saveAdd + "\"");

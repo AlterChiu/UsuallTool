@@ -1,12 +1,15 @@
+
 package geo.gdal;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
+import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
-
+import org.gdal.gdalconst.gdalconst;
 import usualTool.AtCommonMath;
 
 public class RasterReader {
@@ -15,7 +18,6 @@ public class RasterReader {
 	private int dataDecimal = 4;
 
 	// gdal raster object
-	private Dataset rasterData;
 	private Band rasterBand;
 
 	// raster properties
@@ -31,16 +33,13 @@ public class RasterReader {
 	private int row; // start from west , W -> E
 	private int column; // start from north, N -> S
 
-	// only for modified
-	List<Double[]> valueList = new ArrayList<>();
-
 	public RasterReader(String fileAdd) {
 		this.fileAdd = fileAdd;
 
 		// initial raster file
 		gdal.AllRegister();
-		this.rasterData = gdal.Open(this.fileAdd);
-		this.rasterBand = this.rasterData.GetRasterBand(1);
+		Dataset rasterData = gdal.Open(this.fileAdd);
+		this.rasterBand = rasterData.GetRasterBand(1);
 
 		// get noData value
 		Double[] nullVlaue = new Double[1];
@@ -48,18 +47,20 @@ public class RasterReader {
 		this.noDataValue = nullVlaue[0];
 
 		// get raster properties
-		double[] dataProperies = this.rasterData.GetGeoTransform();
+		double[] dataProperies = rasterData.GetGeoTransform();
 		this.minX = AtCommonMath.getDecimal_Double(dataProperies[0], this.dataDecimal);
 		this.maxY = AtCommonMath.getDecimal_Double(dataProperies[3], this.dataDecimal);
 
 		this.xSize = AtCommonMath.getDecimal_Double(dataProperies[1], this.dataDecimal);
-		this.ySize = AtCommonMath.getDecimal_Double(dataProperies[4], this.dataDecimal);
+		this.ySize = AtCommonMath.getDecimal_Double(dataProperies[5], this.dataDecimal);
 
 		this.column = this.rasterBand.getXSize();
 		this.row = this.rasterBand.getYSize();
 
 		this.maxX = AtCommonMath.getDecimal_Double(this.minX + (this.column - 1) * this.xSize, this.dataDecimal);
 		this.minY = AtCommonMath.getDecimal_Double(this.maxY + (this.row - 1) * this.ySize, this.dataDecimal);
+
+		rasterData.delete();
 	}
 
 	// <+++++++++++++++++++++++++++++++++++++>
@@ -67,17 +68,11 @@ public class RasterReader {
 	// <+++++++++++++++++++++++++++++++++++++>
 
 	// start from left top
-	public double getValue(int row, int column) {
-		double[] value = new double[1];
+	public double getValue(int column, int row) {
 		if (row < 0 || column < 0) {
 			return this.noDataValue;
-
-		} else if (this.valueList.isEmpty()) {
-			this.rasterBand.ReadRaster(column, row, 1, 1, value);
-			return value[0];
-
 		} else {
-			return this.valueList.get(row)[column];
+			return this.getValues(column, row, 1, 1).get(0)[0];
 		}
 	}
 
@@ -85,38 +80,26 @@ public class RasterReader {
 		int[] position = getPosition(x, y);
 		int row = position[0];
 		int column = position[1];
-		return getValue(row, column);
+		return getValue(column, row);
 	}
 
-	public List<Double[]> getValues(int row, int column, int xCount, int yCount) {
+	public List<Double[]> getValues(int column, int row, int xCount, int yCount) {
 		List<Double[]> outList = new ArrayList<>();
 
-		if (this.valueList.isEmpty()) {
+		// read from raster
+		double[] valueArray = new double[xCount * yCount];
+		this.rasterBand.ReadRaster(column, row, xCount, yCount, valueArray);
 
-			// read from raster
-			double[] valueArray = new double[xCount * yCount];
-			this.rasterBand.ReadRaster(row, column, xCount, yCount, valueArray);
+		// translate to list
+		for (int outRow = 0; outRow < yCount; outRow++) {
 
-			// translate to list
-			for (int outRow = 0; outRow < yCount; outRow++) {
+			List<Double> temptList = new ArrayList<>();
+			for (int outColumn = 0; outColumn < xCount; outColumn++) {
 
-				List<Double> temptList = new ArrayList<>();
-				for (int outColumn = 0; outColumn < xCount; outColumn++) {
-					int index = outRow * outColumn + outColumn;
-					temptList.add(valueArray[index]);
-				}
-				outList.add(temptList.parallelStream().toArray(Double[]::new));
+				int index = xCount * outRow + outColumn;
+				temptList.add(valueArray[index]);
 			}
-
-			// read from vlaueList
-		} else {
-			for (int outRow = 0; outRow < yCount; outRow++) {
-				List<Double> temptList = new ArrayList<>();
-				for (int outColumn = 0; outColumn < xCount; outColumn++) {
-					temptList.add(this.valueList.get(row)[outColumn]);
-				}
-				outList.add(temptList.parallelStream().toArray(Double[]::new));
-			}
+			outList.add(temptList.parallelStream().toArray(Double[]::new));
 		}
 
 		return outList;
@@ -126,7 +109,7 @@ public class RasterReader {
 		int[] position = getPosition(x, y);
 		int row = position[0];
 		int column = position[1];
-		return getValues(row, column, xCount, yCount);
+		return getValues(column, row, xCount, yCount);
 	}
 
 	public List<Double[]> getVlaues(double minX, double minY, double maxX, double maxY) {
@@ -135,8 +118,8 @@ public class RasterReader {
 		int column = position[1];
 		int xCount = AtCommonMath.getDecimal_Int((maxX - minX) / this.xSize, 1);
 		int yCount = AtCommonMath.getDecimal_Int((minY - maxY) / this.ySize, 1);
-		
-		return getValues(row, column, xCount, yCount);
+
+		return getValues(column, row, xCount, yCount);
 	}
 
 	public double getNullValue() {
@@ -148,7 +131,7 @@ public class RasterReader {
 	}
 
 	public double getMaxX() {
-		return this.minX;
+		return this.maxX;
 	}
 
 	public double getMinY() {
@@ -181,8 +164,10 @@ public class RasterReader {
 	// <+++++++++++++++++++++++++++++++++++++>
 
 	public void setValue(int row, int column, double value) {
-		initiallizeValueArray();
-		this.valueList.get(row)[column] = value;
+		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(64);
+		byteBuffer.order(ByteOrder.nativeOrder());
+		byteBuffer.put((byte) value);
+		this.rasterBand.WriteRaster_Direct(column, row, 1, 1, byteBuffer);
 	}
 
 	public void setValue(double x, double y, double value) {
@@ -192,10 +177,9 @@ public class RasterReader {
 		this.setValue(row, column, value);
 	}
 
-	private void initiallizeValueArray() {
-		if (this.valueList.isEmpty()) {
-			this.valueList = this.getValues(0, 0, this.column, this.row);
-		}
+	public void setNullValue(double nullValue) {
+		this.noDataValue = nullValue;
+		this.rasterBand.SetNoDataValue(nullValue);
 	}
 
 	// <+++++++++++++++++++++++++++++++++++++>
@@ -210,4 +194,29 @@ public class RasterReader {
 		position[1] = column;
 		return position;
 	}
+
+	public void saveAs(String fileAdd) {
+
+		Driver driver = gdal.GetDriverByName("GTiff");
+		Dataset dataset = driver.Create(fileAdd, this.column, this.row, 1, gdalconst.GDT_Float32);
+		dataset.SetGeoTransform(new double[] { this.minX, this.xSize, 0, this.maxY, 0, this.ySize });
+
+		Band band = dataset.GetRasterBand(1);
+		band.SetNoDataValue(this.noDataValue);
+
+
+		List<Double[]> points = this.getValues(0, 0, this.column, this.row);
+		for (int row = 0; row < points.size(); row++) {
+			for (int column = 0; column < points.get(row).length; column++) {
+
+				ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4);
+				byteBuffer.order(ByteOrder.nativeOrder());
+
+				byteBuffer.put((byte) points.get(row)[column].doubleValue());
+				band.WriteRaster(column, row, 1, 1, new double[] { points.get(row)[column] });
+			}
+		}
+		dataset.delete();
+	}
+
 }

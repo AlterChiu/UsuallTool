@@ -1,3 +1,4 @@
+
 package asciiFunction;
 
 import java.io.IOException;
@@ -7,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
-
 import usualTool.AtCommonMath;
 import usualTool.AtFileWriter;
 
@@ -203,6 +203,33 @@ public class XYZToAscii {
 		getSortedTree();
 		setAsciiContent();
 		return this;
+	}
+
+	public AsciiBasicControl getEmptyAscii() throws IOException {
+		setProperty();
+
+		int row = Integer.parseInt(this.property.get("row"));
+		int column = Integer.parseInt(this.property.get("column"));
+		double cellSize = Double.parseDouble(this.property.get("cellSize"));
+		String nullValue = this.property.get("noData");
+
+		List<String[]> asciiContent = new ArrayList<>();
+		asciiContent.add(new String[] { "NCOLS", column + "" });
+		asciiContent.add(new String[] { "NROWS", row + "" });
+		asciiContent.add(new String[] { "XLLCENTER", this.property.get("bottomX") });
+		asciiContent.add(new String[] { "YLLCENTER", this.property.get("bottomY") });
+		asciiContent.add(new String[] { "CELLSIZE", cellSize + "" });
+		asciiContent.add(new String[] { "NODATA_VALUE", nullValue });
+
+		for (int rowIndex = 0; rowIndex < row; rowIndex++) {
+			List<String> temptList = new ArrayList<>();
+			for (int columnIndex = 0; columnIndex < column; columnIndex++) {
+				temptList.add(nullValue);
+			}
+			asciiContent.add(temptList.parallelStream().toArray(String[]::new));
+		}
+
+		return new AsciiBasicControl(asciiContent.parallelStream().toArray(String[][]::new));
 	}
 	// <================================================>
 

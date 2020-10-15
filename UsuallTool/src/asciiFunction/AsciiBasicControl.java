@@ -414,6 +414,11 @@ public class AsciiBasicControl implements Cloneable {
 		return this;
 	}
 
+	public AsciiBasicControl setNullValue(String nullValue) {
+		this.property.put(AsciiBasicControl.nullValueKey, nullValue);
+		return this;
+	}
+
 	public Boolean isNull(double x, double y) {
 		if (this.getValue(x, y).equals(this.getNullValue())) {
 			return true;

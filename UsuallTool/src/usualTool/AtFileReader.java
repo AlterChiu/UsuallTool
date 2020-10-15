@@ -1,15 +1,18 @@
+
 package usualTool;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import org.apache.commons.io.FileUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonParser;
@@ -165,6 +168,15 @@ public class AtFileReader {
 	public JsonElement getJson() throws JsonIOException, JsonSyntaxException, FileNotFoundException {
 		JsonElement jsonElement = new JsonParser().parse(new FileReader(fileAdd));
 		return jsonElement;
+	}
+
+
+	// <get image file>
+	// <______________________________________________________________>
+	public static String getImageAs64Encode(String fileAdd) throws IOException {
+		byte[] fileContent = FileUtils.readFileToByteArray(new File(fileAdd));
+		String encodedString = Base64.getEncoder().encodeToString(fileContent);
+		return encodedString;
 	}
 
 	final void clear() {
