@@ -4,71 +4,22 @@ package geo.gdal.raster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import geo.gdal.GdalGlobal;
-import geo.gdal.RasterReader;
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_ToPNG {
-	private static double specificNullValue = -1024;
 
 	public static void save(String sourceAdd, Map<Double, Integer[]> colorScale, String saveAdd)
 			throws IOException, InterruptedException {
-
 		String temptFolder = GdalGlobal.temptFolder + "RasterToPNG";
-
-		// clear temptFolder
 		temptFolder = temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
-		FileFunction.newFolder(temptFolder);
-		for (String fileName : new File(temptFolder).list()) {
-			FileFunction.delete(temptFolder + "\\" + fileName);
-		}
 
-		// copy original file
-		String sourceFileExtension = sourceAdd.substring(sourceAdd.lastIndexOf("."));
-		String sourceTemptName = GdalGlobal.getTempFileName(temptFolder, sourceFileExtension);
-		String sourceTemptAdd = temptFolder + "\\" + sourceTemptName;
-		FileFunction.copyFile(sourceAdd, sourceTemptAdd);
-
-		// get source properties
-		RasterReader raster = new RasterReader(sourceTemptAdd);
-		double originalNull = raster.getNullValue();
-		raster.setNullValue(GDAL_RASTER_ToPNG.specificNullValue);
-		raster.saveAs(sourceTemptAdd);
-
-		// recreate colorMap
-		Map<Double, Integer[]> temptColorMap = new HashMap<>();
-		temptColorMap.put(originalNull, new Integer[] { 255, 255, 255, 0 });
-		colorScale.keySet().forEach(key -> {
-			temptColorMap.put(key, colorScale.get(key));
-		});
-
-		// setting color table
-		String colorFileName = GdalGlobal.getTempFileName(temptFolder, ".txt");
-		String colorFileAdd = temptFolder + "\\" + colorFileName;
-		List<String[]> colorContext = new ArrayList<>();
-		colorScale.keySet().forEach(key -> {
-			Integer[] rgba = colorScale.get(key);
-
-			List<String> temptLine = new ArrayList<>();
-			temptLine.add(String.valueOf(key));
-			temptLine.add(String.valueOf(rgba[0]));
-			temptLine.add(String.valueOf(rgba[1]));
-			temptLine.add(String.valueOf(rgba[2]));
-			try {
-				temptLine.add(String.valueOf(rgba[3]));
-			} catch (Exception e) {
-				temptLine.add("255");
-			}
-			colorContext.add(temptLine.parallelStream().toArray(String[]::new));
-		});
-		new AtFileWriter(colorContext.parallelStream().toArray(String[][]::new), colorFileAdd).textWriter(" ");
-
-		// build command
+		String sourceTemptAdd = GDAL_RASTER_ToPNG.copyFile(sourceAdd, temptFolder);
+		String colorFileAdd = GDAL_RASTER_ToPNG.outputColorFile(temptFolder, colorScale);
 
 		// run command
 		List<String> runCommand = new ArrayList<>();
@@ -96,6 +47,103 @@ public class GDAL_RASTER_ToPNG {
 
 		FileFunction.delete(temptFolder);
 	}
+
+	public static void save(String sourceAdd, Map<Double, Integer[]> colorScale, String saveAdd, int pixelWidth,
+			int pixelHeight) throws IOException, InterruptedException {
+
+		String temptFolder = GdalGlobal.temptFolder + "RasterToPNG";
+		temptFolder = temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
+
+		// clear folder
+		FileFunction.newFolder(temptFolder);
+		for (String fileName : new File(temptFolder).list()) {
+			FileFunction.delete(temptFolder + "\\" + fileName);
+		}
+
+		// warp
+		String sourceTemptAdd = temptFolder + "\\" + GdalGlobal.getTempFileName(temptFolder, ".tif");
+		String colorFileAdd = GDAL_RASTER_ToPNG.outputColorFile(temptFolder, colorScale);
+
+		// reSample raster
+		GDAL_RASTER_Warp warp = new GDAL_RASTER_Warp(sourceAdd);
+		warp.reSample(pixelWidth, pixelHeight);
+		warp.save(sourceTemptAdd);
+		Thread.sleep(1000);
+
+
+		// run command
+		List<String> runCommand = new ArrayList<>();
+		runCommand.add("cmd");
+		runCommand.add("/c");
+		runCommand.add("start");
+		runCommand.add("/wait");
+		runCommand.add("/B");
+		runCommand.add("gdaldem");
+		runCommand.add("color-relief");
+		runCommand.add("-of");
+		runCommand.add("PNG");
+		runCommand.add("-alpha");
+		runCommand.add("-nearest_color_entry");
+
+		runCommand.add("\"" + sourceTemptAdd + "\"");
+		runCommand.add("\"" + colorFileAdd + "\"");
+		runCommand.add("\"" + saveAdd + "\"");
+
+		ProcessBuilder pb = new ProcessBuilder();
+		pb.directory(new File(GdalGlobal.gdalBinFolder));
+		pb.command(runCommand);
+		Process runProcess = pb.start();
+		runProcess.waitFor();
+
+		System.out.println(sourceTemptAdd);
+		System.out.println(colorFileAdd);
+		System.out.println(saveAdd);
+
+		FileFunction.delete(temptFolder);
+	}
+
+	private static String copyFile(String sourceAdd, String temptFolder) {
+		// clear temptFolder
+
+		FileFunction.newFolder(temptFolder);
+		for (String fileName : new File(temptFolder).list()) {
+			FileFunction.delete(temptFolder + "\\" + fileName);
+		}
+
+		// copy original file
+		String sourceFileExtension = sourceAdd.substring(sourceAdd.lastIndexOf("."));
+		String sourceTemptName = GdalGlobal.getTempFileName(temptFolder, sourceFileExtension);
+		String sourceTemptAdd = temptFolder + "\\" + sourceTemptName;
+		FileFunction.copyFile(sourceAdd, sourceTemptAdd);
+		return sourceTemptAdd;
+	}
+
+	private static String outputColorFile(String temptFolder, Map<Double, Integer[]> colorScale) throws IOException {
+
+		// setting color table
+		String colorFileName = GdalGlobal.getTempFileName(temptFolder, ".txt");
+		String colorFileAdd = temptFolder + "\\" + colorFileName;
+		List<String[]> colorContext = new ArrayList<>();
+		colorScale.keySet().forEach(key -> {
+			Integer[] rgba = colorScale.get(key);
+
+			List<String> temptLine = new ArrayList<>();
+			temptLine.add(String.valueOf(key));
+			temptLine.add(String.valueOf(rgba[0]));
+			temptLine.add(String.valueOf(rgba[1]));
+			temptLine.add(String.valueOf(rgba[2]));
+			try {
+				temptLine.add(String.valueOf(rgba[3]));
+			} catch (Exception e) {
+				temptLine.add("255");
+			}
+			colorContext.add(temptLine.parallelStream().toArray(String[]::new));
+		});
+		new AtFileWriter(colorContext.parallelStream().toArray(String[][]::new), colorFileAdd).textWriter(" ");
+		return colorFileAdd;
+	}
+
+
 
 	public static Map<Double, Integer[]> FEWS_RainfallScale() {
 		Map<Double, Integer[]> outMap = new TreeMap<>();
