@@ -26,7 +26,7 @@ public class GDAL_RASTER_ToPNG {
 		runCommand.add("cmd");
 		runCommand.add("/c");
 		runCommand.add("start");
-		runCommand.add("/wait");
+		runCommand.add("/w");
 		runCommand.add("/B");
 		runCommand.add("gdaldem");
 		runCommand.add("color-relief");
@@ -68,8 +68,6 @@ public class GDAL_RASTER_ToPNG {
 		GDAL_RASTER_Warp warp = new GDAL_RASTER_Warp(sourceAdd);
 		warp.reSample(pixelWidth, pixelHeight);
 		warp.save(sourceTemptAdd);
-		Thread.sleep(1000);
-
 
 		// run command
 		List<String> runCommand = new ArrayList<>();
@@ -94,10 +92,6 @@ public class GDAL_RASTER_ToPNG {
 		pb.command(runCommand);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
-
-		System.out.println(sourceTemptAdd);
-		System.out.println(colorFileAdd);
-		System.out.println(saveAdd);
 
 		FileFunction.delete(temptFolder);
 	}

@@ -114,7 +114,8 @@ public class GDAL_RASTER_Warp {
 		command.add("cmd");
 		command.add("/c");
 		command.add("start");
-		command.add("/B");
+		command.add("/wait");
+		command.add("/b");
 		command.add("gdalwarp");
 		command.add("-overwrite");
 
@@ -126,8 +127,8 @@ public class GDAL_RASTER_Warp {
 
 		this.reSameple.forEach(e -> command.add(e));
 
-		command.add(this.originalFileAdd);
-		command.add(fileAdd);
+		command.add("\"" + this.originalFileAdd + "\"");
+		command.add("\"" + fileAdd + "\"");
 
 		// run command
 		ProcessBuilder pb = new ProcessBuilder();
