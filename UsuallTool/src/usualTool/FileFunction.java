@@ -80,4 +80,23 @@ public class FileFunction {
 		File oldFile = new File(oldPath);
 		oldFile.renameTo(new File(newPath));
 	}
+
+	public static Boolean fileIsLocked(String path) {
+		return new File(path).renameTo(new File(path));
+	}
+
+	public static Boolean watiFileComplete(String path) throws InterruptedException {
+		File temptFile = new File(path);
+		if (!temptFile.exists()) {
+			return false;
+		} else {
+			while (!temptFile.renameTo(new File(path))) {
+				Thread.sleep(5);
+			}
+			return true;
+		}
+	}
+
+
+
 }

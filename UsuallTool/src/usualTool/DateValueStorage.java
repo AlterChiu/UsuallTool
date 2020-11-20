@@ -1,3 +1,4 @@
+
 package usualTool;
 
 import java.io.IOException;
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
+import org.apache.commons.lang3.math.NumberUtils;
 import usualTool.AtCommonMath.StaticsModel;
 
 public class DateValueStorage {
@@ -524,21 +525,40 @@ public class DateValueStorage {
 		return outList.parallelStream().toArray(String[][]::new); // output
 	}
 
-	private Map<String, List<String>> dateStorageFromArrayToMap(String[][] content) {
+	private Map<String, List<String>> dateStorageFromArrayToMap(String[][] content) throws ParseException {
 		Map<String, List<String>> outMap = new LinkedHashMap<>();
 
 		for (int column = 0; column < content[0].length; column++) {
 
-			// set Station values
 			String id = content[0][column];
 			List<String> temptList = new ArrayList<>();
-			for (int row = 1; row < content.length; row++) {
-				try {
-					temptList.add(content[row][column]);
-				} catch (Exception e) {
-					temptList.add("");
+
+			// set date valueList
+			if (id.equals(this.dateKey)) {
+
+				// get date, which decline 1 second
+				for (int row = 1; row < content.length; row++) {
+					temptList.add(TimeTranslate.addSecond(content[row][column], this.dateFormat, -1));
+				}
+				outMap.put(id, temptList);
+
+
+				// set Station values
+			} else {
+				for (int row = 1; row < content.length; row++) {
+					try {
+						// skip not number value
+						if (NumberUtils.isCreatable(content[row][column])) {
+							temptList.add(content[row][column]);
+						} else {
+							temptList.add("");
+						}
+					} catch (Exception e) {
+						temptList.add("");
+					}
 				}
 			}
+
 			outMap.put(id, temptList);
 		}
 

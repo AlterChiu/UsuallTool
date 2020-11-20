@@ -2,6 +2,7 @@
 package geo.gdal.raster;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,12 @@ public class GDAL_RASTER_ToPNG {
 	}
 
 	public static void save(String sourceAdd, Map<Double, Integer[]> colorScale, String saveAdd, int pixelWidth,
-			int pixelHeight) throws IOException, InterruptedException {
+			int pixelHeight) throws Exception {
+
+		// check file is exit
+		if (!new File(sourceAdd).exists())
+			throw new FileNotFoundException("file not found : " + sourceAdd);
+
 
 		String temptFolder = GdalGlobal.temptFolder + "RasterToPNG";
 		temptFolder = temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
@@ -68,6 +74,7 @@ public class GDAL_RASTER_ToPNG {
 		GDAL_RASTER_Warp warp = new GDAL_RASTER_Warp(sourceAdd);
 		warp.reSample(pixelWidth, pixelHeight);
 		warp.save(sourceTemptAdd);
+		FileFunction.watiFileComplete(sourceTemptAdd);
 
 		// run command
 		List<String> runCommand = new ArrayList<>();
@@ -93,6 +100,7 @@ public class GDAL_RASTER_ToPNG {
 		Process runProcess = pb.start();
 		runProcess.waitFor();
 
+		FileFunction.watiFileComplete(saveAdd);
 		FileFunction.delete(temptFolder);
 	}
 
@@ -138,7 +146,6 @@ public class GDAL_RASTER_ToPNG {
 	}
 
 
-
 	public static Map<Double, Integer[]> FEWS_RainfallScale() {
 		Map<Double, Integer[]> outMap = new TreeMap<>();
 		outMap.put(0.0, new Integer[] { 255, 255, 255, 0 });
@@ -173,6 +180,43 @@ public class GDAL_RASTER_ToPNG {
 		outMap.put(2.0, new Integer[] { 255, 0, 0, 125 });
 		outMap.put(2.5, new Integer[] { 205, 41, 144, 125 });
 		outMap.put(3.0, new Integer[] { 255, 0, 255, 125 });
+
+		return outMap;
+	}
+
+	public static Map<Double, Integer[]> CWB_RainfallScale() {
+		Map<Double, Integer[]> outMap = new TreeMap<>();
+		outMap.put(0.0, new Integer[] { 255, 255, 255, 0 });
+		outMap.put(0.0001, new Integer[] { 202, 202, 202, 255 });
+		outMap.put(1.5, new Integer[] { 157, 254, 255, 255 });
+		outMap.put(4., new Integer[] { 0, 209, 253, 255 });
+		outMap.put(8., new Integer[] { 0, 165, 254, 255 });
+		outMap.put(12.5, new Integer[] { 1, 119, 253, 255 });
+		outMap.put(17.5, new Integer[] { 39, 163, 27, 255 });
+		outMap.put(25., new Integer[] { 1, 249, 48, 255 });
+		outMap.put(35., new Integer[] { 254, 253, 50, 255 });
+		outMap.put(45., new Integer[] { 255, 211, 40, 255 });
+		outMap.put(60., new Integer[] { 255, 167, 31, 255 });
+		outMap.put(80., new Integer[] { 254, 43, 6, 255 });
+		outMap.put(100., new Integer[] { 217, 34, 4, 255 });
+		outMap.put(120., new Integer[] { 170, 24, 1, 255 });
+		outMap.put(140., new Integer[] { 170, 33, 163, 255 });
+		outMap.put(175., new Integer[] { 218, 43, 208, 255 });
+		outMap.put(250., new Integer[] { 255, 56, 252, 255 });
+		outMap.put(300., new Integer[] { 255, 214, 254, 255 });
+
+		return outMap;
+	}
+
+	public static Map<Double, Integer[]> WRA_FloodDepth() {
+		Map<Double, Integer[]> outMap = new TreeMap<>();
+		outMap.put(0.0, new Integer[] { 255, 255, 255, 0 });
+		outMap.put(0.001, new Integer[] { 255, 255, 255, 255 });
+		outMap.put(0.4, new Integer[] { 255, 212, 119, 255 });
+		outMap.put(0.75, new Integer[] { 253, 184, 7, 255 });
+		outMap.put(1.5, new Integer[] { 253, 99, 6, 255 });
+		outMap.put(2.5, new Integer[] { 247, 2, 0, 255 });
+		outMap.put(3.0, new Integer[] { 133, 0, 0, 255 });
 
 		return outMap;
 	}

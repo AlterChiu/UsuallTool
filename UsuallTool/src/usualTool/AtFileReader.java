@@ -5,9 +5,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -54,6 +54,16 @@ public class AtFileReader {
 
 	public AtFileReader(String fileAdd, String encode) throws IOException {
 		this.br = new BufferedReader(new InputStreamReader(new FileInputStream(fileAdd), encode));
+		this.fileAdd = fileAdd;
+		String tempt;
+		while ((tempt = br.readLine()) != null) {
+			this.fileContain.add(tempt);
+		}
+		br.close();
+	}
+
+	public AtFileReader(String fileAdd, Charset charset) throws IOException {
+		this.br = new BufferedReader(new InputStreamReader(new FileInputStream(fileAdd), charset));
 		this.fileAdd = fileAdd;
 		String tempt;
 		while ((tempt = br.readLine()) != null) {
@@ -166,7 +176,12 @@ public class AtFileReader {
 	}
 
 	public JsonElement getJson() throws JsonIOException, JsonSyntaxException, FileNotFoundException {
-		JsonElement jsonElement = new JsonParser().parse(new FileReader(fileAdd));
+		StringBuilder sb = new StringBuilder();
+		for (String line : this.fileContain) {
+			sb.append(line);
+		}
+
+		JsonElement jsonElement = new JsonParser().parse(sb.toString());
 		return jsonElement;
 	}
 

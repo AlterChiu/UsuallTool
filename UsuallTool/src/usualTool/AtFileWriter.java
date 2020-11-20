@@ -1,3 +1,4 @@
+
 package usualTool;
 
 import java.io.BufferedWriter;
@@ -6,7 +7,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -76,14 +76,14 @@ public class AtFileWriter {
 			for (int line = 0; line < this.temptDoubleArray.length; line++) {
 				List<String> temptLine = new ArrayList<>();
 				for (int column = 0; column < this.temptDoubleArray[line].length; column++) {
-					temptLine.add(new String(this.temptDoubleArray[line][column].getBytes(), this.encode));
+					temptLine.add(this.temptDoubleArray[line][column]);
 				}
 				writer.write(String.join(split, temptLine) + "\r\n");
 			}
 
 		} else if (temptArray != null) {
 			for (int i = 0; i < this.temptArray.length; i++) {
-				writer.write(new String(temptArray[i].getBytes(), this.encode) + "\r\n");
+				writer.write(temptArray[i] + "\r\n");
 			}
 		}
 		writer.close();

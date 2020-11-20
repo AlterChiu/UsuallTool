@@ -1,24 +1,19 @@
 
 package geo.gdal;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.imageio.ImageIO;
-import org.apache.commons.io.FilenameUtils;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
-import usualTool.AtColorControl;
+import geo.gdal.raster.GDAL_RASTER_ToPNG;
+import geo.gdal.raster.GDAL_RASTER_Warp;
 import usualTool.AtCommonMath;
 
 public class RasterReader {
@@ -226,27 +221,13 @@ public class RasterReader {
 		dataset.delete();
 	}
 
-	public void saveAsImage(String fileAdd, Map<Double, Integer[]> colorMap) throws IOException {
-		BufferedImage bufferedImage = new BufferedImage(this.column, this.row, BufferedImage.TYPE_4BYTE_ABGR);
-		AtColorControl colorControl = new AtColorControl(colorMap);
+	public void saveAsImage(String fileAdd, Map<Double, Integer[]> colorMap) throws IOException, InterruptedException {
+		GDAL_RASTER_ToPNG.save(this.fileAdd, colorMap, fileAdd);
+	}
 
-		Graphics2D graphic = bufferedImage.createGraphics();
-		for (int temptRow = 0; temptRow < this.row; temptRow++) {
-			for (int temptColumn = 0; temptColumn < this.column; temptColumn++) {
-
-				double value = this.getValue(temptColumn, temptRow);
-				if (Math.abs(this.noDataValue - value) > Math.pow(10, -1 * this.dataDecimal)) {
-					graphic.setColor(colorControl.getNeareastColor(value));
-				} else {
-					graphic.setColor(new Color(255, 255, 255, 0));
-				}
-				graphic.fillRect(temptColumn, temptRow, temptColumn + 1, temptRow + 1);
-			}
-		}
-		graphic.dispose();
-		File file = new File(fileAdd);
-		ImageIO.write(bufferedImage, FilenameUtils.getExtension(fileAdd), file);
-
+	public static void saveAs(String fileAdd, String saveAdd) throws InterruptedException, IOException {
+		GDAL_RASTER_Warp warp = new GDAL_RASTER_Warp(fileAdd);
+		warp.save(saveAdd);
 	}
 
 

@@ -1,9 +1,9 @@
+
 package usualTool;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
 public class TimeTranslate {
@@ -37,6 +37,17 @@ public class TimeTranslate {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
 		return dateFormat.parse(time).getTime();
 	}
+
+	static public String addSecond(String time, String format) throws ParseException {
+		long milliTime = getDateLong(time, format) + 1000;
+		return getDateString(milliTime, format);
+	}
+
+	static public String addSecond(String time, String format, int delay) throws ParseException {
+		long milliTime = getDateLong(time, format) + 1000 * delay;
+		return getDateString(milliTime, format);
+	}
+
 
 	static public String addMinute(String time, String format) throws ParseException {
 		long milliTime = getDateLong(time, format) + 60000;
