@@ -18,7 +18,17 @@ import usualTool.AtCommonMath;
 import usualTool.MathEqualtion.RandomMaker;
 
 public class GdalGlobal {
-
+	
+	/*
+	 * EnviromentSetting
+	 * path:	./bin;	./bin/proj/apps; ./bin/gdal/apps; ./bin/ms/apps
+	 * GDAL_DRIVER: ./bin/gdal/plugins
+	 * GDAL_DATA: ./bin/gdal-data
+	 */
+	
+	
+	
+	
 	/*
 	 * library & temptFolder
 	 */
