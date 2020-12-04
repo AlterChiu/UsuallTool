@@ -1,10 +1,10 @@
+
 package Microsoft.Office.Excel.Chart;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
@@ -33,15 +33,15 @@ public class ExcelChart {
 	public static void toPNG(String excelFilePath, String targetSheet) throws IOException, InterruptedException {
 		outputChart(excelFilePath, targetSheet, "PNG");
 	}
-	
+
 	public static void toJPEG(String excelFilePath, String targetSheet) throws IOException, InterruptedException {
 		outputChart(excelFilePath, targetSheet, "JPEG");
 	}
-	
+
 	public static void toGIF(String excelFilePath, String targetSheet) throws IOException, InterruptedException {
 		outputChart(excelFilePath, targetSheet, "GIF");
 	}
-	
+
 	private static void outputChart(String excelFilePath, String targetSheet, String outputFormat)
 			throws IOException, InterruptedException {
 
@@ -74,14 +74,21 @@ public class ExcelChart {
 		vbsContent.add("    For Each chart In targetSheet.ChartObjects()");
 		vbsContent.add("        Set targetChart = chart.chart");
 		vbsContent.add("        outputName = targetChart.ChartTitle.Text");
-		vbsContent.add("        targetChart.Export \"" + excelFolder + "\" & outputName & \"." + outputFormat + "\", \""
+		vbsContent.add("        Chart.Activate");
+		vbsContent.add("        Chart.Activate");
+		vbsContent.add("        ActiveWindow.Zoom = 500");
+		vbsContent.add("        With targetChart");
+		vbsContent.add("            .Paste");
+		vbsContent.add("            .Export \"" + excelFolder + "\" & outputName & \"." + outputFormat + "\", \""
 				+ outputFormat + "\"");
+		vbsContent.add("        End With");
+		vbsContent.add("        ActiveWindow.Zoom = 100");
 		vbsContent.add("	Next");
 
 		// close excel file
 		vbsContent.add("    xl1.Application.Quit");
 		vbsContent.add("End Sub");
-		
+
 		// output vbsFile
 		new AtFileWriter(vbsContent.parallelStream().toArray(String[]::new), excelFolder + "outputChart.vbs")
 				.textWriter("");

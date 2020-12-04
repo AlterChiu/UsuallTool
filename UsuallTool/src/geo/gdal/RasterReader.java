@@ -197,6 +197,28 @@ public class RasterReader {
 		return position;
 	}
 
+	public double[] getCoordinate(int row, int column) {
+		double x = AtCommonMath.getDecimal_Double(this.minX + column * this.xSize, this.dataDecimal);
+		double y = AtCommonMath.getDecimal_Double(this.maxY + row * this.ySize, this.dataDecimal);
+		return new double[] { x, y };
+	}
+
+	public List<Double> getYList() {
+		List<Double> outList = new ArrayList<>();
+		for (int index = 0; index < this.getRow(); index++) {
+			outList.add(this.maxY + this.ySize * index);
+		}
+		return outList;
+	}
+
+	public List<Double> getXList() {
+		List<Double> outList = new ArrayList<>();
+		for (int index = 0; index < this.getColumn(); index++) {
+			outList.add(this.minX + this.xSize * index);
+		}
+		return outList;
+	}
+
 	public void saveAs(String fileAdd) {
 
 		Driver driver = gdal.GetDriverByName("GTiff");
