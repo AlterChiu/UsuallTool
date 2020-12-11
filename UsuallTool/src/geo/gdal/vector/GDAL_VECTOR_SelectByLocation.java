@@ -3,6 +3,7 @@ package geo.gdal.vector;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,7 +39,7 @@ public class GDAL_VECTOR_SelectByLocation {
 
 	private List<Geometry> interSectGeoList = new ArrayList<>();
 
-	public GDAL_VECTOR_SelectByLocation(String inputLayer) {
+	public GDAL_VECTOR_SelectByLocation(String inputLayer) throws UnsupportedEncodingException {
 		processing(new SpatialReader(inputLayer).getGeometryList());
 	}
 
@@ -71,7 +72,7 @@ public class GDAL_VECTOR_SelectByLocation {
 		geoList.forEach(geo -> this.interSectGeoList.add(geo));
 	}
 
-	public void addIntersectGeo(String shpFileAdd) {
+	public void addIntersectGeo(String shpFileAdd) throws UnsupportedEncodingException {
 		new SpatialReader(shpFileAdd).getGeometryList().forEach(geo -> this.interSectGeoList.add(geo));
 	}
 

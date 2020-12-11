@@ -3,6 +3,7 @@ package geo.gdal;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ public class GDAL_Processing {
 	private List<String> processingAlgrothims = new ArrayList<>();
 	private String inputLayer = temptFolder + "//temptShp.shp";
 
-	public GDAL_Processing(String inputLayer) {
+	public GDAL_Processing(String inputLayer) throws UnsupportedEncodingException {
 		processing(new SpatialReader(inputLayer).getGeometryList());
 	}
 

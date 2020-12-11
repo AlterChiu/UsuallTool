@@ -1,12 +1,13 @@
+
 package geo.gdal;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Feature;
@@ -22,44 +23,48 @@ public class SpatialReader {
 	private List<Map<String, Object>> featureTable = new ArrayList<>();
 	private Map<String, String> attributeTitleType = new LinkedHashMap<>();
 	private int EPSG = 4326;
+	private String encoding = "UTF-8";
 
 	// <=========================================>
 	// <constructor>
 	// <=========================================>
-	public SpatialReader(String fileAdd) {
+	public SpatialReader(String fileAdd) throws UnsupportedEncodingException {
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-8");
+		gdal.SetConfigOption("SHAPE_ENCODING", this.encoding);
 		this.dataSource = ogr.Open(fileAdd);
 		detectAttributeTitle();
 		detectAttributeTable();
 		this.close();
 	}
 
-	public SpatialReader(String fileAdd, String encode) {
+	public SpatialReader(String fileAdd, String encode) throws UnsupportedEncodingException {
+		this.encoding = encode;
+
 		gdal.AllRegister();
-		gdal.SetConfigOption("GDAL_FILENAME_IS_" + encode, "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", encode);
+		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
+		gdal.SetConfigOption("SHAPE_ENCODING", this.encoding);
 		this.dataSource = ogr.Open(fileAdd);
 		detectAttributeTitle();
-		detectAttributeTable();
+//		detectAttributeTable();
 		this.close();
 	}
 
-	public SpatialReader(DataSource dataSource) {
+	public SpatialReader(DataSource dataSource) throws UnsupportedEncodingException {
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-8");
+		gdal.SetConfigOption("SHAPE_ENCODING", this.encoding);
 		this.dataSource = dataSource;
 		detectAttributeTitle();
 		detectAttributeTable();
 		this.close();
 	}
 
-	public SpatialReader(DataSource dataSource, String encode) {
+	public SpatialReader(DataSource dataSource, String encode) throws UnsupportedEncodingException {
+		this.encoding = encode;
 		gdal.AllRegister();
-		gdal.SetConfigOption("GDAL_FILENAME_IS_" + encode, "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", encode);
+		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF-8", "YES");
+		gdal.SetConfigOption("SHAPE_ENCODING", this.encoding);
 		this.dataSource = dataSource;
 		detectAttributeTitle();
 		detectAttributeTable();
@@ -198,19 +203,23 @@ public class SpatialReader {
 	 */
 	// <===========================================>
 	// <get the name of attribute titles>
-	private void detectAttributeTitle() {
+	private void detectAttributeTitle() throws UnsupportedEncodingException {
 		FeatureDefn layerDefn = this.dataSource.GetLayer(0).GetLayerDefn();
 		for (int index = 0; index < layerDefn.GetFieldCount(); index++) {
+			String titleName = new String(layerDefn.GetFieldDefn(index).GetName().getBytes("BIG5"), "UTF-8");
+
+
 			// get title name
-			attributeTitles.add(layerDefn.GetFieldDefn(index).GetName());
+			attributeTitles.add(titleName);
 
 			// get title style
-			attributeTitleType.put(layerDefn.GetFieldDefn(index).GetName(),
-					layerDefn.GetFieldDefn(index).GetTypeName().toUpperCase());
+			attributeTitleType.put(titleName, layerDefn.GetFieldDefn(index).GetTypeName().toUpperCase());
 		}
+		System.out.println(new String(layerDefn.GetFieldDefn(1).GetName().getBytes("UTF-8"), "UTF-8"));
+
 	}
 
-	private void detectAttributeTable() {
+	private void detectAttributeTable() throws UnsupportedEncodingException {
 		Layer layer = this.dataSource.GetLayer(0);
 		try {
 			this.EPSG = layer.GetSpatialRef().AutoIdentifyEPSG();
@@ -227,6 +236,8 @@ public class SpatialReader {
 			// get the attribute table
 			Map<String, Object> temptMap = new TreeMap<String, Object>();
 			for (String key : this.attributeTitles) {
+				key = new String(key.getBytes(), this.encoding);
+
 				String type = this.attributeTitleType.get(key);
 				try {
 					if (type.contains("STRING") || type.contains("CHAR") || type.contains("STR")

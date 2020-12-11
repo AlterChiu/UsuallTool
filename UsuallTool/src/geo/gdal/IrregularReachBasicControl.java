@@ -1,5 +1,7 @@
+
 package geo.gdal;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,10 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
 import org.gdal.ogr.Geometry;
-
-import geo.gdal.IrregularNetBasicControl.EdgeClass;
 import usualTool.AtCommonMath;
 
 public class IrregularReachBasicControl {
@@ -36,7 +35,7 @@ public class IrregularReachBasicControl {
 	/*
 	 * <=============== Constructor ==========================>
 	 */
-	public IrregularReachBasicControl(String fileAdd) {
+	public IrregularReachBasicControl(String fileAdd) throws UnsupportedEncodingException {
 		SpatialReader sp = new SpatialReader(fileAdd);
 		this.geoList = sp.getGeometryList();
 		this.geoAttrList = sp.getAttributeTable();
@@ -65,7 +64,7 @@ public class IrregularReachBasicControl {
 		process();
 	}
 
-	public IrregularReachBasicControl(String fileAdd, Boolean regeneratGeometry) {
+	public IrregularReachBasicControl(String fileAdd, Boolean regeneratGeometry) throws UnsupportedEncodingException {
 		if (regeneratGeometry)
 			geoListRegenerate();
 		this.geoList = new SpatialReader(fileAdd).getGeometryList();

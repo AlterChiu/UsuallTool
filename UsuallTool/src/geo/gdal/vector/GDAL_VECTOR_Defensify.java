@@ -3,6 +3,7 @@ package geo.gdal.vector;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import org.gdal.ogr.Geometry;
@@ -17,7 +18,7 @@ public class GDAL_VECTOR_Defensify {
 	private String inputLayer = temptFolder + "\\temptShp.shp";
 	private double interval = 1.0;
 
-	public GDAL_VECTOR_Defensify(String inputLayer) {
+	public GDAL_VECTOR_Defensify(String inputLayer) throws UnsupportedEncodingException {
 		processing(new SpatialReader(inputLayer).getGeometryList());
 	}
 

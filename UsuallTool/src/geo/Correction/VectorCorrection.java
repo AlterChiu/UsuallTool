@@ -1,16 +1,15 @@
+
 package geo.Correction;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import org.gdal.ogr.Geometry;
-
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
 import usualTool.MathEqualtion.AtLeastSquareMatrix;
-import usualTool.MathEqualtion.AtMatrix;
 
 public class VectorCorrection {
 	private int variables;
@@ -77,7 +76,7 @@ public class VectorCorrection {
 	public static class GeometryCorrection4 {
 
 		public GeometryCorrection4(String sourceFileAdd, String saveAdd, String saveType, double thita, double ratio,
-				double deltaX, double deltaY) {
+				double deltaX, double deltaY) throws UnsupportedEncodingException {
 
 			// read file
 			// <--------------------------------------------------->

@@ -1,6 +1,7 @@
 
 package geo.common.Task.SOBEK.Modeling;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ import geo.gdal.SpatialWriter;
 
 public class ModelingSB_BankLine {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnsupportedEncodingException {
 		// TODO Auto-generated method stub
 
 		/*

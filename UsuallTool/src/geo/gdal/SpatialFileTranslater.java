@@ -1,7 +1,7 @@
+
 package geo.gdal;
 
 import java.io.File;
-
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Driver;
@@ -12,7 +12,6 @@ import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
-
 import usualTool.FileFunction;
 
 public class SpatialFileTranslater {
@@ -140,9 +139,9 @@ public class SpatialFileTranslater {
 
 		// create output layer
 		if (new File(saveAdd).exists()) {
-			new FileFunction().delete(saveAdd);
+			FileFunction.delete(saveAdd);
 		}
-		
+
 		DataSource outDataSource = dataSourceDriver.CreateDataSource(saveAdd);
 		Layer outLayer = outDataSource.CreateLayer(inputLayer.GetName(), inputLayer.GetSpatialRef());
 

@@ -1,6 +1,7 @@
 
 package geo.common.Task.SOBEK.ObjectDefine;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +33,7 @@ public class SOBEK_CreateSplitLine {
 	public static String centerLineHydemPolygons = "HyDEM_CenterLine.shp";
 	public static String bankLineHydem = "HyDEM_BankLine.shp";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnsupportedEncodingException {
 		// TODO Auto-generated method stub
 
 		// setting Variables

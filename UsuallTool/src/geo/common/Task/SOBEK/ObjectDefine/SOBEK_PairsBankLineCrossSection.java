@@ -1,6 +1,7 @@
 
 package geo.common.Task.SOBEK.ObjectDefine;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,7 +33,7 @@ public class SOBEK_PairsBankLineCrossSection {
 	public static String reachNodesShp = "SOBEK_ReachNode.shp";
 	public static String splitLinePairseBankPoints = "SOBEK_BankPointsLine.shp";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnsupportedEncodingException {
 
 		// setting Variables
 		String sobekObjectWorkSpace = SOBEK_PairsBankLineCrossSection.sobekObjectWorkSpace;

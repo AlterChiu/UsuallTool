@@ -3,6 +3,7 @@ package geo.gdal.vector;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import org.gdal.ogr.Geometry;
@@ -17,7 +18,7 @@ public class GDAL_VECTOR_Voronoi {
 	private String inputLayer = temptFolder + "\\temptPoints.shp";
 	private double buffer = 0.0;
 
-	public GDAL_VECTOR_Voronoi(String inputLayer) {
+	public GDAL_VECTOR_Voronoi(String inputLayer) throws UnsupportedEncodingException {
 		List<Geometry> geoList = new SpatialReader(inputLayer).getGeometryList();
 		processing(geoList);
 	}

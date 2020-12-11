@@ -18,17 +18,15 @@ import usualTool.AtCommonMath;
 import usualTool.MathEqualtion.RandomMaker;
 
 public class GdalGlobal {
-	
+
 	/*
-	 * EnviromentSetting
-	 * path:	./bin;	./bin/proj/apps; ./bin/gdal/apps; ./bin/ms/apps
-	 * GDAL_DRIVER: ./bin/gdal/plugins
-	 * GDAL_DATA: ./bin/gdal-data
+	 * EnviromentSetting path: ./bin; ./bin/proj/apps; ./bin/gdal/apps;
+	 * ./bin/ms/apps GDAL_DRIVER: ./bin/gdal/plugins GDAL_DATA: ./bin/gdal-data
 	 */
-	
-	
-	
-	
+
+
+
+
 	/*
 	 * library & temptFolder
 	 */
@@ -39,6 +37,14 @@ public class GdalGlobal {
 	public static String qgisProcessingPluigins = qgisBinFolder + "apps\\qgis-ltr\\python\\plugins";
 
 	public static String temptFolder = qgisBinFolder + "temptFolder\\";
+
+	public static void setQgisBinFolder(String path) {
+		qgisBinFolder = path + "\\";
+		gdalBinFolder = qgisBinFolder + "bin\\";
+		sagaBinFolder = qgisBinFolder + "apps\\saga-ltr\\";
+		grassBinFolder = qgisBinFolder + "apps\\grass\\grass78\\bin\\";
+		qgisProcessingPluigins = qgisBinFolder + "apps\\qgis-ltr\\python\\plugins";
+	}
 
 	/*
 	 * Coordinate System

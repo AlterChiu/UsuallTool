@@ -1,5 +1,7 @@
+
 package geo.common.Task.HyDEM.BankLine;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -9,23 +11,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.gdal.ogr.Geometry;
-
 import geo.gdal.GdalGlobal;
 import geo.gdal.IrregularNetBasicControl;
+import geo.gdal.IrregularNetBasicControl.EdgeClass;
+import geo.gdal.IrregularNetBasicControl.FaceClass;
 import geo.gdal.IrregularReachBasicControl;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
-import geo.gdal.IrregularNetBasicControl.EdgeClass;
-import geo.gdal.IrregularNetBasicControl.FaceClass;
 import testFolder.SOBEK_OBJECT.SobekBankLine;
 
 public class HyDEM_ReLinedBankLine {
 	public static int dataDecimal = 4;
 	public static Map<String, List<EdgeClass>> sobekDirection = new HashMap<>();
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnsupportedEncodingException {
 		// TODO Auto-generated method stub
 
 		String testingWorkSpace = WorkSpace.testingWorkSpace;
@@ -464,7 +464,8 @@ public class HyDEM_ReLinedBankLine {
 		return mergedPolygon;
 	}
 
-	private static Map<String, List<EdgeClass>> detectDirectionFromSbk(List<FaceClass> faceList, String sbkFolder) {
+	private static Map<String, List<EdgeClass>> detectDirectionFromSbk(List<FaceClass> faceList, String sbkFolder)
+			throws UnsupportedEncodingException {
 
 		// main stream
 		List<Geometry> mainStreamGeoList = new SpatialReader(sbkFolder + "\\Sbk_Lat_n.shp").getGeometryList();

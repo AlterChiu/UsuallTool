@@ -3,6 +3,7 @@ package geo.gdal.vector;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,7 @@ public class GDAL_VECTOR_CenterLine {
 	private Map<String, String> attrType = null;
 
 	// only for polygon
-	public GDAL_VECTOR_CenterLine(String polygonShp) {
+	public GDAL_VECTOR_CenterLine(String polygonShp) throws UnsupportedEncodingException {
 		SpatialReader shpReader = new SpatialReader(polygonShp);
 		this.attrList = shpReader.getAttributeTable();
 		this.attrType = shpReader.getAttributeTitleType();

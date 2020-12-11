@@ -3,6 +3,7 @@ package geo.gdal.vector;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import org.gdal.ogr.Geometry;
@@ -18,7 +19,7 @@ public class GDAL_VECTOR_SplitByLine {
 	private String splitLineLayer = temptFolder + "\\splitLine.shp";
 	private List<Geometry> splitLines = new ArrayList<>();
 
-	public GDAL_VECTOR_SplitByLine(String inputLayer) {
+	public GDAL_VECTOR_SplitByLine(String inputLayer) throws UnsupportedEncodingException {
 		processing(new SpatialReader(inputLayer).getGeometryList());
 	}
 
@@ -52,7 +53,7 @@ public class GDAL_VECTOR_SplitByLine {
 		this.splitLines.add(splitLine);
 	}
 
-	public void addSplitLine(String splitLineSHP) {
+	public void addSplitLine(String splitLineSHP) throws UnsupportedEncodingException {
 		new SpatialReader(splitLineSHP).getGeometryList().forEach(geo -> this.splitLines.add(geo));
 	}
 
