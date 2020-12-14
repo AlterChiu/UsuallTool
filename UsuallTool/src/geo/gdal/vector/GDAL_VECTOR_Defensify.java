@@ -14,8 +14,9 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_VECTOR_Defensify {
-	private String temptFolder = GdalGlobal.temptFolder + "DensifyInterva";
-	private String inputLayer = temptFolder + "\\temptShp.shp";
+	private String prefixName = "DensifyInterva";
+	private String temptFolder = GdalGlobal.temptFolder;
+	private String inputLayer = this.temptFolder + "\\temptShp.shp";
 	private double interval = 1.0;
 
 	public GDAL_VECTOR_Defensify(String inputLayer) throws UnsupportedEncodingException {
@@ -34,11 +35,7 @@ public class GDAL_VECTOR_Defensify {
 
 	private void processing(List<Geometry> geoList) {
 		// clear temptFolder
-		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
-		FileFunction.newFolder(this.temptFolder);
-		for (String fileName : new File(this.temptFolder).list()) {
-			FileFunction.delete(this.temptFolder + "\\" + fileName);
-		}
+		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
 
 		// translate shapeFile to points
 		new SpatialWriter().setGeoList(geoList).saveAsShp(this.inputLayer);
@@ -95,12 +92,13 @@ public class GDAL_VECTOR_Defensify {
 		pb.command(command);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
-		this.close();
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
-		String temptSaveName = GdalGlobal.getTempFileName(GdalGlobal.temptFolder, ".shp");
-		this.saveAsShp(GdalGlobal.temptFolder + temptSaveName);
+		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
+
+		String temptSaveName = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
+		this.saveAsShp(this.temptFolder + temptSaveName);
 		List<Geometry> outGeoList = new SpatialReader(GdalGlobal.temptFolder + temptSaveName).getGeometryList();
 		this.close();
 		return outGeoList;

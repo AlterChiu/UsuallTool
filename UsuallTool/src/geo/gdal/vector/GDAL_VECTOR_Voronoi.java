@@ -14,7 +14,8 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_VECTOR_Voronoi {
-	private String temptFolder = GdalGlobal.temptFolder + "Voronoi";
+	private String prefixName = "Voronoi";
+	private String temptFolder = GdalGlobal.temptFolder;
 	private String inputLayer = temptFolder + "\\temptPoints.shp";
 	private double buffer = 0.0;
 
@@ -35,11 +36,7 @@ public class GDAL_VECTOR_Voronoi {
 
 	private void processing(List<Geometry> geoList) {
 		// clear temptFolder
-		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
-		FileFunction.newFolder(this.temptFolder);
-		for (String fileName : new File(this.temptFolder).list()) {
-			FileFunction.delete(this.temptFolder + "\\" + fileName);
-		}
+		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
 
 		// translate shapeFile to points
 		List<Geometry> outPoints = new ArrayList<>();
@@ -109,8 +106,10 @@ public class GDAL_VECTOR_Voronoi {
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
-		String temptSaveName = GdalGlobal.getTempFileName(GdalGlobal.temptFolder, ".shp");
-		this.saveAsShp(GdalGlobal.temptFolder + temptSaveName);
+		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
+
+		String temptSaveName = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
+		this.saveAsShp(this.temptFolder + temptSaveName);
 		List<Geometry> outGeoList = new SpatialReader(GdalGlobal.temptFolder + temptSaveName).getGeometryList();
 		this.close();
 		return outGeoList;

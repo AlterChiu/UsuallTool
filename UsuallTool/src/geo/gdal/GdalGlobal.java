@@ -15,6 +15,7 @@ import org.gdal.ogr.Geometry;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 import usualTool.AtCommonMath;
+import usualTool.FileFunction;
 import usualTool.MathEqualtion.RandomMaker;
 
 public class GdalGlobal {
@@ -24,13 +25,10 @@ public class GdalGlobal {
 	 * ./bin/ms/apps GDAL_DRIVER: ./bin/gdal/plugins GDAL_DATA: ./bin/gdal-data
 	 */
 
-
-
-
 	/*
 	 * library & temptFolder
 	 */
-	public static String qgisBinFolder = "K:\\Qgis\\3.10.7\\";
+	public static String qgisBinFolder = "K:\\QGIS\\3.10.12\\";
 	public static String gdalBinFolder = qgisBinFolder + "bin\\";
 	public static String sagaBinFolder = qgisBinFolder + "apps\\saga-ltr\\";
 	public static String grassBinFolder = qgisBinFolder + "apps\\grass\\grass78\\bin\\";
@@ -806,5 +804,15 @@ public class GdalGlobal {
 		} else {
 			return temptWholeName;
 		}
+	}
+
+	public static String createTemptFolder(String preFixName) {
+		String folderPath = GdalGlobal.temptFolder + preFixName
+				+ GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "") + "\\";
+		FileFunction.newFolder(folderPath);
+		for (String fileName : new File(folderPath).list()) {
+			FileFunction.delete(folderPath + "\\" + fileName);
+		}
+		return folderPath;
 	}
 }

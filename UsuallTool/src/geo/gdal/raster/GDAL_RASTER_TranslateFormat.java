@@ -10,7 +10,8 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_TranslateFormat {
-	private String temptFolder = GdalGlobal.temptFolder + "RasterTranslateFormat\\";
+	private String prefixName = "RasterTranslateFormat";
+	private String temptFolder = GdalGlobal.temptFolder;
 
 	private String nullValue = "-999";
 	private String originalFile = "";
@@ -43,11 +44,8 @@ public class GDAL_RASTER_TranslateFormat {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
-		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
-		FileFunction.newFolder(this.temptFolder);
-		for (String fileName : new File(this.temptFolder).list()) {
-			FileFunction.delete(this.temptFolder + "\\" + fileName);
-		}
+		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
+
 		String newFolderName = GdalGlobal.getTempFileName(this.temptFolder, "");
 		String newWorkSpace = this.temptFolder + newFolderName + "\\";
 		FileFunction.newFolder(newWorkSpace);
@@ -59,8 +57,7 @@ public class GDAL_RASTER_TranslateFormat {
 		String saveFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
 
 		String temptSorceFile = newWorkSpace + GdalGlobal.getTempFileName(newWorkSpace, sourceFileExtension);
-		String temptSaveFile = this.temptFolder
-				+ GdalGlobal.getTempFileName(this.temptFolder + "\\", saveFileExtension);
+		String temptSaveFile = this.temptFolder + GdalGlobal.getTempFileName(this.temptFolder, saveFileExtension);
 		FileFunction.copyFile(this.originalFile, temptSorceFile);
 
 		/*

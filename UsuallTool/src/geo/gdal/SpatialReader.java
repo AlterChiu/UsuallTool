@@ -1,13 +1,24 @@
 
 package geo.gdal;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
+
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.DataSource;
 import org.gdal.ogr.Feature;
@@ -16,6 +27,11 @@ import org.gdal.ogr.Geometry;
 import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
 
+import geo.gdal.vector.GDAL_VECTOR_Translate;
+import usualTool.AtFileReader;
+import usualTool.AtFileWriter;
+import usualTool.FileFunction;
+
 public class SpatialReader {
 	private DataSource dataSource;
 	private List<String> attributeTitles = new ArrayList<String>();
@@ -23,7 +39,6 @@ public class SpatialReader {
 	private List<Map<String, Object>> featureTable = new ArrayList<>();
 	private Map<String, String> attributeTitleType = new LinkedHashMap<>();
 	private int EPSG = 4326;
-	private String encoding = "UTF-8";
 
 	// <=========================================>
 	// <constructor>
@@ -31,43 +46,30 @@ public class SpatialReader {
 	public SpatialReader(String fileAdd) throws UnsupportedEncodingException {
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", this.encoding);
+
 		this.dataSource = ogr.Open(fileAdd);
 		detectAttributeTitle();
 		detectAttributeTable();
 		this.close();
 	}
 
-	public SpatialReader(String fileAdd, String encode) throws UnsupportedEncodingException {
-		this.encoding = encode;
+	public SpatialReader(String fileAdd, String encode)
+			throws FileNotFoundException, IOException, InterruptedException {
 
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", this.encoding);
-		this.dataSource = ogr.Open(fileAdd);
-		detectAttributeTitle();
-//		detectAttributeTable();
-		this.close();
+
+		this.encodingTranslte(fileAdd, encode);
 	}
 
 	public SpatialReader(DataSource dataSource) throws UnsupportedEncodingException {
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", this.encoding);
+
 		this.dataSource = dataSource;
 		detectAttributeTitle();
 		detectAttributeTable();
 		this.close();
-	}
-
-	public SpatialReader(DataSource dataSource, String encode) throws UnsupportedEncodingException {
-		this.encoding = encode;
-		gdal.AllRegister();
-		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF-8", "YES");
-		gdal.SetConfigOption("SHAPE_ENCODING", this.encoding);
-		this.dataSource = dataSource;
-		detectAttributeTitle();
-		detectAttributeTable();
 	}
 
 	// <===========================================>
@@ -203,11 +205,10 @@ public class SpatialReader {
 	 */
 	// <===========================================>
 	// <get the name of attribute titles>
-	private void detectAttributeTitle() throws UnsupportedEncodingException {
+	private void detectAttributeTitle() {
 		FeatureDefn layerDefn = this.dataSource.GetLayer(0).GetLayerDefn();
 		for (int index = 0; index < layerDefn.GetFieldCount(); index++) {
-			String titleName = new String(layerDefn.GetFieldDefn(index).GetName().getBytes("BIG5"), "UTF-8");
-
+			String titleName = layerDefn.GetFieldDefn(index).GetName();
 
 			// get title name
 			attributeTitles.add(titleName);
@@ -215,8 +216,6 @@ public class SpatialReader {
 			// get title style
 			attributeTitleType.put(titleName, layerDefn.GetFieldDefn(index).GetTypeName().toUpperCase());
 		}
-		System.out.println(new String(layerDefn.GetFieldDefn(1).GetName().getBytes("UTF-8"), "UTF-8"));
-
 	}
 
 	private void detectAttributeTable() throws UnsupportedEncodingException {
@@ -236,7 +235,7 @@ public class SpatialReader {
 			// get the attribute table
 			Map<String, Object> temptMap = new TreeMap<String, Object>();
 			for (String key : this.attributeTitles) {
-				key = new String(key.getBytes(), this.encoding);
+				key = new String(key.getBytes());
 
 				String type = this.attributeTitleType.get(key);
 				try {
@@ -263,8 +262,61 @@ public class SpatialReader {
 		}
 	}
 
+	private void encodingTranslte(String sourcePath, String encoding)
+			throws UnsupportedEncodingException, FileNotFoundException, IOException, InterruptedException {
+
+		// create folder
+		String temptFolder = GdalGlobal.createTemptFolder("Reader");
+		String temptSourceJson = temptFolder + "temptSourceJson.geoJson";
+		String temptConvertJson = temptFolder + "temptConvertJson.geoJson";
+
+		// tempt create filePath
+		GDAL_VECTOR_Translate ogr2ogr = new GDAL_VECTOR_Translate(sourcePath);
+		ogr2ogr.saveAsJson(temptSourceJson);
+
+		// converted encoding
+		String content = String.join("", new AtFileReader(temptSourceJson, encoding).getContain());
+
+		// check quote at ending
+		if (content.contains("\\\"")) {
+			content = content.replace("\\\"\"", "\\\"");
+			content = content.replace("\\\"", "\\\"\"");
+		}
+		if (content.contains("\\\'")) {
+			content = content.replace("\\\'\'", "\\\'");
+			content = content.replace("\\\'", "\\\'\'");
+		}
+
+		// check quote of [\"]
+		int quoteIndex = content.indexOf("\\");
+		while (quoteIndex != -1) {
+
+			// check for next string
+			if (!"\"\'".contains(content.substring(quoteIndex + 1, quoteIndex + 2))) {
+				content = content.substring(0, quoteIndex) + content.substring(quoteIndex + 1, content.length());
+				quoteIndex = content.indexOf("\\", quoteIndex);
+			} else {
+				quoteIndex = content.indexOf("\\", quoteIndex + 1);
+			}
+		}
+
+		new AtFileWriter(content, temptConvertJson).setEncoding("UTF-8").csvWriter();
+
+		// get feature from converted shapeFile
+		SpatialReader convertedShp = new SpatialReader(temptConvertJson);
+		this.attributeTitles = convertedShp.getAttrubuteTitle();
+		this.attributeTitleType = convertedShp.getAttributeTitleType();
+		this.featureTable = convertedShp.getAttributeTable();
+		this.geometryList = convertedShp.getGeometryList();
+		this.EPSG = convertedShp.getEPSG();
+
+		// delete temptFiles
+//		FileFunction.delete(temptFolder);
+	}
+
 	// <==============================================>
 	private void close() {
 		this.dataSource.delete();
 	}
+
 }

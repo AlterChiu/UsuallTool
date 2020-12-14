@@ -85,7 +85,7 @@ public class FileFunction {
 		return new File(path).renameTo(new File(path));
 	}
 
-	public static Boolean watiFileComplete(String path) throws InterruptedException {
+	public static Boolean waitFileComplete(String path) throws InterruptedException {
 		File temptFile = new File(path);
 		if (!temptFile.exists()) {
 			return false;
@@ -97,6 +97,16 @@ public class FileFunction {
 		}
 	}
 
+	public static Boolean waitFile(String path, int maxMillisecond) throws InterruptedException {
 
+		int totalMillisecond = 0;
+		File temptFile = new File(path);
+		while (!temptFile.renameTo(new File(path)) && totalMillisecond < maxMillisecond) {
+			Thread.sleep(5);
+			totalMillisecond = totalMillisecond + 5;
+		}
+
+		return waitFileComplete(path);
+	}
 
 }

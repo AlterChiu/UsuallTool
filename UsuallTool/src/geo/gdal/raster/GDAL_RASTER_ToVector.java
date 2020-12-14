@@ -17,7 +17,8 @@ import usualTool.AtCommonMath;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_ToVector {
-	private String temptFolder = GdalGlobal.temptFolder + "RasterToVector\\";
+	private String prefixName = "RasterToVector";
+	private String temptFolder = GdalGlobal.temptFolder;
 
 	/*
 	 * this function will not using gda_polygonize function because there is
@@ -54,11 +55,7 @@ public class GDAL_RASTER_ToVector {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
-		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
-		FileFunction.newFolder(this.temptFolder);
-		for (String fileName : new File(this.temptFolder).list()) {
-			FileFunction.delete(this.temptFolder + "\\" + fileName);
-		}
+		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
 
 		/*
 		 * setting temptFile fileName

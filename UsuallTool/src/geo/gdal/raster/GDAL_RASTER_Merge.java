@@ -11,7 +11,8 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_Merge {
-	private String temptFolder = GdalGlobal.temptFolder + "RasterMerge\\";
+	private String prefixName = "RasterMerge";
+	private String temptFolder = GdalGlobal.temptFolder;
 	private static String tmeptRunFileName = "gdal_merge_tempt.bat";
 
 	/*
@@ -51,11 +52,7 @@ public class GDAL_RASTER_Merge {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
-		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
-		FileFunction.newFolder(this.temptFolder);
-		for (String fileName : new File(this.temptFolder).list()) {
-			FileFunction.delete(this.temptFolder + "\\" + fileName);
-		}
+		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
 
 		/*
 		 * setting temptFile fileName

@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import geo.gdal.GdalGlobal;
+import usualTool.FileFunction;
 
 public class GDAL_RASTER_Warp {
 	private String originalFileAdd;
-
 
 	// coordinate transalte
 	private List<String> coordinateTranslate = new ArrayList<>();
@@ -23,8 +23,6 @@ public class GDAL_RASTER_Warp {
 
 	// type
 	private List<String> dataType = new ArrayList<>();
-
-
 
 	public GDAL_RASTER_Warp(String fileAdd) {
 		this.originalFileAdd = fileAdd;
@@ -136,6 +134,8 @@ public class GDAL_RASTER_Warp {
 		pb.command(command);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
+
+		FileFunction.waitFile(fileAdd, 180000);
 	}
 
 }

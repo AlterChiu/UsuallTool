@@ -13,104 +13,60 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_ToPNG {
+	private static String prefixName = "RasterToPNG";
+	private static String temptFolder;
+	private static String sourceTemptAdd;
+	private static String colorFileAdd;
 
 	public static void save(String sourceAdd, Map<Double, Integer[]> colorScale, String saveAdd)
 			throws IOException, InterruptedException {
-		String temptFolder = GdalGlobal.temptFolder + "RasterToPNG";
-		temptFolder = temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
 
-		String sourceTemptAdd = GDAL_RASTER_ToPNG.copyFile(sourceAdd, temptFolder);
-		String colorFileAdd = GDAL_RASTER_ToPNG.outputColorFile(temptFolder, colorScale);
+		// initialize
+		GDAL_RASTER_ToPNG.initialize(sourceAdd, colorScale);
 
-		// run command
-		List<String> runCommand = new ArrayList<>();
-		runCommand.add("cmd");
-		runCommand.add("/c");
-		runCommand.add("start");
-		runCommand.add("/w");
-		runCommand.add("/B");
-		runCommand.add("gdaldem");
-		runCommand.add("color-relief");
-		runCommand.add("-of");
-		runCommand.add("PNG");
-		runCommand.add("-alpha");
-		runCommand.add("-nearest_color_entry");
+		// run batFile
+		GDAL_RASTER_ToPNG.runCommand(sourceTemptAdd, colorFileAdd, saveAdd);
 
-		runCommand.add("\"" + sourceTemptAdd + "\"");
-		runCommand.add("\"" + colorFileAdd + "\"");
-		runCommand.add("\"" + saveAdd + "\"");
-
-		ProcessBuilder pb = new ProcessBuilder();
-		pb.directory(new File(GdalGlobal.gdalBinFolder));
-		pb.command(runCommand);
-		Process runProcess = pb.start();
-		runProcess.waitFor();
-
+		// clear temptFolder
 		FileFunction.delete(temptFolder);
 	}
 
 	public static void save(String sourceAdd, Map<Double, Integer[]> colorScale, String saveAdd, int pixelWidth,
 			int pixelHeight) throws Exception {
 
-		// check file is exit
-		if (!new File(sourceAdd).exists())
-			throw new FileNotFoundException("file not found : " + sourceAdd);
-
-
-		String temptFolder = GdalGlobal.temptFolder + "RasterToPNG";
-		temptFolder = temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
-
-		// clear folder
-		FileFunction.newFolder(temptFolder);
-		for (String fileName : new File(temptFolder).list()) {
-			FileFunction.delete(temptFolder + "\\" + fileName);
-		}
-
-		// warp
-		String sourceTemptAdd = temptFolder + "\\" + GdalGlobal.getTempFileName(temptFolder, ".tif");
-		String colorFileAdd = GDAL_RASTER_ToPNG.outputColorFile(temptFolder, colorScale);
+		// initialize
+		GDAL_RASTER_ToPNG.initialize(sourceAdd, colorScale);
 
 		// reSample raster
 		GDAL_RASTER_Warp warp = new GDAL_RASTER_Warp(sourceAdd);
 		warp.reSample(pixelWidth, pixelHeight);
 		warp.save(sourceTemptAdd);
-		FileFunction.watiFileComplete(sourceTemptAdd);
+		FileFunction.waitFile(sourceTemptAdd, 180000);
 
 		// run command
-		List<String> runCommand = new ArrayList<>();
-		runCommand.add("cmd");
-		runCommand.add("/c");
-		runCommand.add("start");
-		runCommand.add("/wait");
-		runCommand.add("/B");
-		runCommand.add("gdaldem");
-		runCommand.add("color-relief");
-		runCommand.add("-of");
-		runCommand.add("PNG");
-		runCommand.add("-alpha");
-		runCommand.add("-nearest_color_entry");
+		GDAL_RASTER_ToPNG.runCommand(sourceTemptAdd, colorFileAdd, saveAdd);
 
-		runCommand.add("\"" + sourceTemptAdd + "\"");
-		runCommand.add("\"" + colorFileAdd + "\"");
-		runCommand.add("\"" + saveAdd + "\"");
-
-		ProcessBuilder pb = new ProcessBuilder();
-		pb.directory(new File(GdalGlobal.gdalBinFolder));
-		pb.command(runCommand);
-		Process runProcess = pb.start();
-		runProcess.waitFor();
-
-		FileFunction.watiFileComplete(saveAdd);
+		FileFunction.waitFile(sourceTemptAdd, 180000);
 		FileFunction.delete(temptFolder);
 	}
 
-	private static String copyFile(String sourceAdd, String temptFolder) {
-		// clear temptFolder
+	// PRIVATE FUNCTION
+	// <=========================================>
+	private static void initialize(String sourceAdd, Map<Double, Integer[]> colorScale) throws IOException {
+		// check file is exit
+		if (!new File(sourceAdd).exists())
+			throw new FileNotFoundException("file not found : " + sourceAdd);
 
-		FileFunction.newFolder(temptFolder);
-		for (String fileName : new File(temptFolder).list()) {
-			FileFunction.delete(temptFolder + "\\" + fileName);
-		}
+		// create temptFolder
+		GDAL_RASTER_ToPNG.temptFolder = GdalGlobal.createTemptFolder(GDAL_RASTER_ToPNG.prefixName);
+
+		// get temptPaths
+		GDAL_RASTER_ToPNG.sourceTemptAdd = GDAL_RASTER_ToPNG.copyFile(sourceAdd, temptFolder);
+		GDAL_RASTER_ToPNG.colorFileAdd = GDAL_RASTER_ToPNG.outputColorFile(temptFolder, colorScale);
+	}
+
+	// create tempt folder
+	private static String copyFile(String sourceAdd, String temptFolder) {
 
 		// copy original file
 		String sourceFileExtension = sourceAdd.substring(sourceAdd.lastIndexOf("."));
@@ -145,7 +101,34 @@ public class GDAL_RASTER_ToPNG {
 		return colorFileAdd;
 	}
 
+	private static void runCommand(String sourceTemptAdd, String colorFileAdd, String saveAdd)
+			throws IOException, InterruptedException {
+		List<String> runCommand = new ArrayList<>();
+		runCommand.add("cmd");
+		runCommand.add("/c");
+		runCommand.add("start");
+		runCommand.add("/w");
+		runCommand.add("/B");
+		runCommand.add("gdaldem");
+		runCommand.add("color-relief");
+		runCommand.add("-of");
+		runCommand.add("PNG");
+		runCommand.add("-alpha");
+		runCommand.add("-nearest_color_entry");
 
+		runCommand.add("\"" + sourceTemptAdd + "\"");
+		runCommand.add("\"" + colorFileAdd + "\"");
+		runCommand.add("\"" + saveAdd + "\"");
+
+		ProcessBuilder pb = new ProcessBuilder();
+		pb.directory(new File(GdalGlobal.gdalBinFolder));
+		pb.command(runCommand);
+		Process runProcess = pb.start();
+		runProcess.waitFor();
+	}
+
+	// STYLE
+	// <======================================>
 	public static Map<Double, Integer[]> FEWS_RainfallScale() {
 		Map<Double, Integer[]> outMap = new TreeMap<>();
 		outMap.put(0.0, new Integer[] { 255, 255, 255, 0 });

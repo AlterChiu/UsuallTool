@@ -1,7 +1,10 @@
 package geo.gdal.vector;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +13,7 @@ import org.gdal.ogr.Geometry;
 import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
 import geo.gdal.SpatialReader;
+import usualTool.FileFunction;
 
 public class GDAL_VECTOR_Translate {
 
@@ -62,7 +66,27 @@ public class GDAL_VECTOR_Translate {
 		this.save(saveAdd);
 	}
 
+	public void saveAsJson(String saveAdd) throws IOException, InterruptedException {
+		this.outputDataType = GdalGlobal_DataFormat.DATAFORMAT_VECTOR_GeoJSON;
+		this.save(saveAdd);
+	}
+
 	public void save(String saveAdd) throws IOException, InterruptedException {
+
+		// check file same path
+		if (Paths.get(this.inputFile).toAbsolutePath().toString()
+				.equals(Paths.get(saveAdd).toAbsolutePath().toString())) {
+			throw new IOException("ogr2ogr are not available for same file path conversion");
+
+			// check target file is exist or not
+		} else if (!new File(this.inputFile).exists()) {
+			throw new IOException("source file wasn't fount, " + this.inputFile);
+
+			// check file path is accessible
+		} else if (!new File(saveAdd).exists()) {
+			new File(saveAdd).createNewFile();
+		}
+		FileFunction.delete(saveAdd);
 
 		List<String> command = new ArrayList<>();
 		command.add("cmd");
@@ -85,13 +109,13 @@ public class GDAL_VECTOR_Translate {
 
 		// setting output dataType
 		command.add("-f");
-		command.add(this.outputDataType);
+		command.add("\"" + this.outputDataType + "\"");
 
 		// setting output file add
-		command.add(saveAdd);
+		command.add("\"" + saveAdd + "\"");
 
 		// setting input file add
-		command.add(this.inputFile);
+		command.add("\"" + this.inputFile + "\"");
 
 		// run command
 		ProcessBuilder pb = new ProcessBuilder();
@@ -99,6 +123,8 @@ public class GDAL_VECTOR_Translate {
 		pb.command(command);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
+
+		FileFunction.waitFile(saveAdd, 180000);
 	}
 
 }

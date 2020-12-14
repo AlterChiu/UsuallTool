@@ -10,7 +10,8 @@ import usualTool.AtFileWriter;
 import usualTool.FileFunction;
 
 public class GDAL_RASTER_TranslateCoordinate {
-	private String temptFolder = GdalGlobal.temptFolder + "RasterTanslate\\";
+	private String prefixName = "RasterTanslate";
+	private String temptFolder = GdalGlobal.temptFolder;
 
 	private String originalFile = "";
 	private int inputCoordinate = 0;
@@ -29,11 +30,7 @@ public class GDAL_RASTER_TranslateCoordinate {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
-		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
-		FileFunction.newFolder(this.temptFolder);
-		for (String fileName : new File(this.temptFolder).list()) {
-			FileFunction.delete(this.temptFolder + "\\" + fileName);
-		}
+		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
 
 		/*
 		 * save sourceFile to temptFolder
@@ -41,10 +38,8 @@ public class GDAL_RASTER_TranslateCoordinate {
 		String sourceFileExtension = this.originalFile.substring(this.originalFile.lastIndexOf("."));
 		String saveFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
 
-		String sourceWorkSpace = this.temptFolder + "\\" + GdalGlobal.getTempFileName(this.temptFolder + "\\", "")
-				+ "\\";
-		String targetWorkSpace = this.temptFolder + "\\" + GdalGlobal.getTempFileName(this.temptFolder + "\\", "")
-				+ "\\";
+		String sourceWorkSpace = this.temptFolder + GdalGlobal.getTempFileName(this.temptFolder, "") + "\\";
+		String targetWorkSpace = this.temptFolder + GdalGlobal.getTempFileName(this.temptFolder, "") + "\\";
 
 		FileFunction.newFolder(sourceWorkSpace);
 		FileFunction.newFolder(targetWorkSpace);

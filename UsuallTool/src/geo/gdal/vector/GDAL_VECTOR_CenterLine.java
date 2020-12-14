@@ -14,7 +14,9 @@ import geo.gdal.SpatialWriter;
 import usualTool.FileFunction;
 
 public class GDAL_VECTOR_CenterLine {
-	private String temptFolder = GdalGlobal.temptFolder + "CenterLine";
+	private String prefixName = "CenterLine";
+	private String temptFolder = GdalGlobal.temptFolder;
+
 	private List<Geometry> geoList;
 	private double verticeDensitive = 1.0;
 	private List<Map<String, Object>> attrList = null;
@@ -25,29 +27,17 @@ public class GDAL_VECTOR_CenterLine {
 		SpatialReader shpReader = new SpatialReader(polygonShp);
 		this.attrList = shpReader.getAttributeTable();
 		this.attrType = shpReader.getAttributeTitleType();
-		processing(shpReader.getGeometryList());
+		this.geoList = shpReader.getGeometryList();
 	}
 
 	public GDAL_VECTOR_CenterLine(List<Geometry> geoList) {
-		processing(geoList);
+		this.geoList = geoList;
 	}
 
 	public GDAL_VECTOR_CenterLine(Geometry geometry) {
 		List<Geometry> temptList = new ArrayList<>();
 		temptList.add(geometry);
-
-		processing(temptList);
-	}
-
-	private void processing(List<Geometry> geoList) {
-		// clear temptFolder
-		this.temptFolder = this.temptFolder + "-" + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "");
-		FileFunction.newFolder(this.temptFolder);
-		for (String fileName : new File(this.temptFolder).list()) {
-			FileFunction.delete(this.temptFolder + "\\" + fileName);
-		}
-
-		this.geoList = geoList;
+		this.geoList = temptList;
 	}
 
 	public void setVerticeDensitive(double densitive) {
@@ -114,12 +104,13 @@ public class GDAL_VECTOR_CenterLine {
 			}
 		}
 		outputShp.saceAs(saveAdd, saveingType);
-		this.close();
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
-		String temptSaveName = GdalGlobal.getTempFileName(GdalGlobal.temptFolder, ".shp");
-		this.saveAsShp(GdalGlobal.temptFolder + temptSaveName);
+		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
+
+		String temptSaveName = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
+		this.saveAsShp(this.temptFolder + temptSaveName);
 		List<Geometry> outGeoList = new SpatialReader(GdalGlobal.temptFolder + temptSaveName).getGeometryList();
 		this.close();
 		return outGeoList;
