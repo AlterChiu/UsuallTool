@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import geo.gdal.GdalGlobal;
-import usualTool.FileFunction;
 
 public class GDAL_RASTER_Warp {
 	private String originalFileAdd;
@@ -46,7 +45,7 @@ public class GDAL_RASTER_Warp {
 		if (this.coordinateTranslate.size() == 0) {
 			List<String> temptList = new ArrayList<>();
 			temptList.add("-s_srs");
-			temptList.add("EGSP:" + sourceEPSG);
+			temptList.add("EPSGFE:" + sourceEPSG);
 			this.coordinateTranslate = temptList;
 		}
 
@@ -66,7 +65,7 @@ public class GDAL_RASTER_Warp {
 		if (this.coordinateTranslate.size() == 0) {
 			List<String> temptList = new ArrayList<>();
 			temptList.add("-s_srs");
-			temptList.add("EGSP:" + sourceEPSG);
+			temptList.add("EPSG:" + sourceEPSG);
 			this.coordinateTranslate = temptList;
 		}
 
@@ -80,12 +79,12 @@ public class GDAL_RASTER_Warp {
 
 	public void reSample(double xResolution, double yResolution, int sourceEPSG) {
 		// determine coordination
-		if (this.coordinateTranslate.size() == 0) {
-			List<String> temptList = new ArrayList<>();
-			temptList.add("-s_srs");
-			temptList.add("EGSP:" + sourceEPSG);
-			this.coordinateTranslate = temptList;
-		}
+//		if (this.coordinateTranslate.size() == 0) {
+//			List<String> temptList = new ArrayList<>();
+//			temptList.add("-s_srs");
+//			temptList.add("EPSG:" + sourceEPSG);
+//			this.coordinateTranslate = temptList;
+//		}
 
 		List<String> command = new ArrayList<>();
 		command.add("-tr");
@@ -134,8 +133,6 @@ public class GDAL_RASTER_Warp {
 		pb.command(command);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
-
-		FileFunction.waitFile(fileAdd, 180000);
 	}
 
 }

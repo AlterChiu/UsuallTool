@@ -196,14 +196,10 @@ public class AsciiBasicControl implements Cloneable {
 	}
 
 	public String getValue(int column, int row) {
-		if (row <= 6) {
-			return this.getNullValue();
-		} else {
-			try {
-				return this.asciiContent[row + 6][column];
-			} catch (Exception e) {
-				return this.property.get(nullValueKey);
-			}
+		try {
+			return this.asciiContent[row + 6][column];
+		} catch (Exception e) {
+			return this.property.get(nullValueKey);
 		}
 	}
 

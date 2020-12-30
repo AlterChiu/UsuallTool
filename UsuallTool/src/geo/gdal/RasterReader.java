@@ -48,7 +48,12 @@ public class RasterReader {
 		// get noData value
 		Double[] nullVlaue = new Double[1];
 		this.rasterBand.GetNoDataValue(nullVlaue);
-		this.noDataValue = nullVlaue[0];
+		try {
+			this.noDataValue = nullVlaue[0];
+		} catch (Exception e) {
+			this.noDataValue = -999;
+		}
+
 
 		// get raster properties
 		double[] dataProperies = rasterData.GetGeoTransform();
@@ -159,13 +164,33 @@ public class RasterReader {
 	public int getColumn() {
 		return this.column;
 	}
+
+	public Boolean isNull(int column, int row) {
+		double temptValue = this.getValue(column, row);
+		if (Math.abs(temptValue - this.noDataValue) < 0.0001) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public Boolean isNull(double x, double y) {
+		double temptValue = this.getValue(x, y);
+		if (Math.abs(temptValue - this.noDataValue) < 0.0001) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+
 	// <+++++++++++++++++++++++++++++++++++++>
 
 	// <+++++++++++++++++++++++++++++++++++++>
 	// <++++++++++ modify Raster file +++++++++++++++>
 	// <+++++++++++++++++++++++++++++++++++++>
 
-	public void setValue(int row, int column, double value) {
+	public void setValue(int column, int row, double value) {
 		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(64);
 		byteBuffer.order(ByteOrder.nativeOrder());
 		byteBuffer.put((byte) value);
@@ -197,7 +222,7 @@ public class RasterReader {
 		return position;
 	}
 
-	public double[] getCoordinate(int row, int column) {
+	public double[] getCoordinate(int column, int row) {
 		double x = AtCommonMath.getDecimal_Double(this.minX + column * this.xSize, this.dataDecimal);
 		double y = AtCommonMath.getDecimal_Double(this.maxY + row * this.ySize, this.dataDecimal);
 		return new double[] { x, y };

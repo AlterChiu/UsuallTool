@@ -125,7 +125,7 @@ public class GDAL_RASTER_Merge {
 		/*
 		 * copy merged file to saveAdd
 		 */
-
+		FileFunction.waitFileComplete(targetFileAdd);
 		FileFunction.copyFile(targetFileAdd, saveAdd);
 		FileFunction.delete(this.temptFolder);
 	}
