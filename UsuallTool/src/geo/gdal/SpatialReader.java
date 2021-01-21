@@ -122,8 +122,6 @@ public class SpatialReader {
 		// change type
 		if (this.attributeTitleType.containsKey(oldFieldName)) {
 			this.attributeTitleType.put(newFeildName, this.attributeTitleType.get(oldFieldName));
-		} else {
-			this.attributeTitleType.remove(oldFieldName);
 		}
 
 		// change attrTables

@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.io.FilenameUtils;
 import org.gdal.ogr.Geometry;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
@@ -33,7 +35,6 @@ public class GdalGlobal {
 	public static String sagaBinFolder = qgisBinFolder + "apps\\saga-ltr\\";
 	public static String grassBinFolder = qgisBinFolder + "apps\\grass\\grass78\\bin\\";
 	public static String qgisProcessingPluigins = qgisBinFolder + "apps\\qgis-ltr\\python\\plugins";
-
 	public static String temptFolder = qgisBinFolder + "temptFolder\\";
 
 	public static void setQgisBinFolder(String path) {
@@ -815,4 +816,47 @@ public class GdalGlobal {
 		}
 		return folderPath;
 	}
+
+	public static String extensionAutoDetect(String filePath) {
+		String extension = FilenameUtils.getExtension(filePath).toLowerCase();
+
+		switch (extension) {
+		case "shp":
+			return GdalGlobal_DataFormat.DATAFORMAT_VECTOR_ESRIShapefile;
+		case "json":
+			return GdalGlobal_DataFormat.DATAFORMAT_VECTOR_GeoJSON;
+		case "geojson":
+			return GdalGlobal_DataFormat.DATAFORMAT_VECTOR_GeoJSON;
+		case "kml":
+			return GdalGlobal_DataFormat.DATAFORMAT_VECTOR_KML;
+		case "nc":
+			return GdalGlobal_DataFormat.DATAFORMAT_VECTOR_netCDF;
+		case "dwg":
+			return GdalGlobal_DataFormat.DATAFORMAT_VECTOR_DWG;
+		case "cad":
+			return GdalGlobal_DataFormat.DATAFORMAT_VECTOR_CAD;
+		case "csv":
+			return GdalGlobal_DataFormat.DATAFORMAT_VECTOR_CSV;
+		case "asc":
+			return GdalGlobal_DataFormat.DATAFORMAT_RASTER_AAIGrid;
+		case "tif":
+			return GdalGlobal_DataFormat.DATAFORMAT_RASTER_GTiff;
+		case "gettif":
+			return GdalGlobal_DataFormat.DATAFORMAT_RASTER_GTiff;
+		case "tiff":
+			return GdalGlobal_DataFormat.DATAFORMAT_RASTER_GTiff;
+		case "geotiff":
+			return GdalGlobal_DataFormat.DATAFORMAT_RASTER_GTiff;
+		case "png":
+			return GdalGlobal_DataFormat.DATAFORMAT_RASTER_PNG;
+		case "jpg":
+			return GdalGlobal_DataFormat.DATAFORMAT_RASTER_JPEG;
+		case "jpeg":
+			return GdalGlobal_DataFormat.DATAFORMAT_RASTER_JPEG;
+		default:
+			new Exception("no avalible extension");
+			return "";
+		}
+	}
+
 }
