@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import geo.gdal.GdalGlobal;
 
-public class GDAL_RASTER_Warp {
+public class Gdal_RasterWarp {
 	private String originalFileAdd;
 
 	// coordinate transalte
@@ -23,7 +23,7 @@ public class GDAL_RASTER_Warp {
 	// type
 	private List<String> dataType = new ArrayList<>();
 
-	public GDAL_RASTER_Warp(String fileAdd) {
+	public Gdal_RasterWarp(String fileAdd) {
 		this.originalFileAdd = fileAdd;
 	}
 

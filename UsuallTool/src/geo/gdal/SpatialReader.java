@@ -1,23 +1,17 @@
 
 package geo.gdal;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.DataSource;
@@ -27,16 +21,15 @@ import org.gdal.ogr.Geometry;
 import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
 
-import geo.gdal.vector.GDAL_VECTOR_Translate;
+import geo.gdal.vector.Gdal_VectorTranslate;
 import usualTool.AtFileFunction;
 import usualTool.AtFileReader;
 import usualTool.AtFileWriter;
 
 public class SpatialReader {
 	private DataSource dataSource;
-	private List<String> attributeTitles = new ArrayList<String>();
-	private List<Geometry> geometryList = new ArrayList<Geometry>();
-	private List<Map<String, Object>> featureTable = new ArrayList<>();
+	private List<String> attributeTitles = new ArrayList<>();
+	private List<SpatialFeature> featureList = new ArrayList<>();
 	private Map<String, String> attributeTitleType = new LinkedHashMap<>();
 	private int EPSG = 4326;
 
@@ -60,6 +53,7 @@ public class SpatialReader {
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
 
 		this.encodingTranslte(fileAdd, encode);
+		this.dataSource.delete();
 	}
 
 	public SpatialReader(DataSource dataSource) throws UnsupportedEncodingException {
@@ -84,11 +78,15 @@ public class SpatialReader {
 	}
 
 	public List<Map<String, Object>> getAttributeTable() {
-		return this.featureTable;
+		return this.featureList.parallelStream().map(feature -> feature.getProperties()).collect(Collectors.toList());
 	}
 
 	public List<Geometry> getGeometryList() {
-		return this.geometryList;
+		return this.featureList.parallelStream().map(feature -> feature.getGeometry()).collect(Collectors.toList());
+	}
+
+	public List<SpatialFeature> getFeatureList() {
+		return this.featureList;
 	}
 
 	public DataSource getSpatitalDataSource() {
@@ -106,14 +104,12 @@ public class SpatialReader {
 		}
 
 		Map<String, List<Geometry>> outMap = new LinkedHashMap<>();
-		for (int index = 0; index < this.geometryList.size(); index++) {
-			String attrValue = String.valueOf(this.featureTable.get(index).get(columnID));
-
+		this.featureList.forEach(feature -> {
+			String attrValue = String.valueOf(feature.getProperty(columnID));
 			List<Geometry> temptGeoList = Optional.ofNullable(outMap.get(attrValue)).orElse(new ArrayList<>());
-			temptGeoList.add(this.geometryList.get(index));
+			temptGeoList.add(feature.getGeometry());
 			outMap.put(attrValue, temptGeoList);
-		}
-
+		});
 		return outMap;
 	}
 
@@ -125,9 +121,8 @@ public class SpatialReader {
 		}
 
 		// change attrTables
-		this.featureTable.forEach(feature -> {
-			feature.put(newFeildName, feature.get(oldFieldName));
-			feature.remove(oldFieldName);
+		this.featureList.forEach(feature -> {
+			feature.renameField(oldFieldName, newFeildName);
 		});
 	}
 
@@ -177,23 +172,8 @@ public class SpatialReader {
 	private SpatialWriter getSpatialWriter(String saveAdd, int importCoordinate, int outputCoordinate) {
 		SpatialWriter spWriter = new SpatialWriter();
 		spWriter.setFieldType(this.attributeTitleType);
+		spWriter.setFeatureList(this.featureList);
 
-		List<Geometry> temptGeoList = new ArrayList<>();
-		this.geometryList.forEach(geo -> {
-			temptGeoList.add(GdalGlobal.GeometryTranslator(geo, importCoordinate, outputCoordinate));
-		});
-		spWriter.setGeoList(temptGeoList);
-
-		List<Map<String, Object>> temptList = new ArrayList<>();
-		this.featureTable.forEach(feature -> {
-			Map<String, Object> temptMap = new TreeMap<>();
-			for (String key : feature.keySet()) {
-				temptMap.put(key, feature.get(key));
-			}
-			temptList.add(temptMap);
-		});
-		spWriter.setAttribute(temptList);
-		spWriter.setCoordinateSystem(outputCoordinate);
 		return spWriter;
 	}
 
@@ -227,11 +207,8 @@ public class SpatialReader {
 		for (int index = 0; index < layer.GetFeatureCount(); index++) {
 			Feature feature = layer.GetFeature(index);
 
-			// get the geometry of each feature
-			this.geometryList.add(feature.GetGeometryRef());
-
 			// get the attribute table
-			Map<String, Object> temptMap = new TreeMap<String, Object>();
+			Map<String, Object> temptMap = new HashMap<String, Object>();
 			for (String key : this.attributeTitles) {
 				key = new String(key.getBytes());
 
@@ -256,7 +233,7 @@ public class SpatialReader {
 					temptMap.put(key, null);
 				}
 			}
-			this.featureTable.add(temptMap);
+			featureList.add(new SpatialFeature(temptMap, feature.GetGeometryRef()));
 		}
 	}
 
@@ -269,7 +246,7 @@ public class SpatialReader {
 		String temptConvertJson = temptFolder + "temptConvertJson.geoJson";
 
 		// tempt create filePath
-		GDAL_VECTOR_Translate ogr2ogr = new GDAL_VECTOR_Translate(sourcePath);
+		Gdal_VectorTranslate ogr2ogr = new Gdal_VectorTranslate(sourcePath);
 		ogr2ogr.saveAsJson(temptSourceJson);
 
 		// converted encoding
@@ -304,12 +281,11 @@ public class SpatialReader {
 		SpatialReader convertedShp = new SpatialReader(temptConvertJson);
 		this.attributeTitles = convertedShp.getAttrubuteTitle();
 		this.attributeTitleType = convertedShp.getAttributeTitleType();
-		this.featureTable = convertedShp.getAttributeTable();
-		this.geometryList = convertedShp.getGeometryList();
+		this.featureList = convertedShp.getFeatureList();
 		this.EPSG = convertedShp.getEPSG();
 
 		// delete temptFiles
-//		FileFunction.delete(temptFolder);
+		AtFileFunction.delete(temptFolder);
 	}
 
 	// <==============================================>

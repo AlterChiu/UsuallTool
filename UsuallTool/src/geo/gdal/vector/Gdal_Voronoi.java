@@ -13,33 +13,42 @@ import geo.gdal.SpatialWriter;
 import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
 
-public class GDAL_VECTOR_Defensify {
+public class Gdal_Voronoi {
 	private String temptFolder = AtFileFunction.createTemptFolder();
-	private String inputLayer = this.temptFolder + "\\temptShp.shp";
-	private double interval = 1.0;
+	private String inputLayer = temptFolder + "\\temptPoints.shp";
+	private double buffer = 0.0;
 
-	public GDAL_VECTOR_Defensify(String inputLayer) throws UnsupportedEncodingException {
-		processing(new SpatialReader(inputLayer).getGeometryList());
-	}
-
-	public GDAL_VECTOR_Defensify(List<Geometry> geoList) {
+	public Gdal_Voronoi(String inputLayer) throws UnsupportedEncodingException {
+		List<Geometry> geoList = new SpatialReader(inputLayer).getGeometryList();
 		processing(geoList);
 	}
 
-	public GDAL_VECTOR_Defensify(Geometry geo) {
+	public Gdal_Voronoi(List<Geometry> geoList) {
+		processing(geoList);
+	}
+
+	public Gdal_Voronoi(Geometry geo) {
 		List<Geometry> geoList = new ArrayList<>();
 		geoList.add(geo);
 		processing(geoList);
 	}
 
 	private void processing(List<Geometry> geoList) {
-
 		// translate shapeFile to points
-		new SpatialWriter().setGeoList(geoList).saveAsShp(this.inputLayer);
+		List<Geometry> outPoints = new ArrayList<>();
+
+		geoList.forEach(geo -> {
+			GdalGlobal.MultiPolyToSingle(geo).forEach(singlePolygon -> {
+				GdalGlobal.GeometryToPointGeos(singlePolygon).forEach(point -> {
+					outPoints.add(point);
+				});
+			});
+		});
+		new SpatialWriter().setGeoList(outPoints).saveAsShp(this.inputLayer);
 	}
 
-	public void setInterval(double interval) {
-		this.interval = interval;
+	public void setBuffer(double buffer) {
+		this.buffer = buffer;
 	}
 
 	public void saveAsShp(String saveAdd) throws IOException, InterruptedException {
@@ -47,10 +56,10 @@ public class GDAL_VECTOR_Defensify {
 
 		// initial GdalPython enviroment
 		GdalGlobal.GDAL_EnviromentStarting().forEach(command -> batContent.add(command));
-		batContent.add("\"%PYTHONHOME%\\python\" AtDefensifyInterval.py");
+		batContent.add("\"%PYTHONHOME%\\python\" AtVoronoiPolygons.py");
 		batContent.add("exit");
 		new AtFileWriter(batContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//AtDefensifyInterval.bat").textWriter("");
+				GdalGlobal.gdalBinFolder + "//AtVoronoiPolygons.bat").textWriter("");
 
 		// initial QgisAlogrithm pythonFile
 		List<String> pythonContent = new ArrayList<>();
@@ -62,17 +71,17 @@ public class GDAL_VECTOR_Defensify {
 		parameter.append("\"INPUT\":\"");
 		parameter.append(this.inputLayer.replace("\\", "/") + "\",");
 
-		parameter.append("\"INTERVAL\":");
-		parameter.append(this.interval + ",");
+		parameter.append("\"BUFFER\":");
+		parameter.append(buffer + ",");
 
 		parameter.append("\"OUTPUT\":\"");
 		parameter.append(saveAdd.replace("\\", "/") + "\"}");
 		pythonContent.add(parameter.toString());
 
 		// create pythonAlogrithm processing
-		pythonContent.add("processing.run('native:densifygeometriesgivenaninterval',parameter)");
+		pythonContent.add("processing.run('qgis:voronoipolygons',parameter)");
 		new AtFileWriter(pythonContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//AtDefensifyInterval.py").textWriter("");
+				GdalGlobal.gdalBinFolder + "//AtVoronoiPolygons.py").textWriter("");
 
 		// run batFile
 		List<String> command = new ArrayList<>();
@@ -81,7 +90,7 @@ public class GDAL_VECTOR_Defensify {
 		command.add("start");
 		command.add("/wait");
 		command.add("/B");
-		command.add("AtDefensifyInterval.bat");
+		command.add("AtVoronoiPolygons.bat");
 
 		// run command
 		ProcessBuilder pb = new ProcessBuilder();
@@ -89,6 +98,7 @@ public class GDAL_VECTOR_Defensify {
 		pb.command(command);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
+		this.close();
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
@@ -102,4 +112,5 @@ public class GDAL_VECTOR_Defensify {
 	private final void close() {
 		AtFileFunction.delete(this.temptFolder);
 	}
+
 }

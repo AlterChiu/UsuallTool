@@ -1,4 +1,4 @@
-package geo.gdal;
+package geo.gdal.application;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,6 +9,9 @@ import java.util.TreeMap;
 
 import org.gdal.ogr.Geometry;
 
+import geo.gdal.GdalGlobal;
+import geo.gdal.SpatialFeature;
+import geo.gdal.SpatialWriter;
 import usualTool.AtFileReader;
 
 public class CsvToSpatialFile extends SpatialWriter {
@@ -74,23 +77,19 @@ public class CsvToSpatialFile extends SpatialWriter {
 		}
 
 		// set feature
-		this.attribute = new ArrayList<>();
-		this.geometryList = new ArrayList<>();
 		csvContent.forEach(feature -> {
 
-			// set geometry list
-			StringBuilder sb = new StringBuilder();
-			sb.append("{\"type\" :\"Point\" , \"coordinates\" : ");
-			sb.append("[" + feature[this.indexX] + "," + feature[this.indexY] + "]}");
-			geometryList.add(Geometry.CreateFromJson(sb.toString()));
+			// set geometry
+			double x = Double.parseDouble(feature[this.indexX]);
+			double y = Double.parseDouble(feature[this.indexY]);
+			Geometry geo = GdalGlobal.CreatePoint(x, y);
 
 			// set attribute
 			Map<String, Object> temptAttribute = new TreeMap<>();
 			for (int index = 0; index < this.title.size(); index++) {
 				temptAttribute.put(title.get(index), Double.parseDouble(feature[index]));
-
 			}
-			this.attribute.add(temptAttribute);
+			this.featureList.add(new SpatialFeature(temptAttribute, geo));
 		});
 	}
 }

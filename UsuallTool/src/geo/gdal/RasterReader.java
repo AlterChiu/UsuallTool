@@ -12,8 +12,9 @@ import org.gdal.gdal.Dataset;
 import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
 import org.gdal.gdalconst.gdalconst;
-import geo.gdal.raster.GDAL_RASTER_ToPNG;
-import geo.gdal.raster.GDAL_RASTER_Warp;
+
+import geo.gdal.raster.Gdal_RasterToPNG;
+import geo.gdal.raster.Gdal_RasterWarp;
 import usualTool.AtCommonMath;
 
 public class RasterReader {
@@ -53,7 +54,6 @@ public class RasterReader {
 		} catch (Exception e) {
 			this.noDataValue = -999;
 		}
-
 
 		// get raster properties
 		double[] dataProperies = rasterData.GetGeoTransform();
@@ -183,7 +183,6 @@ public class RasterReader {
 		}
 	}
 
-
 	// <+++++++++++++++++++++++++++++++++++++>
 
 	// <+++++++++++++++++++++++++++++++++++++>
@@ -253,7 +252,6 @@ public class RasterReader {
 		Band band = dataset.GetRasterBand(1);
 		band.SetNoDataValue(this.noDataValue);
 
-
 		List<Double[]> points = this.getValues(0, 0, this.column, this.row);
 		for (int row = 0; row < points.size(); row++) {
 			for (int column = 0; column < points.get(row).length; column++) {
@@ -269,15 +267,12 @@ public class RasterReader {
 	}
 
 	public void saveAsImage(String fileAdd, Map<Double, Integer[]> colorMap) throws IOException, InterruptedException {
-		GDAL_RASTER_ToPNG.save(this.fileAdd, colorMap, fileAdd);
+		Gdal_RasterToPNG.save(this.fileAdd, colorMap, fileAdd);
 	}
 
 	public static void saveAs(String fileAdd, String saveAdd) throws InterruptedException, IOException {
-		GDAL_RASTER_Warp warp = new GDAL_RASTER_Warp(fileAdd);
+		Gdal_RasterWarp warp = new Gdal_RasterWarp(fileAdd);
 		warp.save(saveAdd);
 	}
-
-
-
 
 }

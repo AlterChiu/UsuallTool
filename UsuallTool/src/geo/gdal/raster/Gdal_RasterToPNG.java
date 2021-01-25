@@ -12,7 +12,7 @@ import geo.gdal.GdalGlobal;
 import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
 
-public class GDAL_RASTER_ToPNG {
+public class Gdal_RasterToPNG {
 	private static String prefixName = "RasterToPNG";
 	private static String temptFolder;
 	private static String sourceTemptAdd;
@@ -22,10 +22,10 @@ public class GDAL_RASTER_ToPNG {
 			throws IOException, InterruptedException {
 
 		// initialize
-		GDAL_RASTER_ToPNG.initialize(sourceAdd, colorScale);
+		Gdal_RasterToPNG.initialize(sourceAdd, colorScale);
 
 		// run batFile
-		GDAL_RASTER_ToPNG.runCommand(sourceTemptAdd, colorFileAdd, saveAdd);
+		Gdal_RasterToPNG.runCommand(sourceTemptAdd, colorFileAdd, saveAdd);
 
 		// clear temptFolder
 		AtFileFunction.delete(temptFolder);
@@ -35,16 +35,16 @@ public class GDAL_RASTER_ToPNG {
 			int pixelHeight) throws Exception {
 
 		// initialize
-		GDAL_RASTER_ToPNG.initialize(sourceAdd, colorScale);
+		Gdal_RasterToPNG.initialize(sourceAdd, colorScale);
 
 		// reSample raster
-		GDAL_RASTER_Warp warp = new GDAL_RASTER_Warp(sourceAdd);
+		Gdal_RasterWarp warp = new Gdal_RasterWarp(sourceAdd);
 		warp.reSample(pixelWidth, pixelHeight);
 		warp.save(sourceTemptAdd);
 		AtFileFunction.waitFile(sourceTemptAdd, 180000);
 
 		// run command
-		GDAL_RASTER_ToPNG.runCommand(sourceTemptAdd, colorFileAdd, saveAdd);
+		Gdal_RasterToPNG.runCommand(sourceTemptAdd, colorFileAdd, saveAdd);
 
 		AtFileFunction.waitFile(sourceTemptAdd, 180000);
 		AtFileFunction.delete(temptFolder);
@@ -58,11 +58,11 @@ public class GDAL_RASTER_ToPNG {
 			throw new FileNotFoundException("file not found : " + sourceAdd);
 
 		// create temptFolder
-		GDAL_RASTER_ToPNG.temptFolder = AtFileFunction.createTemptFolder(GDAL_RASTER_ToPNG.prefixName);
+		Gdal_RasterToPNG.temptFolder = AtFileFunction.createTemptFolder(Gdal_RasterToPNG.prefixName);
 
 		// get temptPaths
-		GDAL_RASTER_ToPNG.sourceTemptAdd = GDAL_RASTER_ToPNG.copyFile(sourceAdd, temptFolder);
-		GDAL_RASTER_ToPNG.colorFileAdd = GDAL_RASTER_ToPNG.outputColorFile(temptFolder, colorScale);
+		Gdal_RasterToPNG.sourceTemptAdd = Gdal_RasterToPNG.copyFile(sourceAdd, temptFolder);
+		Gdal_RasterToPNG.colorFileAdd = Gdal_RasterToPNG.outputColorFile(temptFolder, colorScale);
 	}
 
 	// create tempt folder

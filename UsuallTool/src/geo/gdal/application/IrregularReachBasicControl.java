@@ -1,5 +1,4 @@
-
-package geo.gdal;
+package geo.gdal.application;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -16,6 +15,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.gdal.ogr.Geometry;
+
+import geo.gdal.GdalGlobal;
+import geo.gdal.SpatialReader;
 import usualTool.AtCommonMath;
 
 public class IrregularReachBasicControl {

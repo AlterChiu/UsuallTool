@@ -1,4 +1,4 @@
-package geo.gdal;
+package geo.gdal.application;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
 
+import geo.gdal.GdalGlobal;
+import geo.gdal.SpatialReader;
+import geo.gdal.SpatialWriter;
 import usualTool.AtCommonMath;
 
 public class IrregularNetBasicControl {
@@ -283,7 +286,7 @@ public class IrregularNetBasicControl {
 	}
 
 	private void export(String saveAdd, List<Geometry> geoList, String saceTyping) {
-		new SpatialWriter().setGeoList(geoList).saceAs(saveAdd, saceTyping);
+		new SpatialWriter().setGeoList(geoList).saveAs(saveAdd, saceTyping);
 	}
 
 	public List<Geometry> getAllPolygon() {

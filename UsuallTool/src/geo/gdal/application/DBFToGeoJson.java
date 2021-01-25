@@ -1,10 +1,11 @@
-package geo.gdal;
+package geo.gdal.application;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import geo.gdal.GdalGlobal;
 import usualTool.AtFileFunction;
 
 public class DBFToGeoJson {

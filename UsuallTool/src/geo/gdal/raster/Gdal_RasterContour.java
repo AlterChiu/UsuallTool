@@ -8,7 +8,7 @@ import java.util.List;
 import geo.gdal.GdalGlobal;
 import usualTool.AtCommonMath;
 
-public class GDAL_RASTER_Contour {
+public class Gdal_RasterContour {
 
 	public static void Create(double minValue, double interval, String attrTitle, String sourceFile,
 			String targetFile) throws IOException, InterruptedException {

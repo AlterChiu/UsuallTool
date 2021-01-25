@@ -10,7 +10,7 @@ import geo.gdal.GdalGlobal_DataFormat;
 import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
 
-public class GDAL_RASTER_Merge {
+public class Gdal_RasterMerge {
 	private String temptFolder = AtFileFunction.createTemptFolder();
 	private static String tmeptRunFileName = "gdal_merge_tempt.bat";
 

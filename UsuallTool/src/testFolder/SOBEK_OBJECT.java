@@ -11,8 +11,8 @@ import java.util.Set;
 
 import org.gdal.ogr.Geometry;
 
-import geo.gdal.IrregularReachBasicControl;
-import geo.gdal.IrregularReachBasicControl.NodeClass;
+import geo.gdal.application.IrregularReachBasicControl;
+import geo.gdal.application.IrregularReachBasicControl.NodeClass;
 import usualTool.AtCommonMath;
 
 public class SOBEK_OBJECT {

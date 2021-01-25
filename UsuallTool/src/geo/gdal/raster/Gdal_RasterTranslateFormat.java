@@ -9,23 +9,23 @@ import geo.gdal.GdalGlobal;
 import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
 
-public class GDAL_RASTER_TranslateFormat {
+public class Gdal_RasterTranslateFormat {
 	private String temptFolder = AtFileFunction.createTemptFolder();
 
 	private String nullValue = "-999";
 	private String originalFile = "";
 	private String clipBoundary = "";
 
-	public GDAL_RASTER_TranslateFormat(String originalFile) {
+	public Gdal_RasterTranslateFormat(String originalFile) {
 		this.originalFile = originalFile;
 	}
 
-	public GDAL_RASTER_TranslateFormat setNullValue(String nullValue) {
+	public Gdal_RasterTranslateFormat setNullValue(String nullValue) {
 		this.nullValue = nullValue;
 		return this;
 	}
 
-	public GDAL_RASTER_TranslateFormat setBoundary(double minX, double maxX, double minY, double maxY) {
+	public Gdal_RasterTranslateFormat setBoundary(double minX, double maxX, double minY, double maxY) {
 		this.clipBoundary = "";
 
 		StringBuilder sb = new StringBuilder();

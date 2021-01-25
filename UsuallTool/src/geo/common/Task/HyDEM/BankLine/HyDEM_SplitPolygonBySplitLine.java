@@ -6,17 +6,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.gdal.ogr.Geometry;
 
 import geo.gdal.GdalGlobal;
-import geo.gdal.IrregularNetBasicControl;
-import geo.gdal.IrregularNetBasicControl.NodeClass;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
-import geo.gdal.vector.GDAL_VECTOR_Defensify;
+import geo.gdal.application.IrregularNetBasicControl;
+import geo.gdal.application.IrregularNetBasicControl.NodeClass;
+import geo.gdal.vector.Gdal_Defensify;
 import usualTool.AtCommonMath;
 import usualTool.AtCommonMath.StaticsModel;
 
@@ -184,7 +183,7 @@ public class HyDEM_SplitPolygonBySplitLine {
 	}
 
 	private static Geometry getDefensifyGeometry(Geometry geo) throws IOException, InterruptedException {
-		GDAL_VECTOR_Defensify defensify = new GDAL_VECTOR_Defensify(geo);
+		Gdal_Defensify defensify = new Gdal_Defensify(geo);
 		defensify.setInterval(5.0);
 		return defensify.getGeoList().get(0);
 	}

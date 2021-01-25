@@ -11,11 +11,12 @@ import org.gdal.ogr.Geometry;
 import asciiFunction.AsciiBasicControl;
 import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
+import geo.gdal.SpatialFeature;
 import geo.gdal.SpatialWriter;
 import usualTool.AtCommonMath;
 import usualTool.AtFileFunction;
 
-public class GDAL_RASTER_ToVector {
+public class Gdal_RasterToVector {
 	private String temptFolder = AtFileFunction.createTemptFolder();
 
 	/*
@@ -30,16 +31,16 @@ public class GDAL_RASTER_ToVector {
 	private int dataDecimal = 4;
 	private String outputDataType = GdalGlobal_DataFormat.DATAFORMAT_VECTOR_ESRIShapefile;
 
-	public GDAL_RASTER_ToVector(String inputFile) {
+	public Gdal_RasterToVector(String inputFile) {
 		this.inputFile = inputFile;
 	}
 
-	public GDAL_RASTER_ToVector setOutputDataType(String outputDataType) {
+	public Gdal_RasterToVector setOutputDataType(String outputDataType) {
 		this.outputDataType = outputDataType;
 		return this;
 	}
 
-	public GDAL_RASTER_ToVector setDataDecimal(int dataDecimal) {
+	public Gdal_RasterToVector setDataDecimal(int dataDecimal) {
 		this.dataDecimal = dataDecimal;
 		return this;
 	}
@@ -62,7 +63,7 @@ public class GDAL_RASTER_ToVector {
 		String temptFileDirection = this.temptFolder + temptFileName;
 
 		// translate raster data to asciiFormat
-		GDAL_RASTER_TranslateFormat rasterTranslate = new GDAL_RASTER_TranslateFormat(this.inputFile);
+		Gdal_RasterTranslateFormat rasterTranslate = new Gdal_RasterTranslateFormat(this.inputFile);
 		rasterTranslate.setNullValue("-999");
 		rasterTranslate.save(temptFileDirection, this.outputDataType);
 
@@ -70,8 +71,7 @@ public class GDAL_RASTER_ToVector {
 		AsciiBasicControl ascii = new AsciiBasicControl(temptFileDirection);
 
 		// setting output geoList and attributeData
-		List<Geometry> geoList = new ArrayList<>();
-		List<Map<String, Object>> attrData = new ArrayList<>();
+		List<SpatialFeature> featureList = new ArrayList<>();
 		Map<String, String> dataType = new HashMap<>();
 
 		// setting attribute table as value (double value)
@@ -87,17 +87,18 @@ public class GDAL_RASTER_ToVector {
 					// setting value to each grid
 					Map<String, Object> temptValues = new HashMap<>();
 					temptValues.put("value", Double.parseDouble(temptValue));
-					attrData.add(temptValues);
 
 					// setting polygon to each grid
-					geoList.add(getPolygon(ascii.getCoordinate(column, row), ascii.getCellSize()));
+					Geometry geo = getPolygon(ascii.getCoordinate(column, row), ascii.getCellSize());
+
+					// add
+					featureList.add(new SpatialFeature(temptValues, geo));
 				}
 			}
 		}
 
 		// output geoList and attribute table to spacialFile
-		new SpatialWriter().setGeoList(geoList).setFieldType(dataType).setAttribute(attrData).saceAs(saveAdd,
-				this.outputDataType);
+		new SpatialWriter().setFieldType(dataType).setFeatureList(featureList).saveAs(saveAdd, this.outputDataType);
 		AtFileFunction.delete(this.temptFolder);
 	}
 

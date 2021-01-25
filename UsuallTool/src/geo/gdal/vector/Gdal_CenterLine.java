@@ -1,7 +1,6 @@
 
 package geo.gdal.vector;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -13,7 +12,7 @@ import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
 import usualTool.AtFileFunction;
 
-public class GDAL_VECTOR_CenterLine {
+public class Gdal_CenterLine {
 	private String temptFolder = AtFileFunction.createTemptFolder();
 
 	private List<Geometry> geoList;
@@ -22,18 +21,18 @@ public class GDAL_VECTOR_CenterLine {
 	private Map<String, String> attrType = null;
 
 	// only for polygon
-	public GDAL_VECTOR_CenterLine(String polygonShp) throws UnsupportedEncodingException {
+	public Gdal_CenterLine(String polygonShp) throws UnsupportedEncodingException {
 		SpatialReader shpReader = new SpatialReader(polygonShp);
 		this.attrList = shpReader.getAttributeTable();
 		this.attrType = shpReader.getAttributeTitleType();
 		this.geoList = shpReader.getGeometryList();
 	}
 
-	public GDAL_VECTOR_CenterLine(List<Geometry> geoList) {
+	public Gdal_CenterLine(List<Geometry> geoList) {
 		this.geoList = geoList;
 	}
 
-	public GDAL_VECTOR_CenterLine(Geometry geometry) {
+	public Gdal_CenterLine(Geometry geometry) {
 		List<Geometry> temptList = new ArrayList<>();
 		temptList.add(geometry);
 		this.geoList = temptList;
@@ -54,7 +53,7 @@ public class GDAL_VECTOR_CenterLine {
 	public void save(String saveAdd, String saveingType) throws IOException, InterruptedException {
 
 		// get reDensitiveVertise polygons
-		GDAL_VECTOR_Defensify defensify = new GDAL_VECTOR_Defensify(this.geoList);
+		Gdal_Defensify defensify = new Gdal_Defensify(this.geoList);
 		defensify.setInterval(this.verticeDensitive);
 		List<Geometry> reDensitiveVerPolygons = defensify.getGeoList();
 
@@ -72,7 +71,7 @@ public class GDAL_VECTOR_CenterLine {
 				Geometry reDensitiveVerPolygon = reDensitiveVerPolygons.get(index);
 
 				// do voronoiPolygons
-				GDAL_VECTOR_Voronoi voronoi = new GDAL_VECTOR_Voronoi(reDensitiveVerPolygon);
+				Gdal_Voronoi voronoi = new Gdal_Voronoi(reDensitiveVerPolygon);
 				List<Geometry> voronoiPolygons = new ArrayList<>();
 				voronoiPolygons = voronoi.getGeoList();
 
@@ -84,7 +83,7 @@ public class GDAL_VECTOR_CenterLine {
 				Geometry voronoiPolyLine = GdalGlobal.GeometriesMerge(voronoiPolyLineList);
 
 				// select polyLine which within in the polygon
-				GDAL_VECTOR_SelectByLocation selectLocation = new GDAL_VECTOR_SelectByLocation(
+				Gdal_SelectByLocation selectLocation = new Gdal_SelectByLocation(
 						GdalGlobal.MultiPolyToSingle(voronoiPolyLine));
 				selectLocation.getWithin();
 				selectLocation.addIntersectGeo(reDensitiveVerPolygon);
@@ -102,7 +101,7 @@ public class GDAL_VECTOR_CenterLine {
 				e.printStackTrace();
 			}
 		}
-		outputShp.saceAs(saveAdd, saveingType);
+		outputShp.saveAs(saveAdd, saveingType);
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {

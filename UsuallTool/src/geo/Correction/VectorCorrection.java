@@ -7,6 +7,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.gdal.ogr.Geometry;
+
+import geo.gdal.GdalGlobal;
+import geo.gdal.SpatialFeature;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
 import usualTool.MathEqualtion.AtLeastSquareMatrix;
@@ -81,34 +84,25 @@ public class VectorCorrection {
 			// read file
 			// <--------------------------------------------------->
 			SpatialReader spatialFile = new SpatialReader(sourceFileAdd);
-			List<Geometry> geoList = spatialFile.getGeometryList();
-			List<Map<String, Object>> featureList = spatialFile.getAttributeTable();
+			List<SpatialFeature> featureList = spatialFile.getFeatureList();
 			Map<String, String> featureType = spatialFile.getAttributeTitleType();
+
+			SpatialWriter writer = new SpatialWriter().setFieldType(featureType);
 
 			/*
 			 * translation with 4 coefficient correction
 			 */
-			for (int geoIndex = 0; geoIndex < geoList.size(); geoIndex++) {
-				Geometry geometry = geoList.get(geoIndex);
+			featureList.forEach(feature -> {
+				Geometry geometry = feature.getGeometry();
 
-				// multiPolygon
-				if (geometry.GetGeometryName().toUpperCase().contains("MULT")) {
-
-					for (int multiIndex = 0; multiIndex < geometry.GetGeometryCount(); multiIndex++) {
-						Geometry singleGeometry = geometry.GetGeometryRef(multiIndex);
-						GeometryCorrection_4_Tanslation(singleGeometry, thita, ratio, deltaX, deltaY);
-					}
-
-					// single one
-				} else {
-					Geometry singleGeometry = geometry.GetGeometryRef(geoIndex);
-					GeometryCorrection_4_Tanslation(singleGeometry, thita, ratio, deltaX, deltaY);
-				}
-			}
+				GdalGlobal.MultiPolyToSingle(geometry).forEach(singleGeo -> {
+					GeometryCorrection_4_Tanslation(singleGeo, thita, ratio, deltaX, deltaY);
+					writer.addFeature(singleGeo, feature.getProperties());
+				});
+			});
 
 			// output shp
-			new SpatialWriter().setGeoList(geoList).setFieldType(featureType).setAttribute(featureList).saceAs(saveAdd,
-					saveType);
+			writer.saveAs(saveAdd, saveType);
 		}
 
 		private void GeometryCorrection_4_Tanslation(Geometry geometry, double thita, double ratio, double deltaX,

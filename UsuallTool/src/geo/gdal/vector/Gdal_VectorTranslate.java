@@ -10,7 +10,7 @@ import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
 import usualTool.AtFileFunction;
 
-public class GDAL_VECTOR_Translate {
+public class Gdal_VectorTranslate {
 
 	private int inputCoordinate = -1;
 	private int outputCoordinate = -1;
@@ -20,26 +20,26 @@ public class GDAL_VECTOR_Translate {
 
 	private String inputFile = "";
 
-	public GDAL_VECTOR_Translate(String inputFile) {
+	public Gdal_VectorTranslate(String inputFile) {
 		this.inputFile = inputFile;
 	}
 
-	public GDAL_VECTOR_Translate(String inputFile, int inputCoordination) {
+	public Gdal_VectorTranslate(String inputFile, int inputCoordination) {
 		this.inputFile = inputFile;
 		this.inputCoordinate = inputCoordination;
 	}
 
-	public GDAL_VECTOR_Translate setInputCoordinate(int inputCoordination) {
+	public Gdal_VectorTranslate setInputCoordinate(int inputCoordination) {
 		this.inputCoordinate = inputCoordination;
 		return this;
 	}
 
-	public GDAL_VECTOR_Translate setOutputCoordinate(int outputCoordination) {
+	public Gdal_VectorTranslate setOutputCoordinate(int outputCoordination) {
 		this.outputCoordinate = outputCoordination;
 		return this;
 	}
 
-	public GDAL_VECTOR_Translate setOutputDataType(String outputDataType) {
+	public Gdal_VectorTranslate setOutputDataType(String outputDataType) {
 		this.outputDataType = outputDataType;
 		return this;
 	}

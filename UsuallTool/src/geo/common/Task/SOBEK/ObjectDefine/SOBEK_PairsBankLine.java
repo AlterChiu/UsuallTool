@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.gdal.ogr.Geometry;
-import geo.gdal.IrregularReachBasicControl;
 import geo.gdal.SpatialWriter;
+import geo.gdal.application.IrregularReachBasicControl;
 import testFolder.SOBEK_OBJECT.SobekBankLine;
 
 public class SOBEK_PairsBankLine {

@@ -5,9 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.gdal.ogr.Geometry;
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
@@ -15,111 +13,56 @@ import geo.gdal.SpatialWriter;
 import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
 
-public class GDAL_VECTOR_SelectByLocation {
+public class Gdal_SplitByLine {
 	private String temptFolder = AtFileFunction.createTemptFolder();
 	private String inputLayer = temptFolder + "\\temptShp.shp";
-	private Set<String> selectType = new HashSet<>();
-	/*
-	 * 0 — intersect
-	 * 
-	 * 1 — contain
-	 * 
-	 * 2 — disjoint
-	 * 
-	 * 3 — equal
-	 * 
-	 * 4 — touch
-	 * 
-	 * 5 — overlap
-	 * 
-	 * 6 — are within
-	 * 
-	 * 7 — cross
-	 */
+	private String splitLineLayer = temptFolder + "\\splitLine.shp";
+	private List<Geometry> splitLines = new ArrayList<>();
 
-	private List<Geometry> interSectGeoList = new ArrayList<>();
-
-	public GDAL_VECTOR_SelectByLocation(String inputLayer) throws UnsupportedEncodingException {
+	public Gdal_SplitByLine(String inputLayer) throws UnsupportedEncodingException {
 		processing(new SpatialReader(inputLayer).getGeometryList());
 	}
 
-	public GDAL_VECTOR_SelectByLocation(List<Geometry> geoList) {
+	public Gdal_SplitByLine(List<Geometry> geoList) {
 		processing(geoList);
 	}
 
-	public GDAL_VECTOR_SelectByLocation(Geometry geo) {
+	public Gdal_SplitByLine(Geometry geo) {
 		List<Geometry> geoList = new ArrayList<>();
 		geoList.add(geo);
 		processing(geoList);
 	}
 
 	private void processing(List<Geometry> geoList) {
+		// translate shapeFile to points
 		new SpatialWriter().setGeoList(geoList).saveAsShp(this.inputLayer);
 	}
 
-	public void addIntersectGeo(Geometry geo) {
-		this.interSectGeoList.add(geo);
+	public void addSplitLine(List<Geometry> splitLines) {
+		splitLines.forEach(geo -> this.splitLines.add(geo));
 	}
 
-	public void addIntersectGeo(List<Geometry> geoList) {
-		geoList.forEach(geo -> this.interSectGeoList.add(geo));
+	public void addSplitLine(Geometry splitLine) {
+		this.splitLines.add(splitLine);
 	}
 
-	public void addIntersectGeo(String shpFileAdd) throws UnsupportedEncodingException {
-		new SpatialReader(shpFileAdd).getGeometryList().forEach(geo -> this.interSectGeoList.add(geo));
-	}
-
-	public void getIntersect() {
-		this.selectType.add("0");
-	}
-
-	public void getContain() {
-		this.selectType.add("1");
-	}
-
-	public void getDisjoint() {
-		this.selectType.add("2");
-	}
-
-	public void getEqual() {
-		this.selectType.add("3");
-	}
-
-	public void getTouch() {
-		this.selectType.add("4");
-	}
-
-	public void getOverlap() {
-		this.selectType.add("5");
-	}
-
-	public void getWithin() {
-		this.selectType.add("6");
-	}
-
-	public void getCross() {
-		this.selectType.add("7");
+	public void addSplitLine(String splitLineSHP) throws UnsupportedEncodingException {
+		new SpatialReader(splitLineSHP).getGeometryList().forEach(geo -> this.splitLines.add(geo));
 	}
 
 	public void saveAsShp(String saveAdd) throws IOException, InterruptedException {
-		// check select algorithm
-		if (this.selectType.size() == 0) {
-			this.selectType.add("0");
-		}
 
-		// set intersect vector layer
-		String intersectLayerFileName = AtFileFunction.getTempFileName(this.temptFolder, ".shp");
-		String intersectLayerFileAdd = this.temptFolder + intersectLayerFileName;
-		new SpatialWriter().setGeoList(this.interSectGeoList).saveAsShp(intersectLayerFileAdd);
+		// save split line to new shapeFile
+		new SpatialWriter().setGeoList(this.splitLines).saveAsShp(this.splitLineLayer);
 
 		List<String> batContent = new ArrayList<>();
 
 		// initial GdalPython enviroment
 		GdalGlobal.GDAL_EnviromentStarting().forEach(command -> batContent.add(command));
-		batContent.add("\"%PYTHONHOME%\\python\" AtSelectByLocation.py");
+		batContent.add("\"%PYTHONHOME%\\python\" AtSplitByLine.py");
 		batContent.add("exit");
 		new AtFileWriter(batContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "/AtSelectByLocation.bat").textWriter("");
+				GdalGlobal.gdalBinFolder + "//AtSplitByLine.bat").textWriter("");
 
 		// initial QgisAlogrithm pythonFile
 		List<String> pythonContent = new ArrayList<>();
@@ -131,20 +74,17 @@ public class GDAL_VECTOR_SelectByLocation {
 		parameter.append("\"INPUT\":\"");
 		parameter.append(this.inputLayer.replace("\\", "/") + "\",");
 
-		parameter.append("\"PREDICATE\":[");
-		parameter.append(String.join(",", this.selectType) + "],");
-
-		parameter.append("\"INTERSECT\":\"");
-		parameter.append(intersectLayerFileAdd.replace("\\", "/") + "\",");
+		parameter.append("\"LINES\":\"");
+		parameter.append(this.splitLineLayer.replace("\\", "/") + "\",");
 
 		parameter.append("\"OUTPUT\":\"");
 		parameter.append(saveAdd.replace("\\", "/") + "\"}");
 		pythonContent.add(parameter.toString());
 
 		// create pythonAlogrithm processing
-		pythonContent.add("processing.run('native:extractbylocation',parameter)");
+		pythonContent.add("processing.run('qgis:splitwithlines',parameter)");
 		new AtFileWriter(pythonContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "\\AtSelectByLocation.py").textWriter("");
+				GdalGlobal.gdalBinFolder + "//AtSplitByLine.py").textWriter("");
 
 		// run batFile
 		List<String> command = new ArrayList<>();
@@ -153,7 +93,7 @@ public class GDAL_VECTOR_SelectByLocation {
 		command.add("start");
 		command.add("/wait");
 		command.add("/B");
-		command.add("AtSelectByLocation.bat");
+		command.add("AtSplitByLine.bat");
 
 		// run command
 		ProcessBuilder pb = new ProcessBuilder();

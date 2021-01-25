@@ -7,8 +7,11 @@ import java.awt.geom.PathIterator;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
@@ -318,14 +321,10 @@ public class GdalGlobal {
 	public static Path2D getGrid(double[] centerPoint, double cellSize, int dataDecima) {
 		Path2D temptPath = new Path2D.Double();
 
-		double minX = new BigDecimal(centerPoint[0] - 0.5 * cellSize).setScale(dataDecima, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
-		double maxX = new BigDecimal(centerPoint[0] + 0.5 * cellSize).setScale(dataDecima, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
-		double minY = new BigDecimal(centerPoint[1] - 0.5 * cellSize).setScale(dataDecima, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
-		double maxY = new BigDecimal(centerPoint[1] + 0.5 * cellSize).setScale(dataDecima, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
+		double minX = AtCommonMath.getDecimal_Double(centerPoint[0] - 0.5 * cellSize, dataDecima);
+		double maxX = AtCommonMath.getDecimal_Double(centerPoint[0] + 0.5 * cellSize, dataDecima);
+		double minY = AtCommonMath.getDecimal_Double(centerPoint[1] - 0.5 * cellSize, dataDecima);
+		double maxY = AtCommonMath.getDecimal_Double(centerPoint[1] + 0.5 * cellSize, dataDecima);
 
 		temptPath.moveTo(minX, minY);
 		temptPath.lineTo(maxX, minY);
@@ -765,5 +764,5 @@ public class GdalGlobal {
 			return "";
 		}
 	}
-
 }
+

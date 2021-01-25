@@ -4,11 +4,13 @@ import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.gdal.gdal.gdal;
 import org.gdal.ogr.DataSource;
@@ -21,9 +23,8 @@ import org.gdal.ogr.ogr;
 import org.gdal.osr.SpatialReference;
 
 public class SpatialWriter {
-	protected List<Geometry> geometryList = new ArrayList<Geometry>();
-	protected List<Map<String, Object>> attribute = new ArrayList<Map<String, Object>>();
-	protected Map<String, String> fieldType = new LinkedHashMap<String, String>();
+	protected List<SpatialFeature> featureList;
+	protected Map<String, String> fieldType = new LinkedHashMap<>();
 
 	// projection
 	public static int WGS84 = 4326;
@@ -55,48 +56,38 @@ public class SpatialWriter {
 		gdal.AllRegister();
 	}
 
-	public SpatialWriter setPathList(List<Path2D> pathList) {
-		// translate path to geometry
-		pathList.forEach(e -> {
-			this.geometryList.add(getGeometry(e));
-		});
+	public SpatialWriter setGeoList(List<Geometry> geoList) {
 
 		// setting coordinate system
 		outputSpatitalSystem.ImportFromEPSG(WGS84);
+		this.initialFeatures(geoList.parallelStream().map(geo -> new SpatialFeature(geo)).collect(Collectors.toList()));
 		return this;
 	}
 
-	public SpatialWriter setPathList(Path2D path) {
-		// translate path to geometry
-		this.geometryList.add(getGeometry(path));
+	public SpatialWriter setGeoList(Geometry geometry) {
+		List<Geometry> geometryList = new ArrayList<>();
+		geometryList.add(geometry);
 
 		// setting coordinate system
 		outputSpatitalSystem.ImportFromEPSG(WGS84);
+		this.initialFeatures(
+				geometryList.parallelStream().map(geo -> new SpatialFeature(geo)).collect(Collectors.toList()));
 		return this;
 	}
 
-	public SpatialWriter setGeoList(List<Geometry> getList) {
-		this.geometryList = getList;
-
-		// setting coordinate system
-		outputSpatitalSystem.ImportFromEPSG(WGS84);
+	public SpatialWriter setFeatureList(List<SpatialFeature> featureList) {
+		this.featureList = featureList;
 		return this;
 	}
 
-	public SpatialWriter setGeoList(Geometry geo) {
-		this.geometryList.clear();
-		this.geometryList = new ArrayList<>();
-		this.geometryList.add(geo);
-
-		// setting coordinate system
-		outputSpatitalSystem.ImportFromEPSG(WGS84);
-		return this;
+	private void initialFeatures(List<SpatialFeature> featureList) {
+		this.featureList = featureList;
 	}
 
 	// <=========================================>
 
 	public int getSize() {
-		return this.geometryList.size();
+		return this.featureList.size();
 	}
 
 	/*
@@ -106,11 +97,6 @@ public class SpatialWriter {
 	// <==========================================>
 	// <output setting>
 	// <==========================================>
-	public SpatialWriter setAttribute(List<Map<String, Object>> attributeTable) {
-		this.attribute.clear();
-		this.attribute = attributeTable;
-		return this;
-	}
 
 	public SpatialWriter setLayerName(String name) {
 		this.layerName = name;
@@ -133,32 +119,14 @@ public class SpatialWriter {
 	}
 
 	public SpatialWriter addFeature(Geometry geometry, Map<String, Object> feature) {
-		this.geometryList.add(geometry);
-		this.attribute.add(feature);
-		return this;
-	}
-
-	public SpatialWriter addFeature(Path2D path, Map<String, Object> feature) {
-		this.geometryList.add(getGeometry(path));
-		this.attribute.add(feature);
+		this.featureList.add(new SpatialFeature(feature, geometry));
 		return this;
 	}
 
 	public SpatialWriter reNameFeild(String oldFieldName, String newFeildName) {
-
-		// change type
-		if (this.fieldType.containsKey(oldFieldName)) {
-			this.fieldType.put(newFeildName, this.fieldType.get(oldFieldName));
-		} else {
-			this.fieldType.remove(oldFieldName);
-		}
-
-		// change attrTables
-		this.attribute.forEach(feature -> {
-			feature.put(newFeildName, feature.get(oldFieldName));
-			feature.remove(oldFieldName);
+		this.featureList.forEach(feature -> {
+			feature.renameField(oldFieldName, newFeildName);
 		});
-
 		return this;
 	}
 
@@ -205,7 +173,7 @@ public class SpatialWriter {
 		createSpatialFile(saveAdd, dr);
 	}
 
-	public void saceAs(String saveAdd, String saceTyping) {
+	public void saveAs(String saveAdd, String saceTyping) {
 		Driver dr = ogr.GetDriverByName(saceTyping);
 		createSpatialFile(saveAdd, dr);
 	}
@@ -289,38 +257,39 @@ public class SpatialWriter {
 		}
 
 		// add feature
-		for (int index = 0; index < this.geometryList.size(); index++) {
+		this.featureList.forEach(temptFeature -> {
 			Feature feature = new Feature(outLayer.GetLayerDefn());
 
 			// attribute value
 			if (this.fieldType.keySet().size() > 0) {
-				for (String attributeKey : attribute.get(index).keySet()) {
+				this.fieldType.keySet().forEach(attributeKey -> {
 					try {
 						String type = this.fieldType.get(attributeKey).toUpperCase();
 						if (type.contains("STRING") || type.contains("CHAR") || type.contains("STR")
 								|| type.contains("CHARATER")) {
-							feature.SetField(attributeKey, (String) attribute.get(index).get(attributeKey));
+							feature.SetField(attributeKey, (String) temptFeature.getProperty(attributeKey));
 
 						} else if (type.contains("DOUBLE") || type.contains("FLOAT") || type.contains("REAL")) {
-							feature.SetField(attributeKey, (Double) attribute.get(index).get(attributeKey));
+							feature.SetField(attributeKey, (Double) temptFeature.getProperty(attributeKey));
 
 						} else if (type.contains("INT") || type.contains("INTEGER")) {
-							feature.SetField(attributeKey, (Integer) attribute.get(index).get(attributeKey));
+							feature.SetField(attributeKey, (Integer) temptFeature.getProperty(attributeKey));
 
 						} else if (type.contains("DATE") || type.contains("TIME")) {
-							feature.SetField(attributeKey, (Double) attribute.get(index).get(attributeKey));
+							feature.SetField(attributeKey, (Double) temptFeature.getProperty(attributeKey));
 						}
 					} catch (Exception e) {
 						feature.SetFieldNull(attributeKey);
 					}
-				}
+				});
 			}
 
 			// geometry
-			feature.SetGeometry(this.geometryList.get(index));
+			feature.SetGeometry(temptFeature.getGeometry());
 			outLayer.CreateFeature(feature);
 			feature.delete();
-		}
+		});
+
 		dataSourceDriver.delete();
 		outDataSource.delete();
 	}

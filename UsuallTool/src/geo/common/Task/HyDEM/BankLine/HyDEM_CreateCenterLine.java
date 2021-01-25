@@ -14,8 +14,8 @@ import org.gdal.ogr.Geometry;
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
-import geo.gdal.vector.GDAL_VECTOR_CenterLine;
-import geo.gdal.vector.GDAL_VECTOR_Defensify;
+import geo.gdal.vector.Gdal_CenterLine;
+import geo.gdal.vector.Gdal_Defensify;
 
 public class HyDEM_CreateCenterLine {
 	public static int boundaryBufferPersentage = 10; // 10%
@@ -98,8 +98,7 @@ public class HyDEM_CreateCenterLine {
 				CenterLine temptCenterLine = centerLineList.get(index);
 
 				// create centerLine by bufferPolygon
-				GDAL_VECTOR_CenterLine centerLineAlgorithm = new GDAL_VECTOR_CenterLine(
-						temptCenterLine.getBufferBankLinePolygon());
+				Gdal_CenterLine centerLineAlgorithm = new Gdal_CenterLine(temptCenterLine.getBufferBankLinePolygon());
 				centerLineAlgorithm.setVerticeDensitive(temptCenterLine.getBankLineSpecificDefensify());
 				List<Geometry> centerLineGeoList = centerLineAlgorithm.getGeoList();
 
@@ -136,13 +135,13 @@ public class HyDEM_CreateCenterLine {
 				throws IOException, InterruptedException {
 
 			if (bankLine1.GetPointCount() < 4) {
-				GDAL_VECTOR_Defensify defensify = new GDAL_VECTOR_Defensify(bankLine1);
+				Gdal_Defensify defensify = new Gdal_Defensify(bankLine1);
 				defensify.setInterval(centerLineVerticeInterval);
 				bankLine1 = defensify.getGeoList().get(0);
 			}
 
 			if (bankLine2.GetPointCount() < 4) {
-				GDAL_VECTOR_Defensify defensify = new GDAL_VECTOR_Defensify(bankLine2);
+				Gdal_Defensify defensify = new Gdal_Defensify(bankLine2);
 				defensify.setInterval(centerLineVerticeInterval);
 				bankLine2 = defensify.getGeoList().get(0);
 			}
