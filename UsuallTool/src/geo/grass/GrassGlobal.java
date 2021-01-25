@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import geo.gdal.GdalGlobal;
+import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
-import usualTool.FileFunction;
 
 public class GrassGlobal {
 
@@ -21,19 +21,19 @@ public class GrassGlobal {
 		String mapSet = location + "\\PERMANENT";
 
 		if (new File(gisBaseFolder).exists()) {
-			FileFunction.delete(gisBaseFolder);
+			AtFileFunction.delete(gisBaseFolder);
 		}
-		FileFunction.newFolder(gisBaseFolder);
+		AtFileFunction.newFolder(gisBaseFolder);
 
 		if (new File(location).exists()) {
-			FileFunction.delete(location);
+			AtFileFunction.delete(location);
 		}
-		FileFunction.newFolder(location);
+		AtFileFunction.newFolder(location);
 
 		if (new File(mapSet).exists()) {
-			FileFunction.delete(mapSet);
+			AtFileFunction.delete(mapSet);
 		}
-		FileFunction.newFolder(mapSet);
+		AtFileFunction.newFolder(mapSet);
 
 		/*
 		 * setting new setting to mapSet
@@ -121,7 +121,7 @@ public class GrassGlobal {
 		command.add("g.gisenv.exe set=\"MAPSET=PERMANENT\"");
 		command.add("g.gisenv.exe set=\"LOCATION=temp_location\" ");
 		command.add("g.gisenv.exe set=\"LOCATION_NAME=temp_location\" ");
-		command.add("g.gisenv.exe set=\"GISDBASE=" + GdalGlobal.temptFolder + "\\grassdata\"");
+		command.add("g.gisenv.exe set=\"GISDBASE=" + AtFileFunction.createTemptFolder() + "\\grassdata\"");
 		command.add("g.gisenv.exe set=\"GRASS_GUI=text\"");
 
 		return command;
@@ -131,9 +131,8 @@ public class GrassGlobal {
 		List<String> runCommand = new ArrayList<>();
 
 		// initialize enviroment
-		FileFunction.delete(GdalGlobal.temptFolder);
-		FileFunction.newFolder(GdalGlobal.temptFolder);
-		GrassGlobal.initializeGrassWorkSpace(GdalGlobal.temptFolder);
+		String temptFolder = AtFileFunction.createTemptFolder();
+		GrassGlobal.initializeGrassWorkSpace(temptFolder);
 
 		// start cmd
 		runCommand.add("cmd");

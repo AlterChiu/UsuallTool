@@ -104,7 +104,7 @@ public class HyDEM_CreateCenterLine {
 				List<Geometry> centerLineGeoList = centerLineAlgorithm.getGeoList();
 
 				// clip centerLine by boundary bankLine
-				Geometry mergedCenterLine = GdalGlobal.mergePolygons(centerLineGeoList);
+				Geometry mergedCenterLine = GdalGlobal.GeometriesMerge(centerLineGeoList);
 
 				// output properties
 				Map<String, Object> temptFeature = new HashMap<>();

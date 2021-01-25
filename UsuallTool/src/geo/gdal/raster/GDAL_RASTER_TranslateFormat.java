@@ -6,12 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import geo.gdal.GdalGlobal;
+import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
-import usualTool.FileFunction;
 
 public class GDAL_RASTER_TranslateFormat {
-	private String prefixName = "RasterTranslateFormat";
-	private String temptFolder = GdalGlobal.temptFolder;
+	private String temptFolder = AtFileFunction.createTemptFolder();
 
 	private String nullValue = "-999";
 	private String originalFile = "";
@@ -41,14 +40,9 @@ public class GDAL_RASTER_TranslateFormat {
 	}
 
 	public void save(String saveAdd, String dataType) throws IOException, InterruptedException {
-		/*
-		 * clear gdalGlobal temptFolder
-		 */
-		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
-
-		String newFolderName = GdalGlobal.getTempFileName(this.temptFolder, "");
+		String newFolderName = AtFileFunction.getTempFileName(this.temptFolder, "");
 		String newWorkSpace = this.temptFolder + newFolderName + "\\";
-		FileFunction.newFolder(newWorkSpace);
+		AtFileFunction.newFolder(newWorkSpace);
 
 		/*
 		 * save sourceFile to temptFolder
@@ -56,9 +50,9 @@ public class GDAL_RASTER_TranslateFormat {
 		String sourceFileExtension = this.originalFile.substring(this.originalFile.lastIndexOf("."));
 		String saveFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
 
-		String temptSorceFile = newWorkSpace + GdalGlobal.getTempFileName(newWorkSpace, sourceFileExtension);
-		String temptSaveFile = this.temptFolder + GdalGlobal.getTempFileName(this.temptFolder, saveFileExtension);
-		FileFunction.copyFile(this.originalFile, temptSorceFile);
+		String temptSorceFile = newWorkSpace + AtFileFunction.getTempFileName(newWorkSpace, sourceFileExtension);
+		String temptSaveFile = this.temptFolder + AtFileFunction.getTempFileName(this.temptFolder, saveFileExtension);
+		AtFileFunction.copyFile(this.originalFile, temptSorceFile);
 
 		/*
 		 * setting translate .bat file
@@ -114,7 +108,7 @@ public class GDAL_RASTER_TranslateFormat {
 		/*
 		 * move temptSaved file to targetAdd
 		 */
-		FileFunction.copyFile(temptSaveFile, saveAdd);
-		FileFunction.delete(this.temptFolder);
+		AtFileFunction.copyFile(temptSaveFile, saveAdd);
+		AtFileFunction.delete(this.temptFolder);
 	}
 }

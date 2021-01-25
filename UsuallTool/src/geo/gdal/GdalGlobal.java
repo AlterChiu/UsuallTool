@@ -4,7 +4,6 @@ package geo.gdal;
 import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -17,8 +16,6 @@ import org.gdal.ogr.Geometry;
 import org.gdal.osr.CoordinateTransformation;
 import org.gdal.osr.SpatialReference;
 import usualTool.AtCommonMath;
-import usualTool.FileFunction;
-import usualTool.MathEqualtion.RandomMaker;
 
 public class GdalGlobal {
 
@@ -30,12 +27,11 @@ public class GdalGlobal {
 	/*
 	 * library & temptFolder
 	 */
-	public static String qgisBinFolder = "K:\\Qgis\\3.10.7\\";
+	public static String qgisBinFolder = getQigsPath();
 	public static String gdalBinFolder = qgisBinFolder + "bin\\";
 	public static String sagaBinFolder = qgisBinFolder + "apps\\saga-ltr\\";
 	public static String grassBinFolder = qgisBinFolder + "apps\\grass\\grass78\\bin\\";
 	public static String qgisProcessingPluigins = qgisBinFolder + "apps\\qgis-ltr\\python\\plugins";
-	public static String temptFolder = qgisBinFolder + "temptFolder\\";
 
 	public static void setQgisBinFolder(String path) {
 		qgisBinFolder = path + "\\";
@@ -43,6 +39,13 @@ public class GdalGlobal {
 		sagaBinFolder = qgisBinFolder + "apps\\saga-ltr\\";
 		grassBinFolder = qgisBinFolder + "apps\\grass\\grass78\\bin\\";
 		qgisProcessingPluigins = qgisBinFolder + "apps\\qgis-ltr\\python\\plugins";
+	}
+
+	private static String getQigsPath() {
+		String detectPath = System.getenv().get("AtQGIS");
+		if (detectPath == null)
+			detectPath = "K:\\Qgis\\3.10.7\\";
+		return detectPath;
 	}
 
 	/*
@@ -61,12 +64,6 @@ public class GdalGlobal {
 	// <===================================================>
 	// <======== GEOMETRY CREATOR ============================>
 	// <===================================================>
-
-	public static Geometry CreateMultipolygon() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"MultiPolygon\" , \"coordinates\" : [  ]}");
-		return Geometry.CreateFromJson(sb.toString());
-	}
 
 	public static Geometry CreatePolygon(List<Double[]> points) {
 		StringBuilder sb = new StringBuilder();
@@ -100,10 +97,16 @@ public class GdalGlobal {
 		return outPath;
 	}
 
+	public static Geometry CreateMultipolygon() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"MultiPolygon\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
+	}
+
 	/*
 	 * point
 	 */
-	public static Geometry pointToGeometry(Double[] point) {
+	public static Geometry CreatePoint(double[] point) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{  \"type\" : \"Point\" , \"coordinates\" : [");
 		sb.append(point[0] + "," + point[1]);
@@ -113,20 +116,6 @@ public class GdalGlobal {
 		}
 		sb.append("]}");
 
-		return Geometry.CreateFromJson(sb.toString());
-	}
-
-	public static Geometry pointToMuliGeometry(List<Double[]> points) {
-		Geometry outGeo = CreateMultiPoint();
-		points.forEach(point -> {
-			outGeo.AddGeometry(pointToGeometry(point));
-		});
-		return outGeo;
-	}
-
-	public static Geometry CreateMultiPoint() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"MultiPoint\" , \"coordinates\" : [  ]}");
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
@@ -140,10 +129,16 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
+	public static Geometry CreateMultiPoint() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"MultiPoint\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
+	}
+
 	/*
 	 * line
 	 */
-	public static Geometry LineToGeometry(List<Double[]> points) {
+	public static Geometry CreateLineString(List<Double[]> points) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{\"type\" : \"LineString\" , \"coordinates\" : [");
 
@@ -165,15 +160,15 @@ public class GdalGlobal {
 		return Geometry.CreateFromJson(sb.toString());
 	}
 
-	public static Geometry LineToGeometry(Double[] point1, Double[] point2) {
+	public static Geometry CreateLineString(Double[] point1, Double[] point2) {
 		List<Double[]> temptList = new ArrayList<>();
 		temptList.add(point1);
 		temptList.add(point2);
 
-		return LineToGeometry(temptList);
+		return CreateLineString(temptList);
 	}
 
-	public static Geometry LineToGeometry(Path2D path) {
+	public static Geometry CreateLineString(Path2D path) {
 		List<Double[]> temptList = new ArrayList<>();
 		PathIterator iterator = path.getPathIterator(null);
 		double coordinate[] = new double[2];
@@ -183,53 +178,24 @@ public class GdalGlobal {
 			temptList.add(new Double[] { coordinate[0], coordinate[1] });
 		}
 
-		return LineToGeometry(temptList);
+		return CreateLineString(temptList);
 	}
 
-	public static Geometry CreateMultiLine() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"MultiLineString\" , \"coordinates\" : [  ]}");
-		return Geometry.CreateFromJson(sb.toString());
+	public static Geometry CreateLineString(double x1, double y1, double x2, double y2) {
+		return CreateLineString(x1, y1, 0, x2, y2, 0);
 	}
 
-	public static Geometry CreateLine(List<Double[]> points) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"type\" : \"LineString\" , \"coordinates\" : [ ");
-
-		List<String> pointsCoordinates = new ArrayList<>();
-		points.forEach(point -> {
-			StringBuilder temptCoordinate = new StringBuilder();
-			temptCoordinate.append("[");
-			temptCoordinate.append(point[0]);
-			temptCoordinate.append(",");
-			temptCoordinate.append(point[1]);
-
-			try {
-				double z = point[2];
-				temptCoordinate.append(",");
-				temptCoordinate.append(z);
-			} catch (Exception e) {
-				temptCoordinate.append(",0.0");
-			}
-
-			temptCoordinate.append("]");
-			pointsCoordinates.add(temptCoordinate.toString());
-		});
-
-		sb.append(String.join(",", pointsCoordinates));
-		sb.append("]}");
-		return Geometry.CreateFromJson(sb.toString());
-	}
-
-	public static Geometry CreateLine(double x1, double y1, double x2, double y2) {
-		return CreateLine(x1, y1, 0, x2, y2, 0);
-	}
-
-	public static Geometry CreateLine(double x1, double y1, double z1, double x2, double y2, double z2) {
+	public static Geometry CreateLineString(double x1, double y1, double z1, double x2, double y2, double z2) {
 		List<Double[]> temptList = new ArrayList<>();
 		temptList.add(new Double[] { x1, y1, z1 });
 		temptList.add(new Double[] { x2, y2, z2 });
-		return CreateLine(temptList);
+		return CreateLineString(temptList);
+	}
+
+	public static Geometry CreateMultiLineString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"type\" : \"MultiLineString\" , \"coordinates\" : [  ]}");
+		return Geometry.CreateFromJson(sb.toString());
 	}
 
 	/*
@@ -284,7 +250,7 @@ public class GdalGlobal {
 	// <===================================================>
 	// <======== GDAL PROCESSING ==============================>
 	// <===================================================>
-	public static Geometry mergePolygons(List<Geometry> geoList, Boolean showDetails) {
+	public static Geometry GeometriesMerge(List<Geometry> geoList, Boolean showDetails) {
 		/*
 		 * check
 		 */
@@ -324,41 +290,8 @@ public class GdalGlobal {
 		}
 	}
 
-	public static Geometry mergePolygons(List<Geometry> geoList) {
-		/*
-		 * check
-		 */
-		if (geoList.size() <= 0) {
-			new Exception("not able to merge polygon");
-			return null;
-		} else {
-
-			/*
-			 * clone
-			 */
-			List<Geometry> outList = new ArrayList<>();
-			for (Geometry geo : geoList) {
-				outList.add(geo);
-			}
-
-			/*
-			 * starting merge
-			 */
-			while (outList.size() != 1) {
-				List<Geometry> temptList = new ArrayList<>();
-				for (int index = 0; index < outList.size(); index = index + 2) {
-					try {
-						temptList.add(outList.get(index).Union(outList.get(index + 1)));
-					} catch (Exception e) {
-						temptList.add(outList.get(index));
-					}
-				}
-
-				outList = temptList;
-			}
-
-			return outList.get(0);
-		}
+	public static Geometry GeometriesMerge(List<Geometry> geoList) {
+		return GdalGlobal.GeometriesMerge(geoList, true);
 	}
 
 	public static List<Path2D> getQualTree_Path(double[] centerPoint, double cellSize) {
@@ -789,32 +722,6 @@ public class GdalGlobal {
 		outList.add("QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())");
 
 		return outList;
-	}
-
-	public static String getTempFileName(String folder, String additionFormat) {
-		StringBuilder temptName = new StringBuilder();
-
-		RandomMaker radom = new RandomMaker();
-		for (int index = 0; index < 10; index++) {
-			temptName.append(radom.RandomInt(0, 9));
-		}
-		String temptWholeName = temptName.toString() + additionFormat;
-
-		if (new File(folder + temptWholeName).exists()) {
-			return getTempFileName(folder, additionFormat);
-		} else {
-			return temptWholeName;
-		}
-	}
-
-	public static String createTemptFolder(String preFixName) {
-		String folderPath = GdalGlobal.temptFolder + preFixName + GdalGlobal.getTempFileName(GdalGlobal.temptFolder, "")
-				+ "\\";
-		FileFunction.newFolder(folderPath);
-		for (String fileName : new File(folderPath).list()) {
-			FileFunction.delete(folderPath + "\\" + fileName);
-		}
-		return folderPath;
 	}
 
 	public static String extensionAutoDetect(String filePath) {

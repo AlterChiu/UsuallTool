@@ -28,9 +28,9 @@ import org.gdal.ogr.Layer;
 import org.gdal.ogr.ogr;
 
 import geo.gdal.vector.GDAL_VECTOR_Translate;
+import usualTool.AtFileFunction;
 import usualTool.AtFileReader;
 import usualTool.AtFileWriter;
-import usualTool.FileFunction;
 
 public class SpatialReader {
 	private DataSource dataSource;
@@ -264,7 +264,7 @@ public class SpatialReader {
 			throws UnsupportedEncodingException, FileNotFoundException, IOException, InterruptedException {
 
 		// create folder
-		String temptFolder = GdalGlobal.createTemptFolder("Reader");
+		String temptFolder = AtFileFunction.createTemptFolder();
 		String temptSourceJson = temptFolder + "temptSourceJson.geoJson";
 		String temptConvertJson = temptFolder + "temptConvertJson.geoJson";
 

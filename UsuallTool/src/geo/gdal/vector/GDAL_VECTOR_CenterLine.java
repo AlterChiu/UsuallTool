@@ -11,11 +11,10 @@ import org.gdal.ogr.Geometry;
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
-import usualTool.FileFunction;
+import usualTool.AtFileFunction;
 
 public class GDAL_VECTOR_CenterLine {
-	private String prefixName = "CenterLine";
-	private String temptFolder = GdalGlobal.temptFolder;
+	private String temptFolder = AtFileFunction.createTemptFolder();
 
 	private List<Geometry> geoList;
 	private double verticeDensitive = 1.0;
@@ -82,7 +81,7 @@ public class GDAL_VECTOR_CenterLine {
 				for (Geometry voronoiPolygon : voronoiPolygons) {
 					voronoiPolyLineList.add(voronoiPolygon.Boundary());
 				}
-				Geometry voronoiPolyLine = GdalGlobal.mergePolygons(voronoiPolyLineList);
+				Geometry voronoiPolyLine = GdalGlobal.GeometriesMerge(voronoiPolyLineList);
 
 				// select polyLine which within in the polygon
 				GDAL_VECTOR_SelectByLocation selectLocation = new GDAL_VECTOR_SelectByLocation(
@@ -91,7 +90,7 @@ public class GDAL_VECTOR_CenterLine {
 				selectLocation.addIntersectGeo(reDensitiveVerPolygon);
 
 				// setting output geometry properties
-				Geometry outputGeo = GdalGlobal.mergePolygons(selectLocation.getGeoList());
+				Geometry outputGeo = GdalGlobal.GeometriesMerge(selectLocation.getGeoList());
 				Map<String, Object> temptProperties = null;
 				if (this.attrList != null) {
 					temptProperties = this.attrList.get(index);
@@ -107,17 +106,15 @@ public class GDAL_VECTOR_CenterLine {
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
-		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
-
-		String temptSaveName = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
+		String temptSaveName = AtFileFunction.getTempFileName(this.temptFolder, ".shp");
 		this.saveAsShp(this.temptFolder + temptSaveName);
-		List<Geometry> outGeoList = new SpatialReader(GdalGlobal.temptFolder + temptSaveName).getGeometryList();
+		List<Geometry> outGeoList = new SpatialReader(this.temptFolder + temptSaveName).getGeometryList();
 		this.close();
 		return outGeoList;
 	}
 
 	private final void close() {
-		FileFunction.delete(this.temptFolder);
+		AtFileFunction.delete(this.temptFolder);
 	}
 
 }

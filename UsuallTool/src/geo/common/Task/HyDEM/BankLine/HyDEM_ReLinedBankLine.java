@@ -380,7 +380,7 @@ public class HyDEM_ReLinedBankLine {
 
 			// detect end
 			this.endFaceKey = nextFace.getFaceKey();
-			this.mainBankLine.add(GdalGlobal.mergePolygons(temptGeoList));
+			this.mainBankLine.add(GdalGlobal.GeometriesMerge(temptGeoList));
 			this.lastDirection = directionEdge;
 			try {
 				this.leftEdgeFaceKeyMap.remove(directionEdge.getKey());
@@ -393,7 +393,7 @@ public class HyDEM_ReLinedBankLine {
 		}
 
 		public Geometry getMainBankLine() {
-			return GdalGlobal.mergePolygons(this.mainBankLine);
+			return GdalGlobal.GeometriesMerge(this.mainBankLine);
 		}
 
 		public List<Geometry> getMainBankLineList() {
@@ -460,7 +460,7 @@ public class HyDEM_ReLinedBankLine {
 		}
 
 		// outGeo
-		Geometry mergedPolygon = GdalGlobal.mergePolygons(outGeo);
+		Geometry mergedPolygon = GdalGlobal.GeometriesMerge(outGeo);
 		return mergedPolygon;
 	}
 
@@ -469,7 +469,7 @@ public class HyDEM_ReLinedBankLine {
 
 		// main stream
 		List<Geometry> mainStreamGeoList = new SpatialReader(sbkFolder + "\\Sbk_Lat_n.shp").getGeometryList();
-		Geometry mainStreamGeo = GdalGlobal.mergePolygons(mainStreamGeoList);
+		Geometry mainStreamGeo = GdalGlobal.GeometriesMerge(mainStreamGeoList);
 
 //		 other stream
 //		List<Geometry> otherStreamGeoList = new ArrayList<>();

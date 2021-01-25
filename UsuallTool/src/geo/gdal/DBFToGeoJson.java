@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import usualTool.FileFunction;
+import usualTool.AtFileFunction;
 
 public class DBFToGeoJson {
 	private String cordinate = "WGS84";
@@ -18,7 +18,7 @@ public class DBFToGeoJson {
 	}
 
 	public void Start() throws IOException {
-		new FileFunction().delete(this.geoFileAdd);
+		AtFileFunction.delete(this.geoFileAdd);
 
 		List<String> command = new ArrayList<String>();
 		command.add("cmd.exe");

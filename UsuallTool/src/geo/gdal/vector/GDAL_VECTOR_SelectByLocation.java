@@ -12,12 +12,11 @@ import org.gdal.ogr.Geometry;
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
+import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
-import usualTool.FileFunction;
 
 public class GDAL_VECTOR_SelectByLocation {
-	private String prefixName = "SelectByLocation";
-	private String temptFolder = GdalGlobal.temptFolder;
+	private String temptFolder = AtFileFunction.createTemptFolder();
 	private String inputLayer = temptFolder + "\\temptShp.shp";
 	private Set<String> selectType = new HashSet<>();
 	/*
@@ -55,9 +54,6 @@ public class GDAL_VECTOR_SelectByLocation {
 	}
 
 	private void processing(List<Geometry> geoList) {
-		// clear temptFolder
-		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
-
 		new SpatialWriter().setGeoList(geoList).saveAsShp(this.inputLayer);
 	}
 
@@ -112,7 +108,7 @@ public class GDAL_VECTOR_SelectByLocation {
 		}
 
 		// set intersect vector layer
-		String intersectLayerFileName = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
+		String intersectLayerFileName = AtFileFunction.getTempFileName(this.temptFolder, ".shp");
 		String intersectLayerFileAdd = this.temptFolder + intersectLayerFileName;
 		new SpatialWriter().setGeoList(this.interSectGeoList).saveAsShp(intersectLayerFileAdd);
 
@@ -169,17 +165,15 @@ public class GDAL_VECTOR_SelectByLocation {
 	}
 
 	public List<Geometry> getGeoList() throws IOException, InterruptedException {
-		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
-
-		String temptSaveName = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
+		String temptSaveName = AtFileFunction.getTempFileName(this.temptFolder, ".shp");
 		this.saveAsShp(this.temptFolder + temptSaveName);
-		List<Geometry> outGeoList = new SpatialReader(GdalGlobal.temptFolder + temptSaveName).getGeometryList();
+		List<Geometry> outGeoList = new SpatialReader(this.temptFolder + temptSaveName).getGeometryList();
 		this.close();
 		return outGeoList;
 	}
 
 	private final void close() {
-		FileFunction.delete(this.temptFolder);
+		AtFileFunction.delete(this.temptFolder);
 	}
 
 }

@@ -1,19 +1,14 @@
 package geo.gdal.vector;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.gdal.ogr.Geometry;
-
 import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
-import geo.gdal.SpatialReader;
-import usualTool.FileFunction;
+import usualTool.AtFileFunction;
 
 public class GDAL_VECTOR_Translate {
 
@@ -86,7 +81,7 @@ public class GDAL_VECTOR_Translate {
 		} else if (!new File(saveAdd).exists()) {
 			new File(saveAdd).createNewFile();
 		}
-		FileFunction.delete(saveAdd);
+		AtFileFunction.delete(saveAdd);
 
 		List<String> command = new ArrayList<>();
 		command.add("cmd");
@@ -124,7 +119,7 @@ public class GDAL_VECTOR_Translate {
 		Process runProcess = pb.start();
 		runProcess.waitFor();
 
-		FileFunction.waitFile(saveAdd, 180000);
+		AtFileFunction.waitFile(saveAdd, 180000);
 	}
 
 }

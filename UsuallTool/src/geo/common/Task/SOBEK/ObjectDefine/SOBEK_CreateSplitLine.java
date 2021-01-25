@@ -83,7 +83,7 @@ public class SOBEK_CreateSplitLine {
 				double outX2 = linkedX + 0.5 * (linkedX - currentX) / 2;
 				double outY2 = linkedY + 0.5 * (linkedY - currentY) / 2;
 
-				outList.add(GdalGlobal.CreateLine(outX1, outY1, outX2, outY2));
+				outList.add(GdalGlobal.CreateLineString(outX1, outY1, outX2, outY2));
 			}
 
 			usedID.add(currentID);

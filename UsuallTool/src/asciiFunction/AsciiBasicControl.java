@@ -788,7 +788,7 @@ public class AsciiBasicControl implements Cloneable {
 		double interMaxY = (-1 * intersectCoefficient - interMaxX * xCoefficient) / yCoefficient;
 		double interMinX = Double.NEGATIVE_INFINITY / 100000;
 		double interMinY = (-1 * intersectCoefficient - interMinX * xCoefficient) / yCoefficient;
-		Geometry interLine = GdalGlobal.CreateLine(interMaxX, interMaxY, interMinX, interMinY);
+		Geometry interLine = GdalGlobal.CreateLineString(interMaxX, interMaxY, interMinX, interMinY);
 		Geometry crossPoints = temptGeo.Intersection(interLine);
 
 		/*

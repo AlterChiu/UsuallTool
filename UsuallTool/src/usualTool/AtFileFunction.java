@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
-public class FileFunction {
+import geo.gdal.GdalGlobal;
+import usualTool.MathEqualtion.RandomMaker;
+
+public class AtFileFunction {
 
 	public static void newFolder(String folderPath) {
 		try {
@@ -79,6 +82,34 @@ public class FileFunction {
 	public static void reNameFile(String oldPath, String newPath) {
 		File oldFile = new File(oldPath);
 		oldFile.renameTo(new File(newPath));
+	}
+
+	// return tempt craete folder
+	public static String createTemptFolder() {
+		return AtFileFunction.createTemptFolder(System.getenv("java.io.tmpdir"));
+	}
+
+	public static String createTemptFolder(String targetDirection) {
+		String folderPath = System.getProperty("java.io.tmpdir");
+		String temptFolderName = AtFileFunction.getTempFileName(folderPath, "");
+		AtFileFunction.createTemptFolder(folderPath + temptFolderName);
+		return temptFolderName + folderPath + "\\";
+	}
+
+	public static String getTempFileName(String folder, String additionFormat) {
+		StringBuilder temptName = new StringBuilder();
+
+		RandomMaker radom = new RandomMaker();
+		for (int index = 0; index < 10; index++) {
+			temptName.append(radom.RandomInt(0, 9));
+		}
+		String temptWholeName = temptName.toString() + additionFormat;
+
+		if (new File(folder + temptWholeName).exists()) {
+			return getTempFileName(folder, additionFormat);
+		} else {
+			return temptWholeName;
+		}
 	}
 
 	public static Boolean fileIsLocked(String path) {

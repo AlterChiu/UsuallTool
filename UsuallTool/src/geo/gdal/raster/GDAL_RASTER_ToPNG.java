@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import geo.gdal.GdalGlobal;
+import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
-import usualTool.FileFunction;
 
 public class GDAL_RASTER_ToPNG {
 	private static String prefixName = "RasterToPNG";
@@ -28,7 +28,7 @@ public class GDAL_RASTER_ToPNG {
 		GDAL_RASTER_ToPNG.runCommand(sourceTemptAdd, colorFileAdd, saveAdd);
 
 		// clear temptFolder
-		FileFunction.delete(temptFolder);
+		AtFileFunction.delete(temptFolder);
 	}
 
 	public static void save(String sourceAdd, Map<Double, Integer[]> colorScale, String saveAdd, int pixelWidth,
@@ -41,13 +41,13 @@ public class GDAL_RASTER_ToPNG {
 		GDAL_RASTER_Warp warp = new GDAL_RASTER_Warp(sourceAdd);
 		warp.reSample(pixelWidth, pixelHeight);
 		warp.save(sourceTemptAdd);
-		FileFunction.waitFile(sourceTemptAdd, 180000);
+		AtFileFunction.waitFile(sourceTemptAdd, 180000);
 
 		// run command
 		GDAL_RASTER_ToPNG.runCommand(sourceTemptAdd, colorFileAdd, saveAdd);
 
-		FileFunction.waitFile(sourceTemptAdd, 180000);
-		FileFunction.delete(temptFolder);
+		AtFileFunction.waitFile(sourceTemptAdd, 180000);
+		AtFileFunction.delete(temptFolder);
 	}
 
 	// PRIVATE FUNCTION
@@ -58,7 +58,7 @@ public class GDAL_RASTER_ToPNG {
 			throw new FileNotFoundException("file not found : " + sourceAdd);
 
 		// create temptFolder
-		GDAL_RASTER_ToPNG.temptFolder = GdalGlobal.createTemptFolder(GDAL_RASTER_ToPNG.prefixName);
+		GDAL_RASTER_ToPNG.temptFolder = AtFileFunction.createTemptFolder(GDAL_RASTER_ToPNG.prefixName);
 
 		// get temptPaths
 		GDAL_RASTER_ToPNG.sourceTemptAdd = GDAL_RASTER_ToPNG.copyFile(sourceAdd, temptFolder);
@@ -70,16 +70,16 @@ public class GDAL_RASTER_ToPNG {
 
 		// copy original file
 		String sourceFileExtension = sourceAdd.substring(sourceAdd.lastIndexOf("."));
-		String sourceTemptName = GdalGlobal.getTempFileName(temptFolder, sourceFileExtension);
+		String sourceTemptName = AtFileFunction.getTempFileName(temptFolder, sourceFileExtension);
 		String sourceTemptAdd = temptFolder + "\\" + sourceTemptName;
-		FileFunction.copyFile(sourceAdd, sourceTemptAdd);
+		AtFileFunction.copyFile(sourceAdd, sourceTemptAdd);
 		return sourceTemptAdd;
 	}
 
 	private static String outputColorFile(String temptFolder, Map<Double, Integer[]> colorScale) throws IOException {
 
 		// setting color table
-		String colorFileName = GdalGlobal.getTempFileName(temptFolder, ".txt");
+		String colorFileName = AtFileFunction.getTempFileName(temptFolder, ".txt");
 		String colorFileAdd = temptFolder + "\\" + colorFileName;
 		List<String[]> colorContext = new ArrayList<>();
 		colorScale.keySet().forEach(key -> {

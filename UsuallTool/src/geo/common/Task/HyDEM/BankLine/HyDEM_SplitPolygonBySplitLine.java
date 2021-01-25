@@ -55,7 +55,7 @@ public class HyDEM_SplitPolygonBySplitLine {
 			}
 		}
 
-		Geometry mergedBankLine = GdalGlobal.mergePolygons(geoList);
+		Geometry mergedBankLine = GdalGlobal.GeometriesMerge(geoList);
 		mergedBankLine = getDefensifyGeometry(mergedBankLine);
 		new SpatialWriter().setGeoList(GdalGlobal.MultiPolyToSingle(mergedBankLine))
 				.saveAsShp(testingWorkSpace + mergedHydemPolygons);
@@ -86,8 +86,8 @@ public class HyDEM_SplitPolygonBySplitLine {
 				if (intersection.GetGeometryCount() == 2) {
 					Geometry point1 = intersection.GetGeometryRef(0);
 					Geometry point2 = intersection.GetGeometryRef(1);
-					splitLineHyDEM.add(GdalGlobal.CreateLine(point1.GetX(), point1.GetY(), point1.GetZ(), point2.GetX(),
-							point2.GetY(), point2.GetZ()));
+					splitLineHyDEM.add(GdalGlobal.CreateLineString(point1.GetX(), point1.GetY(), point1.GetZ(),
+							point2.GetX(), point2.GetY(), point2.GetZ()));
 				}
 			} catch (Exception e) {
 			}
@@ -106,7 +106,7 @@ public class HyDEM_SplitPolygonBySplitLine {
 
 		// split polygon
 		List<Geometry> dissovedPolygons = GdalGlobal
-				.MultiPolyToSingle(mergedBankLine.Difference(GdalGlobal.mergePolygons(dissoveSplitLine)));
+				.MultiPolyToSingle(mergedBankLine.Difference(GdalGlobal.GeometriesMerge(dissoveSplitLine)));
 		dissoveSplitLine.clear();
 
 		// <RECREATE POLYGONS>

@@ -83,7 +83,7 @@ public class IrregularReachBasicControl {
 		List<Geometry> outList = new ArrayList<>();
 
 		// merge all geometry to multiStringLine
-		Geometry mergeLine = GdalGlobal.mergePolygons(this.geoList);
+		Geometry mergeLine = GdalGlobal.GeometriesMerge(this.geoList);
 
 		// split multiStringLine to several stringLine
 		for (int index = 0; index < mergeLine.GetGeometryCount(); index++) {
@@ -280,7 +280,7 @@ public class IrregularReachBasicControl {
 		});
 
 		// output
-		return GdalGlobal.mergePolygons(outGeoList);
+		return GdalGlobal.GeometriesMerge(outGeoList);
 	}
 
 	/*
@@ -321,7 +321,7 @@ public class IrregularReachBasicControl {
 						otherNode = currentEdge.getOtherNode(otherNode);
 					}
 					groupedLineString.add(new Double[] { otherNode.getX(), otherNode.getY(), otherNode.getZ() });
-					outList.add(GdalGlobal.CreateLine(groupedLineString));
+					outList.add(GdalGlobal.CreateLineString(groupedLineString));
 
 					// end, add node used count to map
 					nodeUsedCount.put(otherNode.getId(), nodeUsedCount.get(otherNode.getId()) + 1);
@@ -419,7 +419,7 @@ public class IrregularReachBasicControl {
 		}
 
 		public Geometry getGeo() {
-			return GdalGlobal.pointToGeometry(new Double[] { this.x, this.y, this.z });
+			return GdalGlobal.CreatePoint(new double[] { this.x, this.y, this.z });
 		}
 
 		public List<Map<String, Object>> getGeoAttr() {
@@ -501,7 +501,7 @@ public class IrregularReachBasicControl {
 			this.nodeList.forEach(node -> {
 				points.add(new Double[] { node.getX(), node.getY(), node.getZ() });
 			});
-			this.geo = GdalGlobal.CreateLine(points);
+			this.geo = GdalGlobal.CreateLineString(points);
 
 			return this.geo;
 		}

@@ -276,7 +276,7 @@ public class IrregularNetBasicControl {
 			this.edgeMap.get(key).getLinkedNode().forEach(node -> {
 				points.add(new Double[] { node.getX(), node.getY(), node.getZ() });
 			});
-			geoList.add(GdalGlobal.CreateLine(points));
+			geoList.add(GdalGlobal.CreateLineString(points));
 		});
 
 		export(saveAdd, geoList, saveTyping);
@@ -400,7 +400,7 @@ public class IrregularNetBasicControl {
 			this.linkedNode.forEach(node -> {
 				temptList.add(new Double[] { node.getX(), node.getY(), node.getZ() });
 			});
-			return GdalGlobal.CreateLine(temptList);
+			return GdalGlobal.CreateLineString(temptList);
 		}
 
 		public boolean isContain(NodeClass temptNodeClass) {

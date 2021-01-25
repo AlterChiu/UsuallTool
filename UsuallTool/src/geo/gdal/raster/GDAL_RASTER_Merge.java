@@ -7,12 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
+import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
-import usualTool.FileFunction;
 
 public class GDAL_RASTER_Merge {
-	private String prefixName = "RasterMerge";
-	private String temptFolder = GdalGlobal.temptFolder;
+	private String temptFolder = AtFileFunction.createTemptFolder();
 	private static String tmeptRunFileName = "gdal_merge_tempt.bat";
 
 	/*
@@ -52,12 +51,12 @@ public class GDAL_RASTER_Merge {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
-		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
+		this.temptFolder = AtFileFunction.createTemptFolder();
 
 		/*
 		 * setting temptFile fileName
 		 */
-		String temptFileName = GdalGlobal.getTempFileName(this.temptFolder, ".txt");
+		String temptFileName = AtFileFunction.getTempFileName(this.temptFolder, ".txt");
 		String temptFileDirection = this.temptFolder + "\\" + temptFileName;
 
 		/*
@@ -66,10 +65,10 @@ public class GDAL_RASTER_Merge {
 		List<String> mergeList = new ArrayList<>();
 		for (String temptFile : this.mergeFiles) {
 			String sourceFileExtension = temptFile.substring(temptFile.lastIndexOf("."));
-			String sourceFileName = GdalGlobal.getTempFileName(this.temptFolder, sourceFileExtension);
+			String sourceFileName = AtFileFunction.getTempFileName(this.temptFolder, sourceFileExtension);
 			String sourceFileAdd = this.temptFolder + "\\" + sourceFileName;
 
-			FileFunction.copyFile(temptFile, sourceFileAdd);
+			AtFileFunction.copyFile(temptFile, sourceFileAdd);
 			mergeList.add("\"" + sourceFileAdd + "\"");
 		}
 
@@ -77,7 +76,7 @@ public class GDAL_RASTER_Merge {
 		 * merged file SavedAdd
 		 */
 		String targetFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
-		String targetFileName = GdalGlobal.getTempFileName(this.temptFolder, targetFileExtension);
+		String targetFileName = AtFileFunction.getTempFileName(this.temptFolder, targetFileExtension);
 		String targetFileAdd = this.temptFolder + "\\" + targetFileName;
 
 		/*
@@ -125,8 +124,8 @@ public class GDAL_RASTER_Merge {
 		/*
 		 * copy merged file to saveAdd
 		 */
-		FileFunction.waitFileComplete(targetFileAdd);
-		FileFunction.copyFile(targetFileAdd, saveAdd);
-		FileFunction.delete(this.temptFolder);
+		AtFileFunction.waitFileComplete(targetFileAdd);
+		AtFileFunction.copyFile(targetFileAdd, saveAdd);
+		AtFileFunction.delete(this.temptFolder);
 	}
 }

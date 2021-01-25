@@ -5,8 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
-import usualTool.FileFunction;
 
 public class ExcelChart {
 	public static String MODULE_COPYPASTE = "copyPaste";
@@ -27,7 +28,7 @@ public class ExcelChart {
 		runVBS(excelFolder + MODULE_COPYPASTE + ".vbs", excelFolder);
 
 		// remove vbs file
-		FileFunction.delete(excelFolder + MODULE_COPYPASTE + ".vbs");
+		AtFileFunction.delete(excelFolder + MODULE_COPYPASTE + ".vbs");
 	}
 
 	public static void toPNG(String excelFilePath, String targetSheet) throws IOException, InterruptedException {
@@ -97,7 +98,7 @@ public class ExcelChart {
 		runVBS(excelFolder + "outputChart.vbs", excelFolder);
 
 		// remove vbs file
-		FileFunction.delete(excelFolder + "outputChart.vbs");
+		AtFileFunction.delete(excelFolder + "outputChart.vbs");
 	}
 
 	private static List<String> createModuleVBS(String excelFileName, String module) {

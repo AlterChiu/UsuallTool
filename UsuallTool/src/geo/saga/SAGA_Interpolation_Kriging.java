@@ -13,7 +13,7 @@ import asciiFunction.AsciiBasicControl;
 import geo.gdal.CsvToSpatialFile;
 import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
-import usualTool.FileFunction;
+import usualTool.AtFileFunction;
 
 public class SAGA_Interpolation_Kriging {
 	/*
@@ -63,7 +63,7 @@ public class SAGA_Interpolation_Kriging {
 
 	// tmeptFile setting
 	private String temptFileName = "";
-	private String temptFileDirection = GdalGlobal.temptFolder + "SagaKrigin";
+	private String temptFileDirection = AtFileFunction.createTemptFolder();
 
 	/*
 	 ** InterPolationKriging
@@ -93,16 +93,16 @@ public class SAGA_Interpolation_Kriging {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
-		this.temptFileDirection = this.temptFileDirection + GdalGlobal.getTempFileName(this.temptFileDirection, "");
+		this.temptFileDirection = this.temptFileDirection + AtFileFunction.getTempFileName(this.temptFileDirection, "");
 		for (String fileName : new File(this.temptFileDirection).list()) {
-			FileFunction.delete(this.temptFileDirection + "\\" + fileName);
+			AtFileFunction.delete(this.temptFileDirection + "\\" + fileName);
 		}
 
 		/*
 		 * setting temptFile fileName
 		 */
-		this.temptFileName = GdalGlobal.getTempFileName(GdalGlobal.temptFolder, ".shp");
-		this.temptFileDirection = GdalGlobal.temptFolder + this.temptFileName;
+		this.temptFileName = AtFileFunction.getTempFileName(this.temptFileDirection, ".shp");
+		this.temptFileDirection = this.temptFileDirection + this.temptFileName;
 
 		// convert xyzList to csvFile, which save in temptFile
 		List<String[]> temptCsvList = new ArrayList<>();
@@ -125,7 +125,7 @@ public class SAGA_Interpolation_Kriging {
 		/*
 		 * GDAL_TANS CommandLine
 		 */
-		FileFunction.delete(this.temptFileDirection + "_pridiction.asc");
+		AtFileFunction.delete(this.temptFileDirection + "_pridiction.asc");
 
 		List<String> transCmd = new ArrayList<>();
 		transCmd.add("cmd");
@@ -150,8 +150,8 @@ public class SAGA_Interpolation_Kriging {
 		/*
 		 * clear temptFolder first
 		 */
-		for (String fileName : new File(GdalGlobal.temptFolder).list()) {
-			FileFunction.delete(GdalGlobal.temptFolder + "\\" + fileName);
+		for (String fileName : new File(this.temptFileDirection).list()) {
+			AtFileFunction.delete(this.temptFileDirection + "\\" + fileName);
 		}
 
 		/*
@@ -303,16 +303,16 @@ public class SAGA_Interpolation_Kriging {
 	public void saveAsRaster(String saveAdd, String dataFormat) throws InterruptedException, IOException {
 		SAGA_RunKriging();
 
-		String temptSaveFolder = GdalGlobal.temptFolder + "\\";
+		String temptSaveFolder = this.temptFileDirection + "\\";
 		String temptSavetFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
 		String temptSaveFileAdd = temptSaveFolder + temptSavetFileExtension;
 		GDAL_Translation(temptSaveFileAdd, dataFormat);
 
-		FileFunction.copyFile(temptSaveFileAdd, saveAdd);
+		AtFileFunction.copyFile(temptSaveFileAdd, saveAdd);
 		this.close();
 	}
 
 	private final void close() {
-		FileFunction.delete(this.temptFileDirection);
+		AtFileFunction.delete(this.temptFileDirection);
 	}
 }

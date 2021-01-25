@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.Optional;
 import org.gdal.ogr.Geometry;
 import usualTool.AtFileWriter;
-import usualTool.FileFunction;
+import usualTool.AtFileFunction;
 
 public class GDAL_Processing {
-	private String temptFolder = GdalGlobal.temptFolder + "Processing";
+	private String temptFolder = AtFileFunction.createTemptFolder();
 	private List<Map<String, String>> parameters = new ArrayList<>();
 	private List<String> processingAlgrothims = new ArrayList<>();
 	private String inputLayer = temptFolder + "//temptShp.shp";
@@ -34,9 +34,9 @@ public class GDAL_Processing {
 
 	private void processing(List<Geometry> geoList) {
 		// clear temptFolder
-		FileFunction.newFolder(this.temptFolder);
+		AtFileFunction.newFolder(this.temptFolder);
 		for (String fileName : new File(this.temptFolder).list()) {
-			FileFunction.delete(this.temptFolder + "\\" + fileName);
+			AtFileFunction.delete(this.temptFolder + "\\" + fileName);
 		}
 
 		// translate shapeFile to points
@@ -52,13 +52,13 @@ public class GDAL_Processing {
 			paramteres.put("INPUT", inputAdd);
 
 			// if no address to save file, save to temptFolder
-			String outputTemptFile = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
+			String outputTemptFile = AtFileFunction.getTempFileName(this.temptFolder, ".shp");
 			String outputAdd = Optional.ofNullable(paramteres.get("OUTPUT"))
 					.orElse(this.temptFolder.replace("\\", "/") + "/" + outputTemptFile);
 			paramteres.put("OUTPUT", outputAdd);
 
 		} else if (this.processingAlgrothims.size() == 0) {
-			String outputTemptFile = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
+			String outputTemptFile = AtFileFunction.getTempFileName(this.temptFolder, ".shp");
 			paramteres.put("OUTPUT", this.temptFolder.replace("\\", "/") + "/" + outputTemptFile);
 			paramteres.put("INPUT", this.inputLayer.replace("\\", "/"));
 
@@ -126,7 +126,7 @@ public class GDAL_Processing {
 	}
 
 	public List<Geometry> getDefensigyGeoList() throws IOException, InterruptedException {
-		String temptSaveFileName = GdalGlobal.getTempFileName(this.temptFolder, ".shp");
+		String temptSaveFileName = AtFileFunction.getTempFileName(this.temptFolder, ".shp");
 		String temptSaveFileAdd = this.temptFolder + "\\" + temptSaveFileName;
 		this.saveAsShp(temptSaveFileAdd);
 

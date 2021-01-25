@@ -19,6 +19,7 @@
 		<commonMath.version>3.6.1</commonMath.version>
 		<jdistlib.version>0.4.5</jdistlib.version>
 		<commonLang.version>3.8.1</commonLang.version>
+		<nio.version>1.0.3</nio.version>
 
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<!-- ++++++++++++ NETCDF +++++++++++++ -->

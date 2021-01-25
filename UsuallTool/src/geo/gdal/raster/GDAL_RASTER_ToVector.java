@@ -2,7 +2,6 @@
 package geo.gdal.raster;
 
 import java.awt.geom.Path2D;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,11 +13,10 @@ import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal_DataFormat;
 import geo.gdal.SpatialWriter;
 import usualTool.AtCommonMath;
-import usualTool.FileFunction;
+import usualTool.AtFileFunction;
 
 public class GDAL_RASTER_ToVector {
-	private String prefixName = "RasterToVector";
-	private String temptFolder = GdalGlobal.temptFolder;
+	private String temptFolder = AtFileFunction.createTemptFolder();
 
 	/*
 	 * this function will not using gda_polygonize function because there is
@@ -55,12 +53,12 @@ public class GDAL_RASTER_ToVector {
 		/*
 		 * clear gdalGlobal temptFolder
 		 */
-		this.temptFolder = GdalGlobal.createTemptFolder(this.prefixName);
+		this.temptFolder = AtFileFunction.createTemptFolder();
 
 		/*
 		 * setting temptFile fileName
 		 */
-		String temptFileName = GdalGlobal.getTempFileName(this.temptFolder, ".txt");
+		String temptFileName = AtFileFunction.getTempFileName(this.temptFolder, ".txt");
 		String temptFileDirection = this.temptFolder + temptFileName;
 
 		// translate raster data to asciiFormat
@@ -100,7 +98,7 @@ public class GDAL_RASTER_ToVector {
 		// output geoList and attribute table to spacialFile
 		new SpatialWriter().setGeoList(geoList).setFieldType(dataType).setAttribute(attrData).saceAs(saveAdd,
 				this.outputDataType);
-		FileFunction.delete(this.temptFolder);
+		AtFileFunction.delete(this.temptFolder);
 	}
 
 	private Geometry getPolygon(double[] centerPoint, double cellSize) {
