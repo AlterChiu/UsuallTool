@@ -36,8 +36,8 @@ public class GDAL_RASTER_TranslateCoordinate {
 		String sourceWorkSpace = this.temptFolder + AtFileFunction.getTempFileName(this.temptFolder, "") + "\\";
 		String targetWorkSpace = this.temptFolder + AtFileFunction.getTempFileName(this.temptFolder, "") + "\\";
 
-		AtFileFunction.newFolder(sourceWorkSpace);
-		AtFileFunction.newFolder(targetWorkSpace);
+		AtFileFunction.createFolder(sourceWorkSpace);
+		AtFileFunction.createFolder(targetWorkSpace);
 
 		String temptSorceFile = sourceWorkSpace + AtFileFunction.getTempFileName(sourceWorkSpace, sourceFileExtension);
 		AtFileFunction.copyFile(this.originalFile, temptSorceFile);

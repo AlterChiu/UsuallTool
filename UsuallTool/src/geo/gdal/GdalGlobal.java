@@ -47,8 +47,8 @@ public class GdalGlobal {
 	private static String getQigsPath() {
 		String detectPath = System.getenv().get("AtQGIS");
 		if (detectPath == null)
-			detectPath = "K:\\Qgis\\3.10.7\\";
-		return detectPath;
+			detectPath = "K:\\Qgis\\3.10.7";
+		return detectPath + "\\";
 	}
 
 	/*
@@ -348,6 +348,10 @@ public class GdalGlobal {
 		return temptGeo;
 	}
 
+	public static Geometry GeometryTranslator(double x, double y, int importCoordinate, int outputCoordinate) {
+		return GdalGlobal.GeometryTranslator(GdalGlobal.CreatePoint(x, y), importCoordinate, outputCoordinate);
+	}
+
 	public static Geometry GeometryTranslator(Geometry geo, String importCoordinate, String outputCoordinate) {
 		SpatialReference inputSpatital = new SpatialReference();
 		inputSpatital.ImportFromProj4(importCoordinate);
@@ -360,6 +364,22 @@ public class GdalGlobal {
 		temptGeo.Transform(geoTrans);
 
 		return temptGeo;
+	}
+
+	public static Geometry GeometryTranslator(double x, double y, String importCoordinate, String outputCoordinate) {
+		return GdalGlobal.GeometryTranslator(GdalGlobal.CreatePoint(x, y), importCoordinate, outputCoordinate);
+	}
+
+	public static double[] CoordinateTranslator(double x, double y, int importCoordinate, int outputCoordinate) {
+		Geometry pointGeometry = GdalGlobal.CreatePoint(x, y);
+		Geometry translatedPoint = GdalGlobal.GeometryTranslator(pointGeometry, importCoordinate, outputCoordinate);
+		return new double[] { translatedPoint.GetX(), translatedPoint.GetY() };
+	}
+
+	public static double[] CoordinateTranslator(double x, double y, String importCoordinate, String outputCoordinate) {
+		Geometry pointGeometry = GdalGlobal.CreatePoint(x, y);
+		Geometry translatedPoint = GdalGlobal.GeometryTranslator(pointGeometry, importCoordinate, outputCoordinate);
+		return new double[] { translatedPoint.GetX(), translatedPoint.GetY() };
 	}
 
 	public static List<Geometry> GeometryToPointGeos(Geometry geo) {
@@ -765,4 +785,3 @@ public class GdalGlobal {
 		}
 	}
 }
-

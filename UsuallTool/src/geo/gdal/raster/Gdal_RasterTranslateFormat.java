@@ -40,10 +40,7 @@ public class Gdal_RasterTranslateFormat {
 	}
 
 	public void save(String saveAdd, String dataType) throws IOException, InterruptedException {
-		String newFolderName = AtFileFunction.getTempFileName(this.temptFolder, "");
-		String newWorkSpace = this.temptFolder + newFolderName + "\\";
-		AtFileFunction.newFolder(newWorkSpace);
-
+		String newWorkSpace = AtFileFunction.createTemptFolder(this.temptFolder);
 		/*
 		 * save sourceFile to temptFolder
 		 */

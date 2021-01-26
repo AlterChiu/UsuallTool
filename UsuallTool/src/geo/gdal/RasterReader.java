@@ -1,6 +1,7 @@
 
 package geo.gdal;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -9,21 +10,21 @@ import java.util.List;
 import java.util.Map;
 import org.gdal.gdal.Band;
 import org.gdal.gdal.Dataset;
-import org.gdal.gdal.Driver;
 import org.gdal.gdal.gdal;
-import org.gdal.gdalconst.gdalconst;
-
 import geo.gdal.raster.Gdal_RasterToPNG;
-import geo.gdal.raster.Gdal_RasterWarp;
+import geo.gdal.raster.Gdal_RasterTranslateFormat;
 import usualTool.AtCommonMath;
+import usualTool.AtFileFunction;
 
-public class RasterReader {
+public class RasterReader implements AutoCloseable {
 	private String fileAdd;
 	private double noDataValue;
 	private int dataDecimal = 4;
+	private String temptFileAdd = null;
 
 	// gdal raster object
 	private Band rasterBand;
+	private Dataset rasterData;
 
 	// raster properties
 	private double minX; // value of center cell
@@ -43,8 +44,8 @@ public class RasterReader {
 
 		// initial raster file
 		gdal.AllRegister();
-		Dataset rasterData = gdal.Open(this.fileAdd);
-		this.rasterBand = rasterData.GetRasterBand(1);
+		this.rasterData = gdal.Open(this.fileAdd, 0);
+		this.rasterBand = this.rasterData.GetRasterBand(1);
 
 		// get noData value
 		Double[] nullVlaue = new Double[1];
@@ -183,29 +184,60 @@ public class RasterReader {
 		}
 	}
 
+	public Boolean isContain(int column, int row) {
+		if (this.column <= column && column >= 0 && this.row <= row && row >= 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public Boolean isContain(double x, double y) {
+		int[] position = this.getPosition(x, y);
+		return this.isContain(position[0], position[1]);
+	}
+
 	// <+++++++++++++++++++++++++++++++++++++>
 
 	// <+++++++++++++++++++++++++++++++++++++>
 	// <++++++++++ modify Raster file +++++++++++++++>
 	// <+++++++++++++++++++++++++++++++++++++>
 
-	public void setValue(int column, int row, double value) {
-		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(64);
-		byteBuffer.order(ByteOrder.nativeOrder());
-		byteBuffer.put((byte) value);
-		this.rasterBand.WriteRaster_Direct(column, row, 1, 1, byteBuffer);
+	public void setValue(int column, int row, double value) throws IOException, InterruptedException {
+
+		this.createTemptRaster();
+		this.rasterBand.WriteRaster(column, row, 1, 1, new double[] { value });
 	}
 
-	public void setValue(double x, double y, double value) {
+	public void setValue(double x, double y, double value) throws IOException, InterruptedException {
 		int[] position = getPosition(x, y);
 		int row = position[0];
 		int column = position[1];
 		this.setValue(row, column, value);
 	}
 
-	public void setNullValue(double nullValue) {
+	public void setNullValue(double nullValue) throws IOException, InterruptedException {
+
+		this.createTemptRaster();
+
 		this.noDataValue = nullValue;
 		this.rasterBand.SetNoDataValue(nullValue);
+	}
+
+	private void createTemptRaster() throws IOException, InterruptedException {
+		if (this.temptFileAdd == null) {
+			String temptFolder = AtFileFunction.createTemptFolder();
+			this.temptFileAdd = temptFolder + "temptRaster.tif";
+
+			Gdal_RasterTranslateFormat translator = new Gdal_RasterTranslateFormat(this.fileAdd);
+			translator.save(this.temptFileAdd, GdalGlobal_DataFormat.DATAFORMAT_RASTER_GTiff);
+
+			this.rasterBand.delete();
+			this.rasterData.delete();
+
+			this.rasterData = gdal.Open(this.temptFileAdd, 1);
+			this.rasterBand = this.rasterData.GetRasterBand(1);
+		}
 	}
 
 	// <+++++++++++++++++++++++++++++++++++++>
@@ -243,36 +275,69 @@ public class RasterReader {
 		return outList;
 	}
 
-	public void saveAs(String fileAdd) {
+	public void saveAs(String saveAdd) throws InterruptedException, IOException {
+		this.rasterBand.delete();
+		this.rasterData.delete();
 
-		Driver driver = gdal.GetDriverByName("GTiff");
-		Dataset dataset = driver.Create(fileAdd, this.column, this.row, 1, gdalconst.GDT_Float32);
-		dataset.SetGeoTransform(new double[] { this.minX, this.xSize, 0, this.maxY, 0, this.ySize });
-
-		Band band = dataset.GetRasterBand(1);
-		band.SetNoDataValue(this.noDataValue);
-
-		List<Double[]> points = this.getValues(0, 0, this.column, this.row);
-		for (int row = 0; row < points.size(); row++) {
-			for (int column = 0; column < points.get(row).length; column++) {
-
-				ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4);
-				byteBuffer.order(ByteOrder.nativeOrder());
-
-				byteBuffer.put((byte) points.get(row)[column].doubleValue());
-				band.WriteRaster(column, row, 1, 1, new double[] { points.get(row)[column] });
-			}
+		if (this.temptFileAdd == null) {
+			RasterReader.saveAs(this.fileAdd, saveAdd, GdalGlobal.extensionAutoDetect(saveAdd));
+			this.rasterData = gdal.Open(this.fileAdd);
+		} else {
+			RasterReader.saveAs(this.temptFileAdd, saveAdd, GdalGlobal.extensionAutoDetect(saveAdd));
+			this.rasterData = gdal.Open(this.temptFileAdd);
 		}
-		dataset.delete();
+		this.rasterBand = this.rasterData.GetRasterBand(1);
+
+//		Driver driver = gdal.GetDriverByName("GTiff");
+//		Dataset dataset = driver.Create(fileAdd, this.column, this.row, 1, gdalconst.GDT_Float32);
+//		dataset.SetGeoTransform(new double[] { this.minX, this.xSize, 0, this.maxY, 0, this.ySize });
+//
+//		Band band = dataset.GetRasterBand(1);
+//		band.SetNoDataValue(this.noDataValue);
+//
+//		List<Double[]> points = this.getValues(0, 0, this.column, this.row);
+//		for (int row = 0; row < points.size(); row++) {
+//			for (int column = 0; column < points.get(row).length; column++) {
+//
+//				ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4);
+//				byteBuffer.order(ByteOrder.nativeOrder());
+//
+//				byteBuffer.put((byte) points.get(row)[column].doubleValue());
+//				band.WriteRaster(column, row, 1, 1, new double[] { points.get(row)[column] });
+//			}
+//		}
+//		dataset.delete();
 	}
 
 	public void saveAsImage(String fileAdd, Map<Double, Integer[]> colorMap) throws IOException, InterruptedException {
-		Gdal_RasterToPNG.save(this.fileAdd, colorMap, fileAdd);
+		if (this.temptFileAdd == null) {
+			Gdal_RasterToPNG.save(this.fileAdd, colorMap, fileAdd);
+			this.rasterData = gdal.Open(this.fileAdd);
+		} else {
+			Gdal_RasterToPNG.save(this.temptFileAdd, colorMap, fileAdd);
+			this.rasterData = gdal.Open(this.temptFileAdd);
+		}
+		this.rasterBand = this.rasterData.GetRasterBand(1);
 	}
 
-	public static void saveAs(String fileAdd, String saveAdd) throws InterruptedException, IOException {
-		Gdal_RasterWarp warp = new Gdal_RasterWarp(fileAdd);
-		warp.save(saveAdd);
+	public static void saveAs(String fileAdd, String targetAdd, String saveType)
+			throws InterruptedException, IOException {
+		Gdal_RasterTranslateFormat translate = new Gdal_RasterTranslateFormat(fileAdd);
+		translate.save(targetAdd, saveType);
+	}
+
+	@Override
+	public void close() throws Exception {
+		// TODO Auto-generated method stub
+
+		this.rasterBand.delete();
+		this.rasterData.delete();
+
+		try {
+			String temptFolder = new File(this.temptFileAdd).getAbsoluteFile().getParent();
+			AtFileFunction.delete(temptFolder);
+		} finally {
+		}
 	}
 
 }

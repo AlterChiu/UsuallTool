@@ -11,7 +11,7 @@ import usualTool.MathEqualtion.RandomMaker;
 
 public class AtFileFunction {
 
-	public static void newFolder(String folderPath) {
+	public static void createFolder(String folderPath) {
 		try {
 			String filePath = folderPath;
 			filePath = filePath.toString();
@@ -55,7 +55,7 @@ public class AtFileFunction {
 	}
 
 	public static void copyFolder(String oldPath, String newPath) {
-		newFolder(newPath);
+		createFolder(newPath);
 		oldPath = oldPath + "\\";
 		newPath = newPath + "\\";
 		for (String file : new File(oldPath).list()) {
@@ -86,14 +86,13 @@ public class AtFileFunction {
 
 	// return tempt craete folder
 	public static String createTemptFolder() {
-		return AtFileFunction.createTemptFolder(System.getenv("java.io.tmpdir"));
+		return AtFileFunction.createTemptFolder(System.getProperty("java.io.tmpdir"));
 	}
 
 	public static String createTemptFolder(String targetDirection) {
-		String folderPath = System.getProperty("java.io.tmpdir");
-		String temptFolderName = AtFileFunction.getTempFileName(folderPath, "");
-		AtFileFunction.createTemptFolder(folderPath + temptFolderName);
-		return temptFolderName + folderPath + "\\";
+		String temptFolderName = AtFileFunction.getTempFileName(targetDirection, "");
+		AtFileFunction.createFolder(targetDirection + "\\" + temptFolderName);
+		return targetDirection + "\\" + temptFolderName + "\\";
 	}
 
 	public static String getTempFileName(String folder, String additionFormat) {

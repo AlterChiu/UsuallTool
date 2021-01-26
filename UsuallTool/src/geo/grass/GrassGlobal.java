@@ -23,17 +23,17 @@ public class GrassGlobal {
 		if (new File(gisBaseFolder).exists()) {
 			AtFileFunction.delete(gisBaseFolder);
 		}
-		AtFileFunction.newFolder(gisBaseFolder);
+		AtFileFunction.createFolder(gisBaseFolder);
 
 		if (new File(location).exists()) {
 			AtFileFunction.delete(location);
 		}
-		AtFileFunction.newFolder(location);
+		AtFileFunction.createFolder(location);
 
 		if (new File(mapSet).exists()) {
 			AtFileFunction.delete(mapSet);
 		}
-		AtFileFunction.newFolder(mapSet);
+		AtFileFunction.createFolder(mapSet);
 
 		/*
 		 * setting new setting to mapSet

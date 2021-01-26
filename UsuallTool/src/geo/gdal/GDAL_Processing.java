@@ -34,7 +34,7 @@ public class GDAL_Processing {
 
 	private void processing(List<Geometry> geoList) {
 		// clear temptFolder
-		AtFileFunction.newFolder(this.temptFolder);
+		AtFileFunction.createFolder(this.temptFolder);
 		for (String fileName : new File(this.temptFolder).list()) {
 			AtFileFunction.delete(this.temptFolder + "\\" + fileName);
 		}
