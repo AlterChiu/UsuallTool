@@ -3,8 +3,6 @@ package geo.gdal;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -204,7 +202,6 @@ public class RasterReader implements AutoCloseable {
 	// <+++++++++++++++++++++++++++++++++++++>
 
 	public void setValue(int column, int row, double value) throws IOException, InterruptedException {
-
 		this.createTemptRaster();
 		this.rasterBand.WriteRaster(column, row, 1, 1, new double[] { value });
 	}

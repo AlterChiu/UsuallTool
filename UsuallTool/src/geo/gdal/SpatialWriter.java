@@ -54,6 +54,8 @@ public class SpatialWriter {
 	// <=========================================>
 	public SpatialWriter() {
 		gdal.AllRegister();
+		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-8");
+		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
 	}
 
 	public SpatialWriter setGeoList(List<Geometry> geoList) {

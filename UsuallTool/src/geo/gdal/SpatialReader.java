@@ -39,6 +39,7 @@ public class SpatialReader {
 	public SpatialReader(String fileAdd) throws UnsupportedEncodingException {
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
+		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-8");
 
 		this.dataSource = ogr.Open(fileAdd);
 		detectAttributeTitle();
@@ -51,6 +52,7 @@ public class SpatialReader {
 
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
+		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-8");
 
 		this.encodingTranslte(fileAdd, encode);
 		this.dataSource.delete();
@@ -59,6 +61,7 @@ public class SpatialReader {
 	public SpatialReader(DataSource dataSource) throws UnsupportedEncodingException {
 		gdal.AllRegister();
 		gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
+		gdal.SetConfigOption("SHAPE_ENCODING", "UTF-8");
 
 		this.dataSource = dataSource;
 		detectAttributeTitle();
@@ -210,7 +213,6 @@ public class SpatialReader {
 			// get the attribute table
 			Map<String, Object> temptMap = new HashMap<String, Object>();
 			for (String key : this.attributeTitles) {
-				key = new String(key.getBytes());
 
 				String type = this.attributeTitleType.get(key);
 				try {
