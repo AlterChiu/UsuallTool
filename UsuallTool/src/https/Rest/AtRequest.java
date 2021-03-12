@@ -1,5 +1,7 @@
 package https.Rest;
 
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -10,16 +12,17 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import com.google.gson.JsonObject;
 
@@ -40,16 +43,14 @@ public class AtRequest {
 		this.parameter = new HashMap<>();
 		this.url = url;
 
-		this.setContentType("application/json");
+		this.setContentType(ContentType_FORM);
 	}
-
 
 	public void setBasicAuthor(String account, String password) {
 		String auth = account + ":" + password;
 		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.UTF_8));
 
 		this.header.put(HttpHeaders.AUTHORIZATION, "Basic " + new String(encodedAuth));
-		System.out.println("Basic " + new String(encodedAuth));
 	}
 
 	public void setHeader(Map<String, String> header) {
@@ -98,11 +99,11 @@ public class AtRequest {
 		this.header.put("Content-Type", type);
 	}
 
-	public String doGet() throws ClientProtocolException, IOException {
+	public Response doGet() throws ClientProtocolException, IOException {
 		return this.doGet(30);
 	}
 
-	public String doGet(int timeoutSecond) throws ClientProtocolException, IOException {
+	public Response doGet(int timeoutSecond) throws ClientProtocolException, IOException {
 		String getUrl = this.url + this.buildParameters();
 		RequestBuilder requestBuilder = RequestBuilder.get(getUrl);
 
@@ -112,11 +113,11 @@ public class AtRequest {
 		return this.doRequest(requestBuilder);
 	}
 
-	public String doPost() throws ClientProtocolException, IOException {
+	public Response doPost() throws ClientProtocolException, IOException {
 		return this.doPost(30);
 	}
 
-	public String doPost(int timeoutSecond) throws ClientProtocolException, IOException {
+	public Response doPost(int timeoutSecond) throws ClientProtocolException, IOException {
 		RequestBuilder requestBuilder = RequestBuilder.post().setUri(this.url);
 
 		this.buildHeader(requestBuilder);
@@ -142,27 +143,8 @@ public class AtRequest {
 //
 //	}
 
-	private String doRequest(RequestBuilder requestBuilder) throws ClientProtocolException, IOException {
-
-		// handler
-		ResponseHandler<String> responseHandler = response -> {
-			int status = response.getStatusLine().getStatusCode();
-			if (status >= 300 && status < 400) {
-				HttpEntity entity = response.getEntity();
-				return entity != null ? EntityUtils.toString(entity) : null;
-			} else {
-				new ClientProtocolException("Unexpected response status: " + status);
-				return "Unexpected response status: " + status;
-			}
-		};
-
-		// setting custom http headers on the httpclient
-		CloseableHttpClient httpclient = HttpClients.custom().build();
-
-		String responseBody = httpclient.execute(requestBuilder.build(), responseHandler);
-		httpclient.close();
-
-		return responseBody;
+	private Response doRequest(RequestBuilder requestBuilder) throws ClientProtocolException, IOException {
+		return new Response(requestBuilder);
 	}
 
 	private RequestBuilder buildHeader(RequestBuilder requestBuilder) throws UnsupportedEncodingException {
@@ -174,18 +156,13 @@ public class AtRequest {
 
 	private RequestBuilder buildBody(RequestBuilder requestBuilder) throws UnsupportedEncodingException {
 
-		// Form
-		if (this.header.get("Content-Type").equals(ContentType_FORM)) {
-			List<String> temptLine = new ArrayList<>();
+		// Json
+		if (this.header.get("Content-Type").equals(ContentType_JSON)) {
+			JsonObject outJson = new JsonObject();
 			this.body.keySet().forEach(key -> {
-				try {
-					temptLine.add(this.urlEncoding(key) + "=" + this.urlEncoding(this.body.get(key)));
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
+				outJson.addProperty(key, this.body.get(key));
 			});
-			requestBuilder.setEntity(new StringEntity(String.join("&", temptLine)));
-
+			requestBuilder.setEntity(new StringEntity(outJson.toString()));
 			// XML
 		} else if (this.header.get("Content-Type").equals(ContentType_XML)) {
 			StringBuilder outString = new StringBuilder();
@@ -202,13 +179,18 @@ public class AtRequest {
 			outString.append("<//data>");
 			requestBuilder.setEntity(new StringEntity(outString.toString()));
 
-			// other for Json
+			// other or Form
 		} else {
-			JsonObject outJson = new JsonObject();
+			List<String> temptLine = new ArrayList<>();
 			this.body.keySet().forEach(key -> {
-				outJson.addProperty(key, this.body.get(key));
+				try {
+					temptLine.add(this.urlEncoding(key) + "=" + this.urlEncoding(this.body.get(key)));
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
 			});
-			requestBuilder.setEntity(new StringEntity(outJson.toString()));
+			requestBuilder.setEntity(new StringEntity(String.join("&", temptLine)));
+
 		}
 
 		return requestBuilder;
@@ -229,10 +211,76 @@ public class AtRequest {
 			temptLine.add(key + "=" + this.parameter.get(key));
 		});
 
-		return "?" + String.join("&", temptLine);
+		if (temptLine.size() == 0) {
+			return "";
+		} else {
+			return "?" + String.join("&", temptLine);
+		}
 	}
 
 	private String urlEncoding(String value) throws UnsupportedEncodingException {
 		return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+	}
+
+	public class Response implements AutoCloseable {
+		CloseableHttpResponse response;
+		CloseableHttpClient httpclient;
+		private int status;
+		private Map<String, String> header;
+		private HttpEntity entity;
+
+		public Response(RequestBuilder requestBuilder) throws IOException {
+
+			// create client
+			this.httpclient = HttpClients.custom().build();
+			this.response = httpclient.execute(requestBuilder.build());
+
+			this.status = this.checkStatus(response);
+			this.header = this.setHeaders(response);
+			this.entity = response.getEntity();
+			response.getEntity();
+		}
+
+		public String getHeader(String key) {
+			return this.getHeader().get(key);
+		}
+
+		public Map<String, String> getHeader() {
+			return this.header;
+		}
+
+		private Map<String, String> setHeaders(CloseableHttpResponse response) {
+			Map<String, String> outMap = new HashMap<>();
+			for (Header header : response.getAllHeaders()) {
+				outMap.put(header.getName(), header.getValue());
+			}
+			return outMap;
+		}
+
+		public String getBody() throws UnsupportedOperationException, IOException {
+			return IOUtils.toString(this.entity.getContent(), "UTF-8");
+		}
+
+		public byte[] getBytes() throws IOException {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			this.entity.writeTo(baos);
+			return baos.toByteArray();
+		}
+
+		private int checkStatus(CloseableHttpResponse response) {
+			this.status = response.getStatusLine().getStatusCode();
+			if (status < 200 || status > 400) {
+				new Exception("unExcept error while requesting: status code " + status).printStackTrace();
+			}
+			return this.status;
+		}
+
+		@Override
+		public void close() throws IOException {
+			// TODO Auto-generated method stub
+			this.header.clear();
+			this.response.close();
+			this.httpclient.close();
+		}
 	}
 }

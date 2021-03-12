@@ -12,10 +12,11 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
+import org.apache.http.client.ClientProtocolException;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
 
-import https.Rest.AtDoGet;
+import https.Rest.AtRequest;
 import usualTool.AtXmlReader;
 
 public class WMSBasicControl {
@@ -56,7 +57,7 @@ public class WMSBasicControl {
 
 		// get layers
 		try {
-			this.capability = new AtXmlReader(new String(AtDoGet.getResponse(this.capabilityUrl), AtDoGet.ENCODE_UTF8));
+			this.capability = new AtXmlReader(new String(new AtRequest(this.capabilityUrl).doGet().getBytes()));
 			this.capability.getNodes("Layer").get(0).selectNodes("./Layer").forEach(node -> {
 				this.layerList.add(new Layer(node));
 			});
@@ -70,19 +71,20 @@ public class WMSBasicControl {
 		return this.layerList;
 	}
 
-	public byte[] getTileMap(int width, int height) {
+	public byte[] getTileMap(int width, int height)
+			throws UnsupportedOperationException, ClientProtocolException, IOException {
 		this.propertyMap.put("WIDTH", width + "");
 		this.propertyMap.put("HEIGHT", height + "");
 
-		AtDoGet doGet = new AtDoGet(this.wmsUrl);
+		AtRequest doGet = new AtRequest(this.wmsUrl);
 		this.propertyMap.keySet().forEach(key -> {
-			doGet.addKey(key, this.propertyMap.get(key));
+			doGet.addParameter(key, this.propertyMap.get(key));
 		});
 
-		return doGet.getByte();
+		return doGet.doGet().getBytes();
 	}
 
-	public byte[] getTileMap() {
+	public byte[] getTileMap() throws UnsupportedOperationException, ClientProtocolException, IOException {
 		return getTileMap(1920, 1080);
 	}
 
