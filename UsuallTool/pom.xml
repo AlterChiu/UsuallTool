@@ -49,10 +49,18 @@
 		<staxApi.version>1.0-2</staxApi.version>
 		<xmlBean.version>1.5.5</xmlBean.version>
 
+
+		<!-- +++++++++++++++++++++++++++++++ -->
+		<!--++++++++++++ JDBC +++++++++++ -->
+		<!-- +++++++++++++++++++++++++++++++ -->
+		<jdbc.sqlite>3.34.0</jdbc.sqlite>
+
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<!--++++++++++++ GeoTool +++++++++++++ -->
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<gt.wms.version>23.1</gt.wms.version>
+
+
 
 	</properties>
 
@@ -228,6 +236,16 @@
 					<artifactId>guava</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<!-- +++++++++++++++++++++++++++++++ -->
+		<!--++++++++++++ JDBC +++++++++++++ -->
+		<!-- +++++++++++++++++++++++++++++++ -->
+		<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>${jdbc.sqlite}</version>
 		</dependency>
 
 

@@ -2,6 +2,12 @@ package usualTool.netStructure;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -12,8 +18,16 @@ public abstract class AtNetObject {
 	private String text = null;
 	private String nameId = "@__id";
 
-	public Map<String, Object> gets() {
-		return null;
+	public Map<String, Object> getAttributes() {
+		return attributes;
+	}
+
+	public void removeAttributes(String key) {
+		try {
+			this.attributes.remove(key);
+		} catch (Exception e) {
+			new Exception("*WARN* no key exsis, " + key);
+		}
 	}
 
 	protected Object get(String key) {
@@ -117,6 +131,38 @@ public abstract class AtNetObject {
 	}
 
 	public String toXml() {
-		return null;
+		Element root = DocumentHelper
+				.createElement(Optional.ofNullable(this.attributes.get(this.nameId).toString()).orElse(this.nameId));
+		// properties
+		this.attributes.keySet().forEach(key -> {
+			Object value = this.attributes.get(key);
+			if (value instanceof Double) {
+				root.addElement(key).addText(String.valueOf(value)).addAttribute("type", "double");
+			} else if (value instanceof Integer) {
+				root.addElement(key).addText(String.valueOf(value)).addAttribute("type", "int");
+			} else if (value instanceof String) {
+				root.addElement(key).addText(String.valueOf(value)).addAttribute("type", "String");
+			} else if (value instanceof Boolean) {
+				root.addElement(key).addText(String.valueOf(value)).addAttribute("type", "boolean");
+			} else if (value instanceof AtNetObject) {
+				try {
+					root.add(DocumentHelper.parseText(((AtNetObject) value).toXml()));
+				} catch (DocumentException e) {
+					e.printStackTrace();
+				}
+			} else if (value instanceof AtNetArray) {
+				((AtNetArray) value).toXml().forEach(xmlText -> {
+					try {
+						root.add(DocumentHelper.parseText(xmlText));
+					} catch (DocumentException e) {
+						e.printStackTrace();
+					}
+				});
+			} else {
+				new Exception("*WARN* not available instance, while parsing：" + key);
+			}
+		});
+
+		return root.asXML();
 	}
 }

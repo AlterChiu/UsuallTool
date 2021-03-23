@@ -1,4 +1,4 @@
-package https.Rest;
+package https.Request;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -95,6 +96,14 @@ public class AtRequest {
 		}
 	}
 
+	public void setCookie(String cookie) {
+		this.header.put("Cookie", cookie);
+	}
+
+	public void setCookie(Response response) {
+		this.header.put("Cookie", response.getCookie());
+	}
+
 	public void setContentType(String type) {
 		this.header.put("Content-Type", type);
 	}
@@ -127,21 +136,61 @@ public class AtRequest {
 		return this.doRequest(requestBuilder);
 	}
 
-//	public String doPatch() {
-//
-//	}
-//
-//	public String doDelete() {
-//
-//	}
-//
-//	public String doPut() {
-//
-//	}
-//
-//	public String doOptions() {
-//
-//	}
+	public Response doPatch(int timeoutSecond) throws ClientProtocolException, IOException {
+		RequestBuilder requestBuilder = RequestBuilder.patch().setUri(this.url);
+
+		this.buildHeader(requestBuilder);
+		this.buildBody(requestBuilder);
+		this.buildTimeout(requestBuilder, timeoutSecond);
+
+		return this.doRequest(requestBuilder);
+	}
+
+	public Response doPatch() throws ClientProtocolException, IOException {
+		return this.doPatch(30);
+	}
+
+	public Response doDelete(int timeoutSecond) throws ClientProtocolException, IOException {
+		RequestBuilder requestBuilder = RequestBuilder.delete().setUri(this.url);
+
+		this.buildHeader(requestBuilder);
+		this.buildBody(requestBuilder);
+		this.buildTimeout(requestBuilder, timeoutSecond);
+
+		return this.doRequest(requestBuilder);
+	}
+
+	public Response doDelete() throws ClientProtocolException, IOException {
+		return this.doDelete(30);
+	}
+
+	public Response doPut(int timeoutSecond) throws ClientProtocolException, IOException {
+		RequestBuilder requestBuilder = RequestBuilder.put().setUri(this.url);
+
+		this.buildHeader(requestBuilder);
+		this.buildBody(requestBuilder);
+		this.buildTimeout(requestBuilder, timeoutSecond);
+
+		return this.doRequest(requestBuilder);
+	}
+
+	public Response doPut() throws ClientProtocolException, IOException {
+		return this.doPut(30);
+	}
+
+	public Response doOptions(int timeoutSecond) throws ClientProtocolException, IOException {
+		RequestBuilder requestBuilder = RequestBuilder.options().setUri(this.url);
+
+		this.buildHeader(requestBuilder);
+		this.buildBody(requestBuilder);
+		this.buildTimeout(requestBuilder, timeoutSecond);
+
+		return this.doRequest(requestBuilder);
+	}
+
+	public Response doOptions() throws ClientProtocolException, IOException {
+		return this.doOptions(30);
+	}
 
 	private Response doRequest(RequestBuilder requestBuilder) throws ClientProtocolException, IOException {
 		return new Response(requestBuilder);
@@ -275,6 +324,10 @@ public class AtRequest {
 			return this.status;
 		}
 
+		public String getCookie() {
+			return Optional.ofNullable(this.header.get("Set-Cookie")).orElse(null);
+		}
+
 		@Override
 		public void close() throws IOException {
 			// TODO Auto-generated method stub
@@ -282,5 +335,6 @@ public class AtRequest {
 			this.response.close();
 			this.httpclient.close();
 		}
+
 	}
 }

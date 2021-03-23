@@ -1,4 +1,4 @@
-package https.Rest.geo.wms;
+package geo.baseMap.wms;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -16,7 +16,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
 
-import https.Rest.AtRequest;
+import https.Request.AtRequest;
 import usualTool.AtXmlReader;
 
 public class WMSBasicControl {
