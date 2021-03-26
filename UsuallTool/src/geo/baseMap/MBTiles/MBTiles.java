@@ -2,8 +2,8 @@ package geo.baseMap.MBTiles;
 
 import java.sql.SQLException;
 
+import geo.gdal.EnvelopBoundary;
 import geo.gdal.GdalGlobal;
-import geo.gdal.GdalGlobal.EnvelopBoundary;
 
 public class MBTiles {
 	public final static double startX = -20037508.34278700;
@@ -44,7 +44,6 @@ public class MBTiles {
 		double maxXY[] = GdalGlobal.CoordinateTranslator(maxX, maxY, MBTiles.mbtilesEPSG, outEPSG);
 		double minXY[] = GdalGlobal.CoordinateTranslator(minX, minY, MBTiles.mbtilesEPSG, outEPSG);
 
-		return  GdalGlobal.EnvelopBoundary(maxXY[0], maxXY[1], minXY[0], minXY[1]);
+		return  new EnvelopBoundary(maxXY[0], maxXY[1], minXY[0], minXY[1]);
 	}
-l
 }
