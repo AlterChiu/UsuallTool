@@ -2,8 +2,8 @@ package geo.baseMap.MBTiles;
 
 import java.sql.SQLException;
 
-import geo.gdal.EnvelopBoundary;
 import geo.gdal.GdalGlobal;
+import geo.gdal.GdalGlobal.EnvelopBoundary;
 
 public class MBTiles {
 	public final static double startX = -20037508.34278700;

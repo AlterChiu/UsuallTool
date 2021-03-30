@@ -16,6 +16,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
 
+import geo.gdal.GdalGlobal;
 import https.Request.AtRequest;
 import usualTool.AtXmlReader;
 
@@ -104,6 +105,18 @@ public class WMSBasicControl {
 		boundString.append(minY + ",");
 		boundString.append(maxX + ",");
 		boundString.append(maxY + "");
+		this.propertyMap.put("BBOX", boundString.toString());
+
+		this.propertyMap.put("SRS", "EPSG:" + epgs);
+		return this;
+	}
+
+	public WMSBasicControl setBound(GdalGlobal.EnvelopBoundary boundary, int epgs) {
+		StringBuilder boundString = new StringBuilder();
+		boundString.append(boundary.getMinX() + ",");
+		boundString.append(boundary.getMinY() + ",");
+		boundString.append(boundary.getMaxX() + ",");
+		boundString.append(boundary.getMaxY() + "");
 		this.propertyMap.put("BBOX", boundString.toString());
 
 		this.propertyMap.put("SRS", "EPSG:" + epgs);
