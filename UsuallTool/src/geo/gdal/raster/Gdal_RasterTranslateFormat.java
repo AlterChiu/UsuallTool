@@ -6,12 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import geo.gdal.GdalGlobal;
-import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
 
 public class Gdal_RasterTranslateFormat {
-	private String temptFolder = AtFileFunction.createTemptFolder();
-
 	private String nullValue = "-999";
 	private String originalFile = "";
 	private String clipBoundary = "";
@@ -40,16 +37,6 @@ public class Gdal_RasterTranslateFormat {
 	}
 
 	public void save(String saveAdd, String dataType) throws IOException, InterruptedException {
-		String newWorkSpace = AtFileFunction.createTemptFolder(this.temptFolder);
-		/*
-		 * save sourceFile to temptFolder
-		 */
-		String sourceFileExtension = this.originalFile.substring(this.originalFile.lastIndexOf("."));
-		String saveFileExtension = saveAdd.substring(saveAdd.lastIndexOf("."));
-
-		String temptSorceFile = newWorkSpace + AtFileFunction.getTempFileName(newWorkSpace, sourceFileExtension);
-		String temptSaveFile = this.temptFolder + AtFileFunction.getTempFileName(this.temptFolder, saveFileExtension);
-		AtFileFunction.copyFile(this.originalFile, temptSorceFile);
 
 		/*
 		 * setting translate .bat file
@@ -73,17 +60,17 @@ public class Gdal_RasterTranslateFormat {
 		translateCommand.append(" -of " + dataType);
 
 		// setting original file
-		translateCommand.append(" " + temptSorceFile + "");
+		translateCommand.append(" \"" + this.originalFile + "\"");
 
 		// setting targetFile
-		translateCommand.append(" " + temptSaveFile + "\"");
+		translateCommand.append(" \"" + saveAdd + "\"");
 
 		batFile.add(translateCommand.toString());
 
 		// close batch file
 		batFile.add("exit");
 		new AtFileWriter(batFile.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//gdal_translate_tempt.bat").setEncoding(AtFileWriter.ANSI).textWriter("");
+				GdalGlobal.gdalBinFolder + "//gdal_translate_tempt.bat").setEncoding(AtFileWriter.BIG5).textWriter("");
 
 		/*
 		 * run bat file
@@ -101,11 +88,5 @@ public class Gdal_RasterTranslateFormat {
 		pb.command(runCommand);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
-
-		/*
-		 * move temptSaved file to targetAdd
-		 */
-		AtFileFunction.copyFile(temptSaveFile, saveAdd);
-		AtFileFunction.delete(this.temptFolder);
 	}
 }

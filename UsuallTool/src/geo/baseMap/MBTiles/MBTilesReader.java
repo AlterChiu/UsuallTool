@@ -23,6 +23,7 @@ import database.AtSqlResult;
 import geo.baseMap.wms.WMSBasicControl;
 import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal.EnvelopBoundary;
+import geo.gdal.raster.Gdal_RasterWarp;
 import usualTool.AtFileFunction;
 
 public class MBTilesReader {
@@ -150,7 +151,8 @@ public class MBTilesReader {
 		preparedStatement.execute();
 	}
 
-	public void replace(int zoom, int column, int row, String imageAdd) throws SQLException, FileNotFoundException {
+	public void replace(int zoom, int column, int row, String imageAdd)
+			throws SQLException, InterruptedException, IOException {
 
 		// delete old blob
 		StringBuilder deleteSql = new StringBuilder();
@@ -159,6 +161,14 @@ public class MBTilesReader {
 		deleteSql.append(" and " + this.columnTitle + " = " + column);
 		deleteSql.append(" and " + this.zoomTitle + " = " + zoom);
 		this.dbControl.excequteQuery(deleteSql.toString());
+
+		// wrap image
+		String temptFolder = AtFileFunction.createTemptFolder();
+		String imageExtention = imageAdd.substring(imageAdd.lastIndexOf("."));
+		String temptFile = AtFileFunction.getTempFileName(temptFolder, imageExtention);
+		Gdal_RasterWarp warp = new Gdal_RasterWarp(imageAdd);
+		warp.reSample(256, 256);
+		warp.save(temptFolder + temptFile);
 
 		// create preparedStatements
 		StringBuilder prepareSql = new StringBuilder();
@@ -171,7 +181,7 @@ public class MBTilesReader {
 		preparedStatement.setInt(1, zoom);
 		preparedStatement.setInt(2, column);
 		preparedStatement.setInt(3, row);
-		preparedStatement.setBinaryStream(4, new FileInputStream(new File(imageAdd)));
+		preparedStatement.setBinaryStream(4, new FileInputStream(new File(temptFolder + temptFile)));
 		preparedStatement.executeUpdate();
 	}
 

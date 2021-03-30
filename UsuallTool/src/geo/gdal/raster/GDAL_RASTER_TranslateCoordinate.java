@@ -87,7 +87,7 @@ public class GDAL_RASTER_TranslateCoordinate {
 
 		batFile.add("exit");
 		new AtFileWriter(batFile.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + "//gdalwrap_tempt.bat").setEncoding(AtFileWriter.ANSI).textWriter("");
+				GdalGlobal.gdalBinFolder + "//gdalwrap_tempt.bat").setEncoding(AtFileWriter.BIG5).textWriter("");
 
 		/*
 		 * run bat file

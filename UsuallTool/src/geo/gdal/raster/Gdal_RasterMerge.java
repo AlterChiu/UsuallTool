@@ -2,6 +2,7 @@
 package geo.gdal.raster;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,13 +46,7 @@ public class Gdal_RasterMerge {
 		save(saveAdd, VARIABLETYPE_Float32);
 	}
 
-	public void save(String saveAdd, String variableType)
-
-			throws IOException, InterruptedException {
-		/*
-		 * clear gdalGlobal temptFolder
-		 */
-		this.temptFolder = AtFileFunction.createTemptFolder();
+	public void save(String saveAdd, String variableType) throws IOException, InterruptedException {
 
 		/*
 		 * setting temptFile fileName
@@ -70,6 +65,23 @@ public class Gdal_RasterMerge {
 
 			AtFileFunction.copyFile(temptFile, sourceFileAdd);
 			mergeList.add("\"" + sourceFileAdd + "\"");
+
+//			// copy coordinate file
+//			try {
+//				String parentPath = new File(temptFile).getParent();
+//				FilenameFilter filter = new FilenameFilter() {
+//					@Override
+//					public boolean accept(File f, String name) {
+//						return name.contains(sourceFileName + ".") && !name.endsWith(sourceFileExtension);
+//					}
+//				};
+//				for (String otherFile : new File(parentPath).list(filter)) {
+//					AtFileFunction.copyFile(parentPath + "\\" + otherFile, this.temptFolder + "\\" + sourceFileName);
+//				}
+//
+//			} catch (Exception e) {
+//
+//			}
 		}
 
 		/*
@@ -89,12 +101,12 @@ public class Gdal_RasterMerge {
 		 */
 		GdalGlobal.GDAL_EnviromentStarting().forEach(line -> this.batContent.add(line));
 		StringBuilder mergeCommand = new StringBuilder();
-		mergeCommand.append("\"%GRASS_PYTHON%\" gdal_merge.py");
+		mergeCommand.append("\"%GRASS_PYTHON%\" -m gdal_merge");
 		mergeCommand.append(" -a_nodata  " + this.noDataValue);
 		mergeCommand.append(" -ot " + VARIABLETYPE_Float32);
 		mergeCommand.append(" -of " + GdalGlobal_DataFormat.DATAFORMAT_RASTER_GTiff);
-		mergeCommand.append(" -o " + targetFileAdd);
-		mergeCommand.append(" --optfile " + temptFileDirection);
+		mergeCommand.append(" -o " + targetFileAdd + "");
+		mergeCommand.append(" --optfile " + temptFileDirection + "");
 
 		this.batContent.add(mergeCommand.toString());
 		this.batContent.add("exit");
@@ -102,7 +114,7 @@ public class Gdal_RasterMerge {
 		 * save .bat file to gdalBin folder
 		 */
 		new AtFileWriter(this.batContent.parallelStream().toArray(String[]::new),
-				GdalGlobal.gdalBinFolder + tmeptRunFileName).setEncoding(AtFileWriter.ANSI).textWriter("");
+				GdalGlobal.gdalBinFolder + tmeptRunFileName).setEncoding(AtFileWriter.BIG5).textWriter("");
 
 		/*
 		 * run bat file
@@ -126,6 +138,6 @@ public class Gdal_RasterMerge {
 		 */
 		AtFileFunction.waitFileComplete(targetFileAdd);
 		AtFileFunction.copyFile(targetFileAdd, saveAdd);
-		AtFileFunction.delete(this.temptFolder);
+//		AtFileFunction.delete(this.temptFolder);
 	}
 }
