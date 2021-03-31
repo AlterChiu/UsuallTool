@@ -1,5 +1,7 @@
 package database;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,7 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AtDbBasicControl {
+public class AtDbBasicControl implements Closeable {
 	private DbDriver driver;
 	private Connection connect;
 
@@ -142,6 +144,16 @@ public class AtDbBasicControl {
 			return "VARBINARY";
 		default:
 			return "OTHER";
+		}
+	}
+
+	@Override
+	public void close() throws IOException {
+		try {
+			this.connect.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }

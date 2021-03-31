@@ -50,7 +50,7 @@ public class AtSqlResult {
 					temptMap.put(title, this.resultSet.getBytes(title));
 					break;
 				case java.sql.Types.BLOB:
-					temptMap.put(title, this.resultSet.getBlob(title));
+					temptMap.put(title, this.resultSet.getBinaryStream(title));
 					break;
 				case java.sql.Types.BOOLEAN:
 					temptMap.put(title, this.resultSet.getBoolean(title));

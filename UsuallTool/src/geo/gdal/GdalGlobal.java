@@ -371,6 +371,10 @@ public class GdalGlobal {
 	}
 
 	public static double[] CoordinateTranslator(double x, double y, int importCoordinate, int outputCoordinate) {
+
+		if (importCoordinate == outputCoordinate)
+			return new double[] { x, y };
+
 		Geometry pointGeometry = GdalGlobal.CreatePoint(x, y);
 		Geometry translatedPoint = GdalGlobal.GeometryTranslator(pointGeometry, importCoordinate, outputCoordinate);
 		return new double[] { translatedPoint.GetX(), translatedPoint.GetY() };
@@ -829,6 +833,18 @@ public class GdalGlobal {
 
 		public double getMinY() {
 			return this.minY;
+		}
+
+		public Geometry getPolygon() {
+			List<Double[]> points = new ArrayList<>();
+
+			points.add(new Double[] { minX, minY });
+			points.add(new Double[] { maxX, minY });
+			points.add(new Double[] { maxX, maxY });
+			points.add(new Double[] { minX, maxY });
+			points.add(new Double[] { minX, minY });
+
+			return GdalGlobal.CreatePolygon(points);
 		}
 	}
 

@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import geo.gdal.GdalGlobal;
+import geo.gdal.RasterReader;
+import usualTool.AtFileFunction;
 import usualTool.AtFileWriter;
 
 public class Gdal_RasterTranslateFormat {
@@ -15,6 +17,10 @@ public class Gdal_RasterTranslateFormat {
 
 	public Gdal_RasterTranslateFormat(String originalFile) {
 		this.originalFile = originalFile;
+	}
+
+	public Gdal_RasterTranslateFormat(RasterReader raster) {
+		this.originalFile = raster.getRasterPath();
 	}
 
 	public Gdal_RasterTranslateFormat setNullValue(String nullValue) {
@@ -28,9 +34,9 @@ public class Gdal_RasterTranslateFormat {
 		StringBuilder sb = new StringBuilder();
 		sb.append("-projwin ");
 		sb.append(minX + " ");
+		sb.append(maxY + " ");
 		sb.append(maxX + " ");
-		sb.append(minY + "");
-		sb.append(maxY + "");
+		sb.append(minY + " ");
 
 		this.clipBoundary = sb.toString();
 		return this;
@@ -48,7 +54,7 @@ public class Gdal_RasterTranslateFormat {
 
 		// setting gdal_translate setting
 		StringBuilder translateCommand = new StringBuilder();
-		translateCommand.append("gdal_translate");
+		translateCommand.append("gdal_translate ");
 
 		// setting clip boundary
 		translateCommand.append(this.clipBoundary);
@@ -88,5 +94,6 @@ public class Gdal_RasterTranslateFormat {
 		pb.command(runCommand);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
+		AtFileFunction.waitFileComplete(saveAdd);
 	}
 }

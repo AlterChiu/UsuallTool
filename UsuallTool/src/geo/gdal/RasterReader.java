@@ -67,6 +67,7 @@ public class RasterReader implements AutoCloseable {
 
 		this.maxX = AtCommonMath.getDecimal_Double(this.minX + (this.column - 1) * this.xSize, this.dataDecimal);
 		this.minY = AtCommonMath.getDecimal_Double(this.maxY + (this.row - 1) * this.ySize, this.dataDecimal);
+
 	}
 
 	// <+++++++++++++++++++++++++++++++++++++>
@@ -321,6 +322,10 @@ public class RasterReader implements AutoCloseable {
 			throws InterruptedException, IOException {
 		Gdal_RasterTranslateFormat translate = new Gdal_RasterTranslateFormat(fileAdd);
 		translate.save(targetAdd, saveType);
+	}
+
+	public String getRasterPath() {
+		return this.fileAdd;
 	}
 
 	@Override

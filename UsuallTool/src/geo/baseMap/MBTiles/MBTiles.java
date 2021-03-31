@@ -12,8 +12,8 @@ public class MBTiles {
 	public final static int tilePixel = 256;
 	public final static int mbtilesEPSG = 3857;
 
-	public static MBTilesReader read(String fileAdd) throws ClassNotFoundException, SQLException {
-		return new MBTilesReader(fileAdd);
+	public static MBTilesControl read(String fileAdd) throws ClassNotFoundException, SQLException {
+		return new MBTilesControl(fileAdd);
 	}
 
 	public static double getZoomLevelResolution(int zoomLevel) throws Exception {
@@ -28,8 +28,8 @@ public class MBTiles {
 		double[] mbtileCoordinate = GdalGlobal.CoordinateTranslator(x, y, inEPSG, MBTiles.mbtilesEPSG);
 
 		double zoomResulotion = MBTiles.getZoomLevelResolution(zoomLevel);
-		int row = (int) ((mbtileCoordinate[1] - MBTiles.startY) / (zoomResulotion * MBTiles.tilePixel)) + 1;
-		int column = (int) ((mbtileCoordinate[0] - MBTiles.startX) / (zoomResulotion * MBTiles.tilePixel)) + 1;
+		int row = (int) ((mbtileCoordinate[1] - MBTiles.startY) / (zoomResulotion * MBTiles.tilePixel));
+		int column = (int) ((mbtileCoordinate[0] - MBTiles.startX) / (zoomResulotion * MBTiles.tilePixel));
 		return new int[] { column, row };
 	}
 
@@ -44,6 +44,6 @@ public class MBTiles {
 		double maxXY[] = GdalGlobal.CoordinateTranslator(maxX, maxY, MBTiles.mbtilesEPSG, outEPSG);
 		double minXY[] = GdalGlobal.CoordinateTranslator(minX, minY, MBTiles.mbtilesEPSG, outEPSG);
 
-		return  new EnvelopBoundary(maxXY[0], maxXY[1], minXY[0], minXY[1]);
+		return new EnvelopBoundary(maxXY[0], maxXY[1], minXY[0], minXY[1]);
 	}
 }

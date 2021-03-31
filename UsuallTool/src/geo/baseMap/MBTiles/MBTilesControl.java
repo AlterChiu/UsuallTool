@@ -1,32 +1,37 @@
 package geo.baseMap.MBTiles;
 
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.sql.Blob;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Stream;
+
+import org.apache.commons.io.FileUtils;
+import org.gdal.ogr.Geometry;
 
 import database.AtDbBasicControl;
 import database.AtSqlResult;
 import geo.baseMap.wms.WMSBasicControl;
 import geo.gdal.GdalGlobal;
 import geo.gdal.GdalGlobal.EnvelopBoundary;
+import geo.gdal.GdalGlobal_DataFormat;
+import geo.gdal.RasterReader;
+import geo.gdal.SpatialWriter;
+import geo.gdal.raster.Gdal_RasterTranslateFormat;
 import geo.gdal.raster.Gdal_RasterWarp;
 import usualTool.AtFileFunction;
 
-public class MBTilesReader {
+public class MBTilesControl implements Closeable {
 	private AtDbBasicControl dbControl;
 	private final String table = "tiles";
 	private final String columnTitle = "tile_column";
@@ -34,10 +39,12 @@ public class MBTilesReader {
 	private final String dataTitle = "tile_data";
 	private final String zoomTitle = "zoom_level";
 
-	public MBTilesReader(String fileAdd) throws ClassNotFoundException, SQLException {
+	public MBTilesControl(String fileAdd) throws ClassNotFoundException, SQLException {
 		this.dbControl = new AtDbBasicControl(fileAdd, AtDbBasicControl.DbDriver.SQLITE);
 	}
 
+	// <GET PROPERTIES>
+	// <========================================================>
 	public List<Integer> getRows(int zoom, int column) {
 		StringBuilder sql = new StringBuilder();
 		sql.append("select distinct " + this.rowTitle + " from ");
@@ -104,7 +111,9 @@ public class MBTilesReader {
 			return null;
 		}
 	}
+	// <========================================================>
 
+	// replace a zoomLevel with wmsTiles
 	public void replace(int zoom, String wmsName, String layers) throws Exception {
 		// create wms connection
 		WMSBasicControl wms = new WMSBasicControl(wmsName);
@@ -125,20 +134,14 @@ public class MBTilesReader {
 				System.out.println(row + "\t" + column);
 
 				// delete old blob
-				StringBuilder deleteSql = new StringBuilder();
-				deleteSql.append("delete from " + this.table);
-				deleteSql.append(" where " + this.rowTitle + " = " + row);
-				deleteSql.append(" and " + this.columnTitle + " = " + column);
-				deleteSql.append(" and " + this.zoomTitle + " = " + zoom);
-				this.dbControl.excequteQuery(deleteSql.toString());
+				this.delete(zoom, row, column);
+
 				// get boundary
 				GdalGlobal.EnvelopBoundary boundary = MBTiles.getBoundary(zoom, column, row, MBTiles.mbtilesEPSG);
 
 				// get wms image
 				wms.setBound(boundary, MBTiles.mbtilesEPSG);
 				byte[] bytes = wms.getTileMap(256, 256);
-				wms.saveAsPng(256, 256, "C:\\Users\\2101017\\Downloads\\test\\"
-						+ AtFileFunction.getTempFileName("C:\\Users\\2101017\\Downloads\\test\\", ".png"));
 
 				// insert blob
 				preparedStatement.setInt(1, zoom);
@@ -151,24 +154,12 @@ public class MBTilesReader {
 		preparedStatement.execute();
 	}
 
-	public void replace(int zoom, int column, int row, String imageAdd)
+	// add image
+	public void add(int zoom, int column, int row, String imageAdd)
 			throws SQLException, InterruptedException, IOException {
 
 		// delete old blob
-		StringBuilder deleteSql = new StringBuilder();
-		deleteSql.append("delete from " + this.table);
-		deleteSql.append(" where " + this.rowTitle + " = " + row);
-		deleteSql.append(" and " + this.columnTitle + " = " + column);
-		deleteSql.append(" and " + this.zoomTitle + " = " + zoom);
-		this.dbControl.excequteQuery(deleteSql.toString());
-
-		// wrap image
-		String temptFolder = AtFileFunction.createTemptFolder();
-		String imageExtention = imageAdd.substring(imageAdd.lastIndexOf("."));
-		String temptFile = AtFileFunction.getTempFileName(temptFolder, imageExtention);
-		Gdal_RasterWarp warp = new Gdal_RasterWarp(imageAdd);
-		warp.reSample(256, 256);
-		warp.save(temptFolder + temptFile);
+		this.delete(zoom, row, column);
 
 		// create preparedStatements
 		StringBuilder prepareSql = new StringBuilder();
@@ -178,25 +169,100 @@ public class MBTilesReader {
 		PreparedStatement preparedStatement = this.dbControl.createPrepareStatement(prepareSql.toString());
 
 		// insert blob
+		byte[] blobByts = FileUtils.readFileToByteArray(new File(imageAdd));
 		preparedStatement.setInt(1, zoom);
 		preparedStatement.setInt(2, column);
 		preparedStatement.setInt(3, row);
-		preparedStatement.setBinaryStream(4, new FileInputStream(new File(temptFolder + temptFile)));
+		preparedStatement.setBinaryStream(4, new ByteArrayInputStream(blobByts), blobByts.length);
 		preparedStatement.executeUpdate();
+		AtFileFunction.waitFileComplete(imageAdd);
 	}
 
-	public Blob getImageBlob(int zoom, int column, int row) {
+	// add tile with crop
+	public void add(int zoom, RasterReader raster, int epsg) throws Exception {
+		// get zoom resolution
+		double cellSize = MBTiles.getZoomLevelResolution(zoom);
+
+		// convert coordination
+		String temptFolder = AtFileFunction.createTemptFolder();
+		String coordinateTranslateFileAdd = temptFolder + "//CoordinateTranslate.tif";
+		Gdal_RasterWarp translateCoordinate = new Gdal_RasterWarp(raster);
+		translateCoordinate.setCoordinate(epsg, MBTiles.mbtilesEPSG);
+		translateCoordinate.reSample(cellSize, cellSize, MBTiles.mbtilesEPSG);
+		translateCoordinate.save(coordinateTranslateFileAdd);
+
+		// get properties
+		RasterReader convertedRaster = new RasterReader(coordinateTranslateFileAdd);
+		double[] leftTopXY = new double[] { convertedRaster.getMinX(), convertedRaster.getMaxY() };
+		double[] RightBotlXY = new double[] { convertedRaster.getMaxX(), convertedRaster.getMinY() };
+
+		int[] leftTopColumnRow = MBTiles.getColumnRow(zoom, leftTopXY[0], leftTopXY[1], MBTiles.mbtilesEPSG);
+		int[] rightBotColumnRow = MBTiles.getColumnRow(zoom, RightBotlXY[0], RightBotlXY[1], MBTiles.mbtilesEPSG);
+		int minRow = rightBotColumnRow[1];
+		int minCol = leftTopColumnRow[0];
+		int maxRow = leftTopColumnRow[1];
+		int maxCol = rightBotColumnRow[0];
+
+		// processing
+		int total = (maxRow - minRow) * (maxCol - minCol);
+		int current = 0;
+		System.out.print(current);
+
+		// crop raster to tiles
+		String temptCropFileAdd = temptFolder + "\\temptCrop.tif";
+		String temptPngFileAdd = temptFolder + "\\temptPng.tif";
+
+		for (int row = minRow; row <= maxRow; row++) {
+			for (int column = minCol; column <= maxCol; column++) {
+
+				// run processing
+				int temptCurrent = (int) ((row - minRow) * (column - minCol) / (double) total * 10); // every 10
+				if (current < temptCurrent) {
+					System.out.print("..." + temptCurrent * 10);
+					current = temptCurrent;
+				}
+
+				// crop
+				EnvelopBoundary boundary = MBTiles.getBoundary(zoom, column, row, 3857);
+				Gdal_RasterTranslateFormat rasterCrop = new Gdal_RasterTranslateFormat(coordinateTranslateFileAdd);
+				rasterCrop.setBoundary(boundary.getMinX(), boundary.getMaxX(), boundary.getMinY(), boundary.getMaxY());
+				rasterCrop.save(temptCropFileAdd, GdalGlobal_DataFormat.DATAFORMAT_RASTER_GTiff);
+
+				// translate to pngFile
+				Gdal_RasterTranslateFormat convertPng = new Gdal_RasterTranslateFormat(temptCropFileAdd);
+				convertPng.save(temptPngFileAdd, GdalGlobal_DataFormat.DATAFORMAT_RASTER_PNG);
+
+				// add to MBTiles
+				this.add(zoom, column, row, temptPngFileAdd);
+			}
+		}
+
+		// clear catch
+		AtFileFunction.delete(temptFolder);
+		System.out.println("  Completed");
+	}
+
+	public void delete(int zoom, int row, int column) {
+		StringBuilder deleteSql = new StringBuilder();
+		deleteSql.append("delete from " + this.table);
+		deleteSql.append(" where " + this.rowTitle + " = " + row);
+		deleteSql.append(" and " + this.columnTitle + " = " + column);
+		deleteSql.append(" and " + this.zoomTitle + " = " + zoom);
+		this.dbControl.excequteQuery(deleteSql.toString());
+	}
+
+	public InputStream getImageBlob(int zoom, int column, int row) {
 		StringBuilder sql = new StringBuilder();
 		sql.append("select * from ");
-		sql.append(table + " ");
-		sql.append("where ");
-		sql.append(zoomTitle + "=" + zoom + "and ");
-		sql.append(rowTitle + "=" + row + "and ");
+		sql.append(table);
+		sql.append(" where ");
+		sql.append(zoomTitle + "=" + zoom + " and ");
+		sql.append(rowTitle + "=" + row + " and ");
 		sql.append(columnTitle + "=" + column);
 
 		try {
 			AtSqlResult result = new AtSqlResult(this.dbControl.createPrepareStatement(sql.toString()).executeQuery());
-			return (Blob) result.getResults().get(0).get(this.dataTitle);
+			return (InputStream) result.getResults().get(0).get(this.dataTitle);
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -208,8 +274,7 @@ public class MBTilesReader {
 
 	public void saveImage(String saveAdd, int zoom, int column, int row)
 			throws IOException, SQLException, InterruptedException {
-		Blob blob = this.getImageBlob(zoom, column, row);
-		InputStream input = blob.getBinaryStream();
+		InputStream inputStream = this.getImageBlob(zoom, column, row);
 
 		// prepare streams
 		File temptFile = new File(saveAdd);
@@ -217,14 +282,20 @@ public class MBTilesReader {
 		int temptLen = 0;
 
 		// write file
-		while ((temptLen = input.read()) != -1) {
+		while ((temptLen = inputStream.read()) != -1) {
 			output.write(temptLen);
 		}
 
 		// close file
 		output.close();
-		input.close();
+		inputStream.close();
 		AtFileFunction.waitFileComplete(saveAdd);
+	}
+
+	@Override
+	public void close() throws IOException {
+		// TODO Auto-generated method stub
+		this.dbControl.close();
 	}
 
 }

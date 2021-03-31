@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import geo.gdal.GdalGlobal;
+import geo.gdal.RasterReader;
+import usualTool.AtFileFunction;
 
 public class Gdal_RasterWarp {
 	private String originalFileAdd;
@@ -27,14 +29,15 @@ public class Gdal_RasterWarp {
 		this.originalFileAdd = fileAdd;
 	}
 
+	public Gdal_RasterWarp(RasterReader raster) {
+		this.originalFileAdd = raster.getRasterPath();
+	}
+
 	public void setCoordinate(int inputEPSG, int outputEPSG) {
 		List<String> command = new ArrayList<>();
 		command.add("-s_srs");
-		command.add(" ");
 		command.add("EPSG:" + inputEPSG);
-		command.add(" ");
 		command.add("-t_srs");
-		command.add(" ");
 		command.add("EPSG:" + outputEPSG);
 		this.coordinateTranslate = command;
 	}
@@ -45,7 +48,7 @@ public class Gdal_RasterWarp {
 		if (this.coordinateTranslate.size() == 0) {
 			List<String> temptList = new ArrayList<>();
 			temptList.add("-s_srs");
-			temptList.add("EPSGFE:" + sourceEPSG);
+			temptList.add("EPSG:" + sourceEPSG);
 			this.coordinateTranslate = temptList;
 		}
 
@@ -126,13 +129,14 @@ public class Gdal_RasterWarp {
 
 		command.add("\"" + this.originalFileAdd + "\"");
 		command.add("\"" + fileAdd + "\"");
-
+		
 		// run command
 		ProcessBuilder pb = new ProcessBuilder();
 		pb.directory(new File(GdalGlobal.gdalBinFolder));
 		pb.command(command);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
+		AtFileFunction.waitFileComplete(fileAdd);
 	}
 
 }
