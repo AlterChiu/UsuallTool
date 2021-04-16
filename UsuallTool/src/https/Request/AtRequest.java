@@ -270,7 +270,7 @@ public class AtRequest {
 	private String urlEncoding(String value) throws UnsupportedEncodingException {
 		return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
 	}
-
+	
 	public class Response implements AutoCloseable {
 		CloseableHttpResponse response;
 		CloseableHttpClient httpclient;
