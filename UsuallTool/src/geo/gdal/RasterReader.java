@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.gdal.gdal.Band;
+import org.gdal.gdal.ColorTable;
 import org.gdal.gdal.Dataset;
 import org.gdal.gdal.gdal;
 import geo.gdal.raster.Gdal_RasterToPNG;
@@ -67,7 +68,6 @@ public class RasterReader implements AutoCloseable {
 
 		this.maxX = AtCommonMath.getDecimal_Double(this.minX + (this.column - 1) * this.xSize, this.dataDecimal);
 		this.minY = AtCommonMath.getDecimal_Double(this.maxY + (this.row - 1) * this.ySize, this.dataDecimal);
-
 	}
 
 	// <+++++++++++++++++++++++++++++++++++++>
@@ -326,6 +326,10 @@ public class RasterReader implements AutoCloseable {
 
 	public String getRasterPath() {
 		return this.fileAdd;
+	}
+
+	public Band getBand() {
+		return this.rasterBand;
 	}
 
 	@Override
