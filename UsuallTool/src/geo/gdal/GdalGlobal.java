@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -426,7 +427,7 @@ public class GdalGlobal {
 	}
 
 	public static Set<String> GeometryToPointKeySet(List<Geometry> geoList, int dataDecimale) {
-		Set<String> verticeSet = new HashSet<>();
+		Set<String> verticeSet = new LinkedHashSet<>();
 		geoList.forEach(geo -> {
 			GeometryToPointKeySet(geo, dataDecimale).forEach(keySet -> {
 				verticeSet.add(keySet);
@@ -440,7 +441,7 @@ public class GdalGlobal {
 	}
 
 	public static Set<String> GeometryToPointKeySet_Z(Geometry geometry, int dataDecimale) {
-		Set<String> coordinateKeys = new HashSet<>();
+		Set<String> coordinateKeys = new LinkedHashSet<>();
 
 		MultiPolyToSingle(geometry).forEach(geo -> {
 
@@ -457,7 +458,7 @@ public class GdalGlobal {
 				coordinateKeys.add(xString + "_" + yString + "_" + zString);
 
 				// line
-			} else if (geo.GetGeometryName().toUpperCase().contains("LineString")) {
+			} else if (geo.GetGeometryName().toUpperCase().contains("LINESTRING")) {
 				for (double[] point : geo.GetPoints()) {
 					String xString = AtCommonMath.getDecimal_String(point[0], dataDecimale);
 					String yString = AtCommonMath.getDecimal_String(point[1], dataDecimale);
@@ -493,7 +494,7 @@ public class GdalGlobal {
 	}
 
 	public static Set<String> GeometryToPointKeySet(Geometry geometry, int dataDecimale) {
-		Set<String> coordinateKeys = new HashSet<>();
+		Set<String> coordinateKeys = new LinkedHashSet<>();
 
 		MultiPolyToSingle(geometry).forEach(geo -> {
 			String xString;

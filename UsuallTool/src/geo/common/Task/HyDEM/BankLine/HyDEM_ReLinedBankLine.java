@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.gdal.ogr.Geometry;
+
+import geo.common.Task.SOBEK.ObjectDefine.SOBEK_OBJECT.SobekBankLine;
 import geo.gdal.GdalGlobal;
 import geo.gdal.SpatialReader;
 import geo.gdal.SpatialWriter;
@@ -19,7 +21,6 @@ import geo.gdal.application.IrregularNetBasicControl;
 import geo.gdal.application.IrregularNetBasicControl.EdgeClass;
 import geo.gdal.application.IrregularNetBasicControl.FaceClass;
 import geo.gdal.application.IrregularReachBasicControl;
-import testFolder.SOBEK_OBJECT.SobekBankLine;
 
 public class HyDEM_ReLinedBankLine {
 	public static int dataDecimal = 4;

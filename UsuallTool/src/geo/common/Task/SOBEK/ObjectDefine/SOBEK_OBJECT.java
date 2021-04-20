@@ -1,7 +1,6 @@
-package testFolder;
+package geo.common.Task.SOBEK.ObjectDefine;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
