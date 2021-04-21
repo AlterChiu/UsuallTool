@@ -334,21 +334,16 @@ public class GdalGlobal {
 		return temptPath;
 	}
 
-	public static Geometry GeometryTranslator(Geometry geo, int importCoordinate, int outputCoordinate) {
-		SpatialReference inputSpatital = new SpatialReference();
-		inputSpatital.ImportFromEPSG(importCoordinate);
+	public static Geometry GeometryTranslator(Geometry geo, int importCoordinate, int outputCoordinate)
+			throws IOException {
+		String inputProj4 = EPSG.getProj4(importCoordinate);
+		String outputProj4 = EPSG.getProj4(outputCoordinate);
 
-		SpatialReference outputSpatital = new SpatialReference();
-		outputSpatital.ImportFromEPSG(outputCoordinate);
-
-		CoordinateTransformation geoTrans = new CoordinateTransformation(inputSpatital, outputSpatital);
-		Geometry temptGeo = geo.Clone();
-		temptGeo.Transform(geoTrans);
-
-		return temptGeo;
+		return GdalGlobal.GeometryTranslator(geo, inputProj4, outputProj4);
 	}
 
-	public static Geometry GeometryTranslator(double x, double y, int importCoordinate, int outputCoordinate) {
+	public static Geometry GeometryTranslator(double x, double y, int importCoordinate, int outputCoordinate)
+			throws IOException {
 		return GdalGlobal.GeometryTranslator(GdalGlobal.CreatePoint(x, y), importCoordinate, outputCoordinate);
 	}
 
@@ -370,7 +365,8 @@ public class GdalGlobal {
 		return GdalGlobal.GeometryTranslator(GdalGlobal.CreatePoint(x, y), importCoordinate, outputCoordinate);
 	}
 
-	public static double[] CoordinateTranslator(double x, double y, int importCoordinate, int outputCoordinate) {
+	public static double[] CoordinateTranslator(double x, double y, int importCoordinate, int outputCoordinate)
+			throws IOException {
 
 		if (importCoordinate == outputCoordinate)
 			return new double[] { x, y };
