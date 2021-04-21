@@ -23,7 +23,7 @@ import org.gdal.ogr.ogr;
 import org.gdal.osr.SpatialReference;
 
 public class SpatialWriter {
-	protected List<SpatialFeature> featureList;
+	protected List<SpatialFeature> featureList = new ArrayList<>();
 	protected Map<String, String> fieldType = new LinkedHashMap<>();
 
 	// projection
