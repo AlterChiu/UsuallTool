@@ -1,70 +1,44 @@
 package usualTool;
 
 import java.io.File;
-import java.io.StringReader;
-import java.util.HashMap;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 public class AtXmlReader {
-	private String nameSpace = "//";
+//	private String nameSpace = "//";
 	private Document document;
 
 	// <+++++++++++++++++++++++++++++++++++++++>
 	// <+++++++++++++ Constructor +++++++++++++++++>
 	// <+++++++++++++++++++++++++++++++++++++++>
-	public AtXmlReader(File xmlFile) throws DocumentException {
-		SAXReader reader = new SAXReader();
-		this.document = reader.read(xmlFile);
-
-		Element root = this.document.getRootElement();
-		Map<String, String> nameSpace = new HashMap<String, String>();
-		nameSpace.put("np", root.getNamespaceURI());
-		reader.getDocumentFactory().setXPathNamespaceURIs(nameSpace);
-		this.nameSpace = this.nameSpace + "np:";
-
-		this.document = reader.read(xmlFile);
+	public AtXmlReader(String xmlFileAdd, String encode) throws IOException {
+		this.document = Jsoup.parse(new File(xmlFileAdd), encode);
 	}
 
-	public AtXmlReader(String[] stringContent) throws DocumentException {
-		StringBuilder sb = new StringBuilder();
-		for (String temptLine : stringContent) {
-			sb.append(temptLine);
-		}
-		stringConvertToDocument(sb.toString());
+	public AtXmlReader(Document doc) {
+		this.document = doc;
 	}
 
-	public AtXmlReader(String stringContent) throws DocumentException {
-		stringConvertToDocument(stringContent);
+	public static AtXmlReader xmlParser(String xmlContent) {
+		return new AtXmlReader(Jsoup.parse(xmlContent));
 	}
 
-	private void stringConvertToDocument(String stringContent) throws DocumentException {
-		this.document = DocumentHelper.parseText(stringContent);
-		SAXReader reader = new SAXReader();
-
-		Element root = this.document.getRootElement();
-		Map<String, String> nameSpace = new HashMap<String, String>();
-		nameSpace.put("np", root.getNamespaceURI());
-		reader.getDocumentFactory().setXPathNamespaceURIs(nameSpace);
-		this.nameSpace = this.nameSpace + "np:";
-
-		this.document = reader.read(new StringReader(stringContent));
-	}
-	// <++++++++++++++++++++++++++++++++++++++++++++++>
-
-	public List<Node> getNodes(String node) {
-		return this.document.selectNodes(this.nameSpace + node);
+	public List<Element> getNodeByTag(String tag) {
+		List<Element> outList = new ArrayList<>();
+		this.document.getElementsByTag(tag).forEach(e -> outList.add(e));
+		return outList;
 	}
 
-	public Element getRoot() {
-		return this.document.getRootElement();
+	public List<Element> getNodeByName(String name) {
+		List<Element> outList = new ArrayList<>();
+		this.document.getElementsByAttributeValue("name", name).forEach(e -> outList.add(e));
+		return outList;
 	}
 
 }

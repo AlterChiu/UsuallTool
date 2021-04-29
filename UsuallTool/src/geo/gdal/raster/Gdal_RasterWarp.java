@@ -3,9 +3,12 @@ package geo.gdal.raster;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+
 import geo.gdal.GdalGlobal;
 import geo.gdal.RasterReader;
 import usualTool.AtFileFunction;
@@ -107,7 +110,7 @@ public class Gdal_RasterWarp {
 	public void save(String fileAdd) throws InterruptedException, IOException {
 		String extention = FilenameUtils.getExtension(fileAdd);
 		if (!extention.toUpperCase().contains("TIF")) {
-			fileAdd += "tif";
+			fileAdd += ".tif";
 		}
 
 		List<String> command = new ArrayList<>();
@@ -129,13 +132,18 @@ public class Gdal_RasterWarp {
 
 		command.add("\"" + this.originalFileAdd + "\"");
 		command.add("\"" + fileAdd + "\"");
-		
+
 		// run command
 		ProcessBuilder pb = new ProcessBuilder();
 		pb.directory(new File(GdalGlobal.gdalBinFolder));
 		pb.command(command);
 		Process runProcess = pb.start();
 		runProcess.waitFor();
+
+		StringWriter writer = new StringWriter();
+		IOUtils.copy(runProcess.getInputStream(), writer, "UTF-8");
+		System.out.println(writer.toString());
+
 		AtFileFunction.waitFileComplete(fileAdd);
 	}
 
