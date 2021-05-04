@@ -1,6 +1,7 @@
 package https.Request;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import org.apache.http.client.ClientProtocolException;
 
@@ -17,8 +18,8 @@ public abstract class Oauthor2 {
 	protected String accessToken;
 	protected String refreshToken;
 
-	protected void run()
-			throws JsonSyntaxException, UnsupportedOperationException, ClientProtocolException, IOException {
+	protected void run() throws JsonSyntaxException, UnsupportedOperationException, ClientProtocolException,
+			IOException, URISyntaxException {
 		AtRequest getToken = new AtRequest(this.url);
 		getToken.setContentType(AtRequest.ContentType_DATA);
 		getToken.addBody("client_id", this.clientId);

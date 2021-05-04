@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import javax.imageio.ImageIO;
 import org.apache.http.client.ClientProtocolException;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
+import org.jsoup.nodes.Element;
 
 import geo.gdal.GdalGlobal;
 import https.Request.AtRequest;
@@ -42,7 +44,7 @@ public class WMSBasicControl {
 	private AtXmlReader capability = null;
 	private List<Layer> layerList = new ArrayList<>();
 
-	public WMSBasicControl(String wmsUrl) throws UnsupportedEncodingException, IOException {
+	public WMSBasicControl(String wmsUrl) throws UnsupportedEncodingException, IOException, URISyntaxException {
 		// initial
 		this.wmsUrl = wmsUrl;
 		this.propertyMap = settingProperties(wmsUrl);
@@ -56,16 +58,10 @@ public class WMSBasicControl {
 		capabilityUrl.append("&Service=WMS");
 		this.capabilityUrl = capabilityUrl.toString();
 
-		// get layers
-		try {
-			this.capability = new AtXmlReader(new String(new AtRequest(this.capabilityUrl).doGet().getBytes()));
-			this.capability.getNodes("Layer").get(0).selectNodes("./Layer").forEach(node -> {
-				this.layerList.add(new Layer(node));
-			});
-
-		} catch (DocumentException e) {
-			e.printStackTrace();
-		}
+		this.capability = AtXmlReader.xmlParser(new String(new AtRequest(this.capabilityUrl).doGet().getBytes()));
+		this.capability.getNodeByTag("Layer").get(0).getElementsByTag("Layer").forEach(node -> {
+			this.layerList.add(new Layer(node));
+		});
 	}
 
 	public List<Layer> getLayers() {
@@ -73,7 +69,7 @@ public class WMSBasicControl {
 	}
 
 	public byte[] getTileMap(int width, int height)
-			throws UnsupportedOperationException, ClientProtocolException, IOException {
+			throws UnsupportedOperationException, ClientProtocolException, IOException, URISyntaxException {
 		this.propertyMap.put("WIDTH", width + "");
 		this.propertyMap.put("HEIGHT", height + "");
 
@@ -81,21 +77,22 @@ public class WMSBasicControl {
 		this.propertyMap.keySet().forEach(key -> {
 			doGet.addParameter(key, this.propertyMap.get(key));
 		});
-
 		return doGet.doGet().getBytes();
 	}
 
-	public byte[] getTileMap() throws UnsupportedOperationException, ClientProtocolException, IOException {
+	public byte[] getTileMap()
+			throws UnsupportedOperationException, ClientProtocolException, IOException, URISyntaxException {
 		return getTileMap(1920, 1080);
 	}
 
-	public void saveAsPng(int width, int height, String saveAdd) throws IOException {
+	public void saveAsPng(int width, int height, String saveAdd)
+			throws IOException, UnsupportedOperationException, URISyntaxException {
 		ByteArrayInputStream bis = new ByteArrayInputStream(this.getTileMap(width, height));
 		BufferedImage bImage = ImageIO.read(bis);
 		ImageIO.write(bImage, "png", new File(saveAdd));
 	}
 
-	public void saveAsPng(String saveAdd) throws IOException {
+	public void saveAsPng(String saveAdd) throws IOException, UnsupportedOperationException, URISyntaxException {
 		this.saveAsPng(1920, 1080, saveAdd);
 	}
 
@@ -175,28 +172,28 @@ public class WMSBasicControl {
 		private String name = "";
 		private String title = "";
 
-		public Layer(Node layerNode) {
+		public Layer(Element layerNode) {
 
 			// get epsg
-			layerNode.selectNodes("./SRS").forEach(
-					srs -> this.epsgList.add(Integer.parseInt(srs.getText().toUpperCase().replace("EPSG:", ""))));
+			layerNode.getElementsByTag("SRS")
+					.forEach(srs -> this.epsgList.add(Integer.parseInt(srs.text().toUpperCase().replace("EPSG:", ""))));
 
 			// get title
-			this.title = layerNode.selectNodes("./Title").get(0).getText();
+			this.title = layerNode.getElementsByTag("Title").get(0).text();
 
 			// get name
-			this.name = layerNode.selectNodes("./Name").get(0).getText();
+			this.name = layerNode.getElementsByTag("Name").get(0).text();
 
 			// get style
-			layerNode.selectNodes("./Style/Name").forEach(style -> this.stytle.add(style.getText()));
+			layerNode.getElementsByTag("Style/Name").forEach(style -> this.stytle.add(style.text()));
 
 			// get bound in each epsg
-			layerNode.selectNodes("./BoundingBox").forEach(bound -> {
-				int boundEPSG = Integer.parseInt(bound.valueOf("@SRS").toUpperCase().replace("EPSG:", ""));
-				double minX = Double.parseDouble(bound.valueOf("@minx"));
-				double maxX = Double.parseDouble(bound.valueOf("@maxx"));
-				double minY = Double.parseDouble(bound.valueOf("@miny"));
-				double maxY = Double.parseDouble(bound.valueOf("@maxy"));
+			layerNode.getElementsByTag("BoundingBox").forEach(bound -> {
+				int boundEPSG = Integer.parseInt(bound.attr("SRS").toUpperCase().replace("EPSG:", ""));
+				double minX = Double.parseDouble(bound.attr("minx"));
+				double maxX = Double.parseDouble(bound.attr("maxx"));
+				double minY = Double.parseDouble(bound.attr("miny"));
+				double maxY = Double.parseDouble(bound.attr("maxy"));
 
 				StringBuilder boundString = new StringBuilder();
 				boundString.append(minX + ",");
