@@ -3,12 +3,13 @@ package https.Request;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,13 +22,13 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 
 import com.google.gson.JsonObject;
@@ -37,16 +38,19 @@ public class AtRequest {
 	private Map<String, String> header;
 	private Map<String, List<String>> body;
 	private Map<String, String> parameter;
+	private Map<String, Header> cookies;
 
 	public static String ContentType_XML = "text/xml ";
+	public static String ContentType_HTML = "text/html ";
 	public static String ContentType_JSON = "application/json";
 	public static String ContentType_FORM = "application/x-www-form-urlencoded";
 	public static String ContentType_DATA = "multipart/form-data";
 
 	public AtRequest(String url) {
-		this.header = new HashMap<>();
-		this.body = new HashMap<>();
-		this.parameter = new HashMap<>();
+		this.header = new LinkedHashMap<>();
+		this.body = new LinkedHashMap<>();
+		this.parameter = new LinkedHashMap<>();
+		this.cookies = new LinkedHashMap<>();
 		this.url = url;
 
 		this.setContentType(ContentType_FORM);
@@ -65,6 +69,10 @@ public class AtRequest {
 
 	public void addHeader(String key, String value) {
 		this.header.put(key, value);
+	}
+
+	public String getHeader(String key) {
+		return this.header.get(key);
 	}
 
 	public void removeHeader(String key) {
@@ -108,7 +116,26 @@ public class AtRequest {
 	}
 
 	public void setCookie(Response response) {
-		this.header.put("Cookie", response.getCookie());
+		Map<String, Header> setCookies = response.getCookies();
+		setCookies.keySet().forEach(key -> {
+			this.cookies.put(key, new BasicHeader("Cookie", setCookies.get(key).getValue()));
+		});
+	}
+
+	public void addCookie(Response response, String cookieKey) {
+		if (response.getCookies().containsKey(cookieKey)) {
+			Header cookie = response.getCookies().get(cookieKey);
+			this.cookies.put(cookieKey, new BasicHeader("Cookie", cookie.getValue()));
+		}
+	}
+
+	public void addCookie(String cooki) {
+		String cookieKey = cooki.split(";")[0].split("=")[0];
+		this.cookies.put(cookieKey, new BasicHeader("Cookie", cooki));
+	}
+
+	public void addCookies(Header header) {
+		this.cookies.put(header.getName(), header);
 	}
 
 	public void setContentType(String type) {
@@ -123,6 +150,7 @@ public class AtRequest {
 		RequestBuilder requestBuilder = RequestBuilder.get(this.url);
 		this.buildParameters(requestBuilder);
 		this.buildHeader(requestBuilder);
+		this.buildCookies(requestBuilder);
 		this.buildTimeout(requestBuilder, timeoutSecond);
 
 		return this.doRequest(requestBuilder);
@@ -241,15 +269,20 @@ public class AtRequest {
 
 			// other or Form
 		} else {
-			List<NameValuePair> bodies = new ArrayList<>();
+			List<String> bodies = new ArrayList<>();
 			this.body.keySet().forEach(key -> {
 				List<String> values = this.body.get(key);
 
 				values.forEach(value -> {
-					bodies.add(new BasicNameValuePair(key, value));
+					try {
+						bodies.add(UrlEncoding(key) + "=" + UrlEncoding(value));
+					} catch (UnsupportedEncodingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				});
 			});
-			requestBuilder.setEntity(new UrlEncodedFormEntity(bodies));
+			requestBuilder.setEntity(new StringEntity(String.join("&", bodies)));
 		}
 
 		return requestBuilder;
@@ -278,14 +311,25 @@ public class AtRequest {
 		URI uri = new URIBuilder(requestBuilder.getUri()).addParameters(nameValuePairs).build();
 		requestBuilder.setUri(uri);
 
-		try {
-			System.out.println(requestBuilder.getUri().toURL());
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			System.out.println(requestBuilder.getUri().toURL());
+//		} catch (MalformedURLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 		return requestBuilder;
+	}
+
+	private RequestBuilder buildCookies(RequestBuilder requestBuilder) {
+		this.cookies.keySet().forEach(cookieKey -> {
+			requestBuilder.setHeader(this.cookies.get(cookieKey));
+		});
+		return requestBuilder;
+	}
+
+	public static String UrlEncoding(String value) throws UnsupportedEncodingException {
+		return URLEncoder.encode(value, "UTF-8");
 	}
 
 	public class Response implements AutoCloseable {
@@ -294,24 +338,25 @@ public class AtRequest {
 		private int status;
 		private Map<String, String> header = new HashMap<>();
 		private HttpEntity entity;
+		private String body;
+		private Map<String, Header> cookies = new LinkedHashMap<>();
 
 		public Response(RequestBuilder requestBuilder) throws IOException {
-
 			// create client
 			this.httpclient = HttpClients.custom().build();
 			this.response = httpclient.execute(requestBuilder.build());
 
+			this.entity = response.getEntity();
 			this.status = this.checkStatus(response);
 			this.header = this.setHeaders(response);
-			this.entity = response.getEntity();
-			response.getEntity();
+			this.body = this.setBody(response);
 		}
 
 		public String getHeader(String key) {
-			return this.getHeader().get(key);
+			return this.header.get(key);
 		}
 
-		public Map<String, String> getHeader() {
+		public Map<String, String> getHeaders() {
 			return this.header;
 		}
 
@@ -321,16 +366,39 @@ public class AtRequest {
 				String name = header.getName();
 				String value = header.getValue();
 
-				// for multiple name/value
-				String temptValue = Optional.ofNullable(outMap.get(name) + ";").orElse("");
-				temptValue = temptValue + value;
-
-				outMap.put(name, temptValue);
+				if (name.equals("Set-Cookie")) {
+					String cookiKey = value.split(";")[0].split("=")[0];
+					this.cookies.put(cookiKey, header);
+				} else {
+					String temptValue = Optional.ofNullable(outMap.get(name)).orElse("");
+					temptValue = value + ";" + temptValue;
+					outMap.put(name, temptValue);
+				}
 			}
+
+			// for setCookie
+			if (outMap.containsKey("Set-Cookie")) {
+				List<String> cookieList = new ArrayList<>();
+				String cookieString[] = outMap.get("Set-Cookie").split(";");
+				for (String temptCooki : cookieString) {
+					String prefix = temptCooki.trim();
+
+					if (!prefix.startsWith("path") && !prefix.startsWith("Http") && !prefix.startsWith("expires")
+							&& !prefix.startsWith("SameSite")) {
+						cookieList.add(prefix);
+					}
+				}
+				outMap.put("Set-Cookie", String.join("; ", cookieList));
+			}
+
 			return outMap;
 		}
 
-		public String getBody() throws UnsupportedOperationException, IOException {
+		public String getBody() {
+			return this.body;
+		}
+
+		private String setBody(CloseableHttpResponse response) throws UnsupportedOperationException, IOException {
 			return IOUtils.toString(this.entity.getContent(), "UTF-8");
 		}
 
@@ -342,14 +410,19 @@ public class AtRequest {
 
 		private int checkStatus(CloseableHttpResponse response) {
 			this.status = response.getStatusLine().getStatusCode();
-			if (status < 200 || status > 400) {
-				new Exception("unExcept error while requesting: status code " + status).printStackTrace();
-			}
 			return this.status;
 		}
 
-		public String getCookie() {
-			return Optional.ofNullable(this.header.get("Set-Cookie")).orElse(null);
+		public int getStatus() {
+			return this.status;
+		}
+
+		public String getCookieString(String key) {
+			return this.cookies.get(key).getValue();
+		}
+
+		public Map<String, Header> getCookies() {
+			return this.cookies;
 		}
 
 		@Override
