@@ -1,6 +1,5 @@
 package https.Request;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -8,26 +7,20 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -115,16 +108,16 @@ public class AtRequest {
 		this.header.put("Cookie", cookie);
 	}
 
-	public void setCookie(Response response) {
-		Map<String, Header> setCookies = response.getCookies();
+	public void setCookie(AtResponse AtResponse) {
+		Map<String, Header> setCookies = AtResponse.getCookies();
 		setCookies.keySet().forEach(key -> {
 			this.cookies.put(key, new BasicHeader("Cookie", setCookies.get(key).getValue()));
 		});
 	}
 
-	public void addCookie(Response response, String cookieKey) {
-		if (response.getCookies().containsKey(cookieKey)) {
-			Header cookie = response.getCookies().get(cookieKey);
+	public void addCookie(AtResponse AtResponse, String cookieKey) {
+		if (AtResponse.getCookies().containsKey(cookieKey)) {
+			Header cookie = AtResponse.getCookies().get(cookieKey);
 			this.cookies.put(cookieKey, new BasicHeader("Cookie", cookie.getValue()));
 		}
 	}
@@ -142,97 +135,74 @@ public class AtRequest {
 		this.header.put("Content-Type", type);
 	}
 
-	public Response doGet() throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doGet() throws ClientProtocolException, IOException, URISyntaxException {
 		return this.doGet(30);
 	}
 
-	public Response doGet(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doGet(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
 		RequestBuilder requestBuilder = RequestBuilder.get(this.url);
-		this.buildParameters(requestBuilder);
-		this.buildHeader(requestBuilder);
-		this.buildCookies(requestBuilder);
 		this.buildTimeout(requestBuilder, timeoutSecond);
-
 		return this.doRequest(requestBuilder);
 	}
 
-	public Response doPost() throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doPost() throws ClientProtocolException, IOException, URISyntaxException {
 		return this.doPost(30);
 	}
 
-	public Response doPost(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doPost(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
 		RequestBuilder requestBuilder = RequestBuilder.post().setUri(this.url);
-
-		this.buildParameters(requestBuilder);
-		this.buildHeader(requestBuilder);
-		this.buildBody(requestBuilder);
 		this.buildTimeout(requestBuilder, timeoutSecond);
-
 		return this.doRequest(requestBuilder);
 	}
 
-	public Response doPatch(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doPatch(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
 		RequestBuilder requestBuilder = RequestBuilder.patch().setUri(this.url);
-
-		this.buildParameters(requestBuilder);
-		this.buildHeader(requestBuilder);
-		this.buildBody(requestBuilder);
 		this.buildTimeout(requestBuilder, timeoutSecond);
-
 		return this.doRequest(requestBuilder);
 	}
 
-	public Response doPatch() throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doPatch() throws ClientProtocolException, IOException, URISyntaxException {
 		return this.doPatch(30);
 	}
 
-	public Response doDelete(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doDelete(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
 		RequestBuilder requestBuilder = RequestBuilder.delete().setUri(this.url);
-
-		this.buildHeader(requestBuilder);
-		this.buildParameters(requestBuilder);
-		this.buildBody(requestBuilder);
 		this.buildTimeout(requestBuilder, timeoutSecond);
-
 		return this.doRequest(requestBuilder);
 	}
 
-	public Response doDelete() throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doDelete() throws ClientProtocolException, IOException, URISyntaxException {
 		return this.doDelete(30);
 	}
 
-	public Response doPut(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doPut(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
 		RequestBuilder requestBuilder = RequestBuilder.put().setUri(this.url);
-
-		this.buildHeader(requestBuilder);
-		this.buildParameters(requestBuilder);
-		this.buildBody(requestBuilder);
 		this.buildTimeout(requestBuilder, timeoutSecond);
-
 		return this.doRequest(requestBuilder);
 	}
 
-	public Response doPut() throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doPut() throws ClientProtocolException, IOException, URISyntaxException {
 		return this.doPut(30);
 	}
 
-	public Response doOptions(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doOptions(int timeoutSecond) throws ClientProtocolException, IOException, URISyntaxException {
 		RequestBuilder requestBuilder = RequestBuilder.options().setUri(this.url);
-
-		this.buildHeader(requestBuilder);
-		this.buildParameters(requestBuilder);
-		this.buildBody(requestBuilder);
 		this.buildTimeout(requestBuilder, timeoutSecond);
-
 		return this.doRequest(requestBuilder);
 	}
 
-	public Response doOptions() throws ClientProtocolException, IOException, URISyntaxException {
+	public AtResponse doOptions() throws ClientProtocolException, IOException, URISyntaxException {
 		return this.doOptions(30);
 	}
 
-	private Response doRequest(RequestBuilder requestBuilder) throws ClientProtocolException, IOException {
-		return new Response(requestBuilder);
+	private AtResponse doRequest(RequestBuilder requestBuilder) throws ClientProtocolException, IOException, URISyntaxException {
+		
+		this.buildHeader(requestBuilder);
+		this.buildParameters(requestBuilder);
+		this.buildBody(requestBuilder);
+		this.buildCookies(requestBuilder);
+		
+		return new AtResponse(requestBuilder);
 	}
 
 	private RequestBuilder buildHeader(RequestBuilder requestBuilder) throws UnsupportedEncodingException {
@@ -332,106 +302,4 @@ public class AtRequest {
 		return URLEncoder.encode(value, "UTF-8");
 	}
 
-	public class Response implements AutoCloseable {
-		CloseableHttpResponse response;
-		CloseableHttpClient httpclient;
-		private int status;
-		private Map<String, String> header = new HashMap<>();
-		private HttpEntity entity;
-		private String body;
-		private Map<String, Header> cookies = new LinkedHashMap<>();
-
-		public Response(RequestBuilder requestBuilder) throws IOException {
-			// create client
-			this.httpclient = HttpClients.custom().build();
-			this.response = httpclient.execute(requestBuilder.build());
-
-			this.entity = response.getEntity();
-			this.status = this.checkStatus(response);
-			this.header = this.setHeaders(response);
-			this.body = this.setBody(response);
-		}
-
-		public String getHeader(String key) {
-			return this.header.get(key);
-		}
-
-		public Map<String, String> getHeaders() {
-			return this.header;
-		}
-
-		private Map<String, String> setHeaders(CloseableHttpResponse response) {
-			Map<String, String> outMap = new HashMap<>();
-			for (Header header : response.getAllHeaders()) {
-				String name = header.getName();
-				String value = header.getValue();
-
-				if (name.equals("Set-Cookie")) {
-					String cookiKey = value.split(";")[0].split("=")[0];
-					this.cookies.put(cookiKey, header);
-				} else {
-					String temptValue = Optional.ofNullable(outMap.get(name)).orElse("");
-					temptValue = value + ";" + temptValue;
-					outMap.put(name, temptValue);
-				}
-			}
-
-			// for setCookie
-			if (outMap.containsKey("Set-Cookie")) {
-				List<String> cookieList = new ArrayList<>();
-				String cookieString[] = outMap.get("Set-Cookie").split(";");
-				for (String temptCooki : cookieString) {
-					String prefix = temptCooki.trim();
-
-					if (!prefix.startsWith("path") && !prefix.startsWith("Http") && !prefix.startsWith("expires")
-							&& !prefix.startsWith("SameSite")) {
-						cookieList.add(prefix);
-					}
-				}
-				outMap.put("Set-Cookie", String.join("; ", cookieList));
-			}
-
-			return outMap;
-		}
-
-		public String getBody() {
-			return this.body;
-		}
-
-		private String setBody(CloseableHttpResponse response) throws UnsupportedOperationException, IOException {
-			return IOUtils.toString(this.entity.getContent(), "UTF-8");
-		}
-
-		public byte[] getBytes() throws IOException {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			this.entity.writeTo(baos);
-			return baos.toByteArray();
-		}
-
-		private int checkStatus(CloseableHttpResponse response) {
-			this.status = response.getStatusLine().getStatusCode();
-			return this.status;
-		}
-
-		public int getStatus() {
-			return this.status;
-		}
-
-		public String getCookieString(String key) {
-			return this.cookies.get(key).getValue();
-		}
-
-		public Map<String, Header> getCookies() {
-			return this.cookies;
-		}
-
-		@Override
-		public void close() throws IOException {
-			// TODO Auto-generated method stub
-			this.header.clear();
-			this.response.close();
-			this.httpclient.close();
-		}
-
-	}
 }

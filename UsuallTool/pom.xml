@@ -20,6 +20,7 @@
 		<jdistlib.version>0.4.5</jdistlib.version>
 		<commonLang.version>3.8.1</commonLang.version>
 		<nio.version>1.0.3</nio.version>
+		<commonIO.version>2.8.0</commonIO.version>
 
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<!-- ++++++++++++ NETCDF +++++++++++++ -->
@@ -36,7 +37,7 @@
 		<dom4j.version>2.1.1</dom4j.version>
 		<jsoup.version>1.13.1</jsoup.version>
 		<jaxen.version>1.1.6</jaxen.version>
-		<HttpClient.version>4.5.12</HttpClient.version>
+		<HttpClient.version>4.5.13</HttpClient.version>
 		<HttpComponent.version>4.1.4</HttpComponent.version>
 
 		<!-- +++++++++++++++++++++++++++++++ -->
@@ -132,6 +133,14 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>${commonLang.version}</version>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commonIO.version}</version>
+		</dependency>
+
 
 		<!-- +++++++++++++++++++++++++++++++ -->
 		<!-- ++++++++++++++ HttpClient & XML +++++++++++++ -->
