@@ -2,6 +2,7 @@ package https.Request;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -23,8 +24,7 @@ public class AtResponse implements AutoCloseable {
 	private int status;
 	private Map<String, String> header = new HashMap<>();
 	private HttpEntity entity;
-	private String body;
-	private Map<String, Header> cookies = new LinkedHashMap<>();
+	private Map<String, AtCookie> cookies = new LinkedHashMap<>();
 
 	public AtResponse(RequestBuilder requestBuilder) throws IOException {
 		// create client
@@ -34,7 +34,6 @@ public class AtResponse implements AutoCloseable {
 		this.entity = response.getEntity();
 		this.status = this.checkStatus(response);
 		this.header = this.setHeaders(response);
-		this.body = this.setBody(response);
 	}
 
 	public String getHeader(String key) {
@@ -52,8 +51,12 @@ public class AtResponse implements AutoCloseable {
 			String value = header.getValue();
 
 			if (name.equals("Set-Cookie")) {
-				String cookiKey = value.split(";")[0].split("=")[0];
-				this.cookies.put(cookiKey, header);
+				try {
+					AtCookie cookie = new AtCookie(header);
+					this.cookies.put(cookie.getKey(), cookie);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			} else {
 				String temptValue = Optional.ofNullable(outMap.get(name)).orElse("");
 				temptValue = value + ";" + temptValue;
@@ -62,29 +65,24 @@ public class AtResponse implements AutoCloseable {
 		}
 
 		// for setCookie
-		if (outMap.containsKey("Set-Cookie")) {
-			List<String> cookieList = new ArrayList<>();
-			String cookieString[] = outMap.get("Set-Cookie").split(";");
-			for (String temptCooki : cookieString) {
-				String prefix = temptCooki.trim();
-
-				if (!prefix.startsWith("path") && !prefix.startsWith("Http") && !prefix.startsWith("expires")
-						&& !prefix.startsWith("SameSite")) {
-					cookieList.add(prefix);
-				}
+		List<String> cookieString = new ArrayList<>();
+		this.cookies.forEach((k, v) -> {
+			try {
+				cookieString.add(v.getUrlKeyValue());
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
 			}
-			outMap.put("Set-Cookie", String.join("; ", cookieList));
-		}
-
+		});
+		outMap.put("Set-Cookie", String.join("; ", cookieString));
 		return outMap;
 	}
 
-	public String getBody() {
-		return this.body;
+	public String getBody() throws UnsupportedOperationException, IOException {
+		return this.getBody("UTF-8");
 	}
 
-	private String setBody(CloseableHttpResponse response) throws UnsupportedOperationException, IOException {
-		return IOUtils.toString(this.entity.getContent(), "UTF-8");
+	public String getBody(String encode) throws UnsupportedOperationException, IOException {
+		return IOUtils.toString(this.entity.getContent(), encode);
 	}
 
 	public byte[] getBytes() throws IOException {
@@ -106,16 +104,15 @@ public class AtResponse implements AutoCloseable {
 		return this.cookies.get(key).getValue();
 	}
 
-	public Map<String, Header> getCookies() {
+	public Map<String, AtCookie> getCookies() {
 		return this.cookies;
 	}
 
 	@Override
 	public void close() throws IOException {
 		// TODO Auto-generated method stub
-		this.header.clear();
-		this.response.close();
-		this.httpclient.close();
+//		this.response.close();
+//		this.httpclient.close();
 	}
 
 }

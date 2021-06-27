@@ -20,7 +20,6 @@ import com.google.gson.JsonSyntaxException;
 
 public class AtFileReader {
 	private List<String> fileContain = new ArrayList<String>();
-	private String fileAdd = null;
 	private BufferedReader br;
 	public static String ANSI = "Cp1252";
 	public static String Unicode = "Unicode";
@@ -34,7 +33,6 @@ public class AtFileReader {
 	// <==================================================>
 	public AtFileReader(String file_add) throws IOException {
 		this.br = new BufferedReader(new InputStreamReader(new FileInputStream(file_add)));
-		this.fileAdd = file_add;
 		String tempt;
 		while ((tempt = br.readLine()) != null) {
 			this.fileContain.add(tempt);
@@ -54,7 +52,6 @@ public class AtFileReader {
 
 	public AtFileReader(String fileAdd, String encode) throws IOException {
 		this.br = new BufferedReader(new InputStreamReader(new FileInputStream(fileAdd), encode));
-		this.fileAdd = fileAdd;
 		String tempt;
 		while ((tempt = br.readLine()) != null) {
 			this.fileContain.add(tempt);
@@ -64,7 +61,6 @@ public class AtFileReader {
 
 	public AtFileReader(String fileAdd, Charset charset) throws IOException {
 		this.br = new BufferedReader(new InputStreamReader(new FileInputStream(fileAdd), charset));
-		this.fileAdd = fileAdd;
 		String tempt;
 		while ((tempt = br.readLine()) != null) {
 			this.fileContain.add(tempt);

@@ -36,9 +36,22 @@ public class AtXmlReader {
 	}
 
 	public List<Element> getNodeByName(String name) {
+		return this.getNodeByAttr("name", name);
+	}
+
+	public List<Element> getNodeById(String id) {
 		List<Element> outList = new ArrayList<>();
-		this.document.getElementsByAttributeValue("name", name).forEach(e -> outList.add(e));
+		return this.getNodeByAttr("id", id);
+	}
+
+	public List<Element> getNodeByAttr(String key, String value) {
+		List<Element> outList = new ArrayList<>();
+		this.document.getElementsByAttributeValue(key, value).forEach(e -> outList.add(e));
 		return outList;
+	}
+	
+	public Document getDoc() {
+		return this.document;
 	}
 
 }

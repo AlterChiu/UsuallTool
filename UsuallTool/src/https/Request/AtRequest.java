@@ -31,7 +31,7 @@ public class AtRequest {
 	private Map<String, String> header;
 	private Map<String, List<String>> body;
 	private Map<String, String> parameter;
-	private Map<String, Header> cookies;
+	private Map<String, AtCookie> cookies;
 
 	public static String ContentType_XML = "text/xml ";
 	public static String ContentType_HTML = "text/html ";
@@ -104,31 +104,33 @@ public class AtRequest {
 		}
 	}
 
-	public void setCookie(String cookie) {
-		this.header.put("Cookie", cookie);
-	}
-
-	public void setCookie(AtResponse AtResponse) {
-		Map<String, Header> setCookies = AtResponse.getCookies();
-		setCookies.keySet().forEach(key -> {
-			this.cookies.put(key, new BasicHeader("Cookie", setCookies.get(key).getValue()));
-		});
+	public void setCookie(AtResponse atResponse) {
+		this.cookies = atResponse.getCookies();
 	}
 
 	public void addCookie(AtResponse AtResponse, String cookieKey) {
 		if (AtResponse.getCookies().containsKey(cookieKey)) {
-			Header cookie = AtResponse.getCookies().get(cookieKey);
-			this.cookies.put(cookieKey, new BasicHeader("Cookie", cookie.getValue()));
+			this.cookies.put(cookieKey, AtResponse.getCookies().get(cookieKey));
 		}
 	}
 
-	public void addCookie(String cooki) {
-		String cookieKey = cooki.split(";")[0].split("=")[0];
-		this.cookies.put(cookieKey, new BasicHeader("Cookie", cooki));
+	public void addCookie(String cookie) {
+		try {
+			AtCookie atCookie = new AtCookie(cookie);
+			this.cookies.put(atCookie.getKey(), atCookie);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
-	public void addCookies(Header header) {
-		this.cookies.put(header.getName(), header);
+	public void addCookie(Header header) {
+		try {
+			AtCookie atCookie = new AtCookie(header);
+			this.cookies.put(atCookie.getKey(), atCookie);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void setContentType(String type) {
@@ -195,13 +197,17 @@ public class AtRequest {
 		return this.doOptions(30);
 	}
 
-	private AtResponse doRequest(RequestBuilder requestBuilder) throws ClientProtocolException, IOException, URISyntaxException {
-		
+	private AtResponse doRequest(RequestBuilder requestBuilder)
+			throws ClientProtocolException, IOException, URISyntaxException {
+
 		this.buildHeader(requestBuilder);
 		this.buildParameters(requestBuilder);
 		this.buildBody(requestBuilder);
 		this.buildCookies(requestBuilder);
-		
+
+		for (Header header : requestBuilder.getHeaders("Cookie")) {
+			System.out.println(header.getValue());
+		}
 		return new AtResponse(requestBuilder);
 	}
 
@@ -292,14 +298,23 @@ public class AtRequest {
 	}
 
 	private RequestBuilder buildCookies(RequestBuilder requestBuilder) {
-		this.cookies.keySet().forEach(cookieKey -> {
-			requestBuilder.setHeader(this.cookies.get(cookieKey));
+		this.cookies.forEach((key, value) -> {
+			try {
+				requestBuilder.addHeader(new BasicHeader("Cookie", value.getUrlKeyValue()));
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
 		});
+
 		return requestBuilder;
 	}
 
 	public static String UrlEncoding(String value) throws UnsupportedEncodingException {
-		return URLEncoder.encode(value, "UTF-8");
+		return UrlEncoding(value, "UTF-8");
+	}
+
+	public static String UrlEncoding(String value, String encode) throws UnsupportedEncodingException {
+		return URLEncoder.encode(value, encode);
 	}
 
 }

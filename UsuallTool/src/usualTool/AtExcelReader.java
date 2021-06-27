@@ -34,11 +34,11 @@ public class AtExcelReader {
 		int sheetOrder = this.workBook.getSheetIndex(sheetName);
 		return getList(sheetOrder).parallelStream().toArray(String[][]::new);
 	}
-	
+
 	public String[][] getContent(int sheetOrder) {
 		return getList(sheetOrder).parallelStream().toArray(String[][]::new);
 	}
-	
+
 	public List<String[]> getList(String sheetName) {
 		int sheetOrder = this.workBook.getSheetIndex(sheetName);
 		return getList(sheetOrder);
@@ -57,11 +57,11 @@ public class AtExcelReader {
 			while (cellValue.hasNext()) {
 				Cell value = cellValue.next();
 
-				if (value.getCellTypeEnum() == CellType.STRING) {
+				if (value.getCellType() == CellType.STRING) {
 					temptList.add(value.getStringCellValue());
-				} else if (value.getCellTypeEnum() == CellType.NUMERIC) {
+				} else if (value.getCellType() == CellType.NUMERIC) {
 					temptList.add(value.getNumericCellValue() + "");
-				} else if (value.getCellTypeEnum() == CellType.FORMULA) {
+				} else if (value.getCellType() == CellType.FORMULA) {
 					temptList.add(formulaEval.evaluate(value).formatAsString());
 				} else {
 					temptList.add("");
