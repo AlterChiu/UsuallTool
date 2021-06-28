@@ -12,9 +12,15 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/Code/GDAL/release-1911-x64-gdal-3-0-2-mapserver-7-4-2/bin/gdal/java/gdal.jar">
+	<classpathentry kind="lib" path="K:/Code/JAVA-Library/GDAL/release-1911-x64-gdal-3-0-2-mapserver-7-4-2/bin/gdal.jar">
 		<attributes>
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="D:/Code/GDAL/release-1911-x64-gdal-3-0-2-mapserver-7-4-2/bin"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="target/classes" path="UsuallTool/src">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>

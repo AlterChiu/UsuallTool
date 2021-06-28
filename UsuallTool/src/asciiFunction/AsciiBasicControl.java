@@ -260,8 +260,8 @@ public class AsciiBasicControl implements Cloneable {
 	public List<Double> getValueList(int column, int row, int gridCount) {
 		List<Double> outList = new ArrayList<>();
 
-		for (int rowCount = -1 * gridCount; rowCount < gridCount; rowCount++) {
-			for (int columnCount = -1 * gridCount; columnCount < gridCount; columnCount++) {
+		for (int rowCount = -1 * gridCount; rowCount <= gridCount; rowCount++) {
+			for (int columnCount = -1 * gridCount; columnCount <= gridCount; columnCount++) {
 				String temptValue = this.getValue(columnCount + column, rowCount + row);
 
 				if (!temptValue.equals(this.getNullValue())) {
